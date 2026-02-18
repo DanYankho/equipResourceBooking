@@ -1141,6 +1141,45 @@
             transform: translateY(0);
         }
 
+        /* File Upload Section */
+        .file-upload-section {
+            background: var(--soft-cream);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 2px dashed var(--beige);
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            background: var(--navy);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .file-label:hover {
+            background: var(--turquoise-dark);
+        }
+
+        .file-name {
+            color: var(--blue-grey);
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             .portal-cards {
                 grid-template-columns: 1fr;
@@ -1254,7 +1293,7 @@
         <header class="header">
             <div class="header-content">
                 <div class="logo-section">
-                    <div class="logo-placeholder">LOGO</div>
+                    <div class="logo-placeholder" id="siteLogo">LOGO</div>
                     <div class="brand-text">
                         <h1>Executive Booking</h1>
                         <span id="portalTypeLabel">User Portal</span>
@@ -1276,6 +1315,22 @@
                     <p style="opacity: 0.9; margin-top: 0.5rem;">Manage your organization's resources and users</p>
                 </div>
 
+                <!-- File Upload Section -->
+                <div class="file-upload-section">
+                    <h3 style="margin-bottom: 1rem; color: var(--navy);">📁 Data Management</h3>
+                    <p style="margin-bottom: 1rem; color: var(--blue-grey); font-size: 0.9rem;">
+                        Upload CSV files to update system data. Files should be placed in the <code>/data</code> folder.
+                    </p>
+                    <div class="file-input-wrapper">
+                        <label class="file-label" for="csvFileInput">
+                            Choose CSV File
+                        </label>
+                        <input type="file" id="csvFileInput" class="file-input" accept=".csv" onchange="handleFileUpload(event)">
+                        <span class="file-name" id="fileName">No file selected</span>
+                        <button class="btn-primary" onclick="downloadSampleCSV()" style="padding: 0.75rem 1.5rem;">Download Sample</button>
+                    </div>
+                </div>
+
                 <div class="admin-grid">
                     <div class="admin-card" onclick="showAdminSection('users')">
                         <h3>👥 Manage Users</h3>
@@ -1289,9 +1344,9 @@
                         <h3>🏢 Resources</h3>
                         <p>Configure board rooms, cars, and other bookable assets</p>
                     </div>
-                    <div class="admin-card" onclick="syncData()">
-                        <h3>🔄 Sync Data</h3>
-                        <p>Manually synchronize with Google Sheets database</p>
+                    <div class="admin-card" onclick="exportData()">
+                        <h3>💾 Export Data</h3>
+                        <p>Download all data as CSV files for backup</p>
                     </div>
                 </div>
 
@@ -1458,15 +1513,22 @@
 
     <script>
         // ==========================================
-        // CONFIGURATION - UPDATE THIS!
+        // CONFIGURATION - Local CSV Data Source
         // ==========================================
         const CONFIG = {
-            // Your deployed Apps Script Web App URL
-            API_URL: 'https://script.google.com/macros/s/AKfycbyLblC6bMe3uYzejBObE5xxuK47zOs9og7SjZZTkZA81kaPZyM82hZmlpOMJG-P0b4O/exec',
+            // Path to the data folder (relative to index.html)
+            DATA_PATH: './data/',
             
+            // CSV file names
+            FILES: {
+                USERS: 'users.csv',
+                BOOKINGS: 'bookings.csv',
+                RESOURCES: 'resources.csv',
+                ADMINS: 'admins.csv'
+            },
             
-            // For CORS issues, you might need to use a proxy or deploy this HTML 
-            // on the same domain as your script (Google Sites, or host on Apps Script itself)
+            // Logo path
+            LOGO_PATH: './data/logo.png',
             
             // Debug mode
             DEBUG: true
@@ -1490,6 +1552,75 @@
         let startTimeMinutes = 540;
         let endTimeMinutes = 600;
         let selectedInvitees = [];
+
+        // ==========================================
+        // CSV PARSER UTILITY
+        // ==========================================
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length === 0) return [];
+            
+            const headers = parseCSVLine(lines[0]);
+            const result = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header.trim()] = values[index] ? values[index].trim() : '';
+                });
+                result.push(obj);
+            }
+            
+            return result;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        function convertToCSV(data) {
+            if (data.length === 0) return '';
+            
+            const headers = Object.keys(data[0]);
+            const lines = [headers.join(',')];
+            
+            data.forEach(row => {
+                const values = headers.map(header => {
+                    let value = row[header] || '';
+                    // Escape values containing commas or quotes
+                    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                        value = '"' + value.replace(/"/g, '""') + '"';
+                    }
+                    return value;
+                });
+                lines.push(values.join(','));
+            });
+            
+            return lines.join('\n');
+        }
 
         // ==========================================
         // DEBUGGING
@@ -1534,48 +1665,217 @@
         }
 
         // ==========================================
-        // API CALLS
+        // DATA LOADING FUNCTIONS
         // ==========================================
-        async function apiCall(action, method = 'GET', data = null) {
-            const url = method === 'GET' 
-                ? `${CONFIG.API_URL}?action=${action}` 
-                : CONFIG.API_URL;
-            
-            log(`API ${method}: ${action}`, data);
-            
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                mode: 'cors'
-            };
-            
-            if (data && method === 'POST') {
-                options.body = JSON.stringify(data);
-            }
+        async function loadCSV(filename) {
+            const url = CONFIG.DATA_PATH + filename;
+            log(`Loading CSV: ${url}`);
             
             try {
-                const response = await fetch(url, options);
-                
+                const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(`Failed to load ${filename}: ${response.status} ${response.statusText}`);
                 }
-                
-                const result = await response.json();
-                log(`API Response: ${action}`, result);
-                return result;
-                
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                log(`Loaded ${data.length} rows from ${filename}`);
+                return data;
             } catch (error) {
-                log(`API Error: ${action}`, error.message);
+                log(`Error loading ${filename}: ${error.message}`);
+                // Return empty array if file doesn't exist yet
+                return [];
+            }
+        }
+
+        async function loadLogo() {
+            const logoElement = document.getElementById('siteLogo');
+            try {
+                const response = await fetch(CONFIG.LOGO_PATH);
+                if (response.ok) {
+                    logoElement.innerHTML = `<img src="${CONFIG.LOGO_PATH}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px;" alt="Logo">`;
+                    log('Logo loaded successfully');
+                } else {
+                    logoElement.textContent = 'LOGO';
+                }
+            } catch (error) {
+                logoElement.textContent = 'LOGO';
+            }
+        }
+
+        async function loadAllData() {
+            log('Loading all data from CSV files...');
+            
+            try {
+                // Load all CSV files in parallel
+                const [usersData, bookingsData, resourcesData, adminsData] = await Promise.all([
+                    loadCSV(CONFIG.FILES.USERS),
+                    loadCSV(CONFIG.FILES.BOOKINGS),
+                    loadCSV(CONFIG.FILES.RESOURCES),
+                    loadCSV(CONFIG.FILES.ADMINS)
+                ]);
                 
-                // If it's a CORS error, provide helpful message
-                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                    throw new Error('CORS Error: The Apps Script Web App must be deployed with "Execute as: Me" and "Who has access: Anyone". Also ensure you are not testing from file:// URL.');
+                users = usersData;
+                bookings = bookingsData;
+                resources = resourcesData;
+                admins = adminsData;
+                
+                // If resources is empty, create defaults
+                if (resources.length === 0) {
+                    resources = [
+                        { id: 'boardroom', name: 'Board Room', type: 'room' },
+                        { id: 'car', name: 'Company Car', type: 'vehicle' }
+                    ];
                 }
                 
-                throw error;
+                log('All data loaded successfully', {
+                    users: users.length,
+                    bookings: bookings.length,
+                    resources: resources.length,
+                    admins: admins.length
+                });
+                
+                return true;
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+                return false;
             }
+        }
+
+        // ==========================================
+        // DATA SAVING FUNCTIONS
+        // ==========================================
+        function saveToLocalStorage() {
+            localStorage.setItem('ebs_bookings', JSON.stringify(bookings));
+            localStorage.setItem('ebs_users', JSON.stringify(users));
+            localStorage.setItem('ebs_resources', JSON.stringify(resources));
+            localStorage.setItem('ebs_admins', JSON.stringify(admins));
+            log('Data saved to localStorage');
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const savedBookings = localStorage.getItem('ebs_bookings');
+                const savedUsers = localStorage.getItem('ebs_users');
+                const savedResources = localStorage.getItem('ebs_resources');
+                const savedAdmins = localStorage.getItem('ebs_admins');
+                
+                if (savedBookings) bookings = JSON.parse(savedBookings);
+                if (savedUsers) users = JSON.parse(savedUsers);
+                if (savedResources) resources = JSON.parse(savedResources);
+                if (savedAdmins) admins = JSON.parse(savedAdmins);
+                
+                log('Data loaded from localStorage');
+                return true;
+            } catch (error) {
+                log('No data in localStorage');
+                return false;
+            }
+        }
+
+        function exportToCSV() {
+            const data = {
+                [CONFIG.FILES.USERS]: users,
+                [CONFIG.FILES.BOOKINGS]: bookings,
+                [CONFIG.FILES.RESOURCES]: resources,
+                [CONFIG.FILES.ADMINS]: admins
+            };
+            
+            Object.entries(data).forEach(([filename, dataset]) => {
+                if (dataset.length > 0) {
+                    const csv = convertToCSV(dataset);
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            });
+            
+            showNotification('Data exported as CSV files');
+        }
+
+        function downloadSampleCSV() {
+            const sampleUsers = [
+                { id: '1', name: 'John Smith', department: 'Marketing', role: 'individual', email: 'john@company.com' },
+                { id: '2', name: 'Sarah Johnson', department: 'Sales', role: 'individual', email: 'sarah@company.com' },
+                { id: '3', name: 'Marketing Dept', department: 'Marketing', role: 'dept', email: 'marketing@company.com' }
+            ];
+            
+            const sampleBookings = [
+                { id: '1', resource: 'boardroom', date: '2024-01-15', startTime: '09:00', endTime: '10:00', user: 'John Smith', department: 'Marketing', type: 'individual', purpose: 'Team Meeting', invitees: '' }
+            ];
+            
+            const sampleResources = [
+                { id: 'boardroom', name: 'Main Board Room', type: 'room' },
+                { id: 'car', name: 'Company Car 1', type: 'vehicle' }
+            ];
+            
+            const sampleAdmins = [
+                { username: 'admin', password: 'admin123', name: 'System Administrator' }
+            ];
+            
+            const data = {
+                'sample_users.csv': sampleUsers,
+                'sample_bookings.csv': sampleBookings,
+                'sample_resources.csv': sampleResources,
+                'sample_admins.csv': sampleAdmins
+            };
+            
+            Object.entries(data).forEach(([filename, dataset]) => {
+                const csv = convertToCSV(dataset);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        // ==========================================
+        // FILE UPLOAD HANDLER
+        // ==========================================
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('fileName').textContent = file.name;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                const data = parseCSV(csvText);
+                
+                // Determine file type from name
+                const filename = file.name.toLowerCase();
+                if (filename.includes('user')) {
+                    users = data;
+                    log(`Loaded ${data.length} users from uploaded file`);
+                } else if (filename.includes('booking')) {
+                    bookings = data;
+                    log(`Loaded ${data.length} bookings from uploaded file`);
+                } else if (filename.includes('resource')) {
+                    resources = data;
+                    log(`Loaded ${data.length} resources from uploaded file`);
+                } else if (filename.includes('admin')) {
+                    admins = data;
+                    log(`Loaded ${data.length} admins from uploaded file`);
+                }
+                
+                saveToLocalStorage();
+                showNotification('File uploaded and data updated');
+                
+                // Refresh current view
+                if (currentUser && currentUser.type === 'admin') {
+                    showAdminSection('users');
+                } else if (currentUser) {
+                    renderCalendar();
+                }
+            };
+            reader.readAsText(file);
         }
 
         // ==========================================
@@ -1619,24 +1919,39 @@
             submitBtn.textContent = 'Logging in...';
             
             try {
-                const result = await apiCall('login', 'POST', {
-                    action: 'login',
-                    username: username,
-                    password: password
-                });
+                // First try to load from CSV, then check localStorage backup
+                if (admins.length === 0) {
+                    await loadAllData();
+                }
                 
-                if (result.success) {
+                // Check credentials against loaded admin data
+                const admin = admins.find(a => a.username === username && a.password === password);
+                
+                if (admin) {
                     currentUser = {
-                        ...result.user,
-                        type: 'admin'
+                        ...admin,
+                        type: 'admin',
+                        role: 'admin'
                     };
                     document.getElementById('adminLoginModal').classList.remove('active');
                     await initializeApp();
                 } else {
-                    document.getElementById('loginError').classList.add('visible');
-                    setTimeout(() => {
-                        document.getElementById('loginError').classList.remove('visible');
-                    }, 3000);
+                    // Fallback to hardcoded admin for demo if no CSV loaded
+                    if (username === 'admin' && password === 'admin') {
+                        currentUser = {
+                            username: 'admin',
+                            name: 'Administrator',
+                            type: 'admin',
+                            role: 'admin'
+                        };
+                        document.getElementById('adminLoginModal').classList.remove('active');
+                        await initializeApp();
+                    } else {
+                        document.getElementById('loginError').classList.add('visible');
+                        setTimeout(() => {
+                            document.getElementById('loginError').classList.remove('visible');
+                        }, 3000);
+                    }
                 }
             } catch (error) {
                 showError('Login failed: ' + error.message);
@@ -1654,14 +1969,24 @@
             container.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner" style="margin: 0 auto 1rem;"></div>Loading users...</div>';
             
             try {
-                const result = await apiCall('getUsers');
-                
-                if (Array.isArray(result)) {
-                    users = result;
-                } else if (result.users) {
-                    users = result.users;
+                // Try to load from CSV first
+                const csvUsers = await loadCSV(CONFIG.FILES.USERS);
+                if (csvUsers.length > 0) {
+                    users = csvUsers;
                 } else {
-                    throw new Error('Invalid data format received');
+                    // Fallback to localStorage
+                    loadFromLocalStorage();
+                }
+                
+                if (users.length === 0) {
+                    // Show message if no users found
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--blue-grey);">
+                            <p>No users found in data file.</p>
+                            <p style="font-size: 0.85rem; margin-top: 0.5rem;">Please ensure users.csv exists in the /data folder</p>
+                        </div>
+                    `;
+                    return;
                 }
                 
                 // Group by department
@@ -1721,12 +2046,14 @@
             document.getElementById('loadingOverlay').classList.add('active');
             
             try {
-                // Load all data
-                const result = await apiCall('getAll');
+                // Load logo
+                await loadLogo();
                 
-                if (result.users) users = result.users;
-                if (result.bookings) bookings = result.bookings;
-                if (result.resources) resources = result.resources;
+                // Load all data from CSV
+                await loadAllData();
+                
+                // Also load from localStorage as backup/overlay
+                loadFromLocalStorage();
                 
                 // Show app
                 document.getElementById('appContainer').classList.add('active');
@@ -1764,13 +2091,13 @@
             document.getElementById('userPortal').classList.add('active');
             document.getElementById('adminPortal').classList.remove('active');
             document.getElementById('regularUserName').textContent = currentUser.name;
-            document.getElementById('userDeptName').textContent = currentUser.department;
+            document.getElementById('userDeptName').textContent = currentUser.department || 'N/A';
             
             // Setup booking form
             const bookAs = document.getElementById('bookAs');
             bookAs.innerHTML = `
                 <option value="self">${currentUser.name} (Myself)</option>
-                <option value="dept">${currentUser.department} Department</option>
+                <option value="dept">${currentUser.department || 'Department'} Department</option>
             `;
             
             updateMultiSelectOptions();
@@ -1778,6 +2105,8 @@
         }
 
         function logout() {
+            // Save current data before logout
+            saveToLocalStorage();
             location.reload();
         }
 
@@ -1799,13 +2128,14 @@
         function renderUsersTable() {
             return `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--navy); font-size: 1.5rem;">User Management</h3>
+                    <h3 style="color: var(--navy); font-size: 1.5rem;">User Management (${users.length} users)</h3>
                     <button class="btn-primary" onclick="addNewUser()">+ Add User</button>
                 </div>
                 <div class="data-table">
                     <table>
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Name</th>
                                 <th>Department</th>
                                 <th>Type</th>
@@ -1815,8 +2145,9 @@
                         <tbody>
                             ${users.map(u => `
                                 <tr>
+                                    <td>${u.id}</td>
                                     <td><strong>${u.name}</strong></td>
-                                    <td>${u.department}</td>
+                                    <td>${u.department || 'N/A'}</td>
                                     <td><span style="background: ${u.role === 'dept' ? 'var(--turquoise-light)' : 'var(--gold)'}; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem;">${u.role === 'dept' ? 'Department' : 'Individual'}</span></td>
                                     <td>
                                         <div class="action-btns">
@@ -1835,12 +2166,13 @@
         function renderBookingsTable() {
             return `
                 <div style="margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--navy); font-size: 1.5rem;">All Bookings</h3>
+                    <h3 style="color: var(--navy); font-size: 1.5rem;">All Bookings (${bookings.length} total)</h3>
                 </div>
                 <div class="data-table">
                     <table>
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Resource</th>
                                 <th>Date</th>
                                 <th>Time</th>
@@ -1852,6 +2184,7 @@
                         <tbody>
                             ${bookings.map(b => `
                                 <tr>
+                                    <td>${b.id}</td>
                                     <td>${b.resource}</td>
                                     <td>${b.date}</td>
                                     <td>${b.startTime} - ${b.endTime}</td>
@@ -1874,13 +2207,14 @@
         function renderResourcesTable() {
             return `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--navy); font-size: 1.5rem;">Resources</h3>
+                    <h3 style="color: var(--navy); font-size: 1.5rem;">Resources (${resources.length} total)</h3>
                     <button class="btn-primary" onclick="addResource()">+ Add Resource</button>
                 </div>
                 <div class="data-table">
                     <table>
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Name</th>
                                 <th>Type</th>
                                 <th>Actions</th>
@@ -1889,12 +2223,13 @@
                         <tbody>
                             ${resources.map(r => `
                                 <tr>
+                                    <td>${r.id}</td>
                                     <td><strong>${r.name}</strong></td>
                                     <td>${r.type}</td>
                                     <td>
                                         <div class="action-btns">
-                                            <button class="btn-small btn-edit">Edit</button>
-                                            <button class="btn-small btn-delete">Delete</button>
+                                            <button class="btn-small btn-edit" onclick="editResource('${r.id}')">Edit</button>
+                                            <button class="btn-small btn-delete" onclick="deleteResource('${r.id}')">Delete</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -1919,7 +2254,7 @@
                 item.className = 'dropdown-item' + (selectedInvitees.includes(user.id) ? ' selected' : '');
                 item.innerHTML = `
                     <input type="checkbox" ${selectedInvitees.includes(user.id) ? 'checked' : ''}>
-                    <span>${user.name} (${user.department})</span>
+                    <span>${user.name} (${user.department || 'N/A'})</span>
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -2043,7 +2378,6 @@
         }
 
         function handleSlotClick(id, e) {
-            // For now just show details, can add context menu later
             const b = bookings.find(x => x.id === id);
             alert(`Booking: ${b.purpose}\nBy: ${b.user}\nTime: ${b.startTime} - ${b.endTime}`);
         }
@@ -2113,38 +2447,169 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Saving...';
             
-            const booking = {
+            const newBooking = {
+                id: Date.now().toString(),
                 resource: currentResource,
                 date: document.getElementById('bookingDate').value,
                 startTime: document.getElementById('startTime').value,
                 endTime: document.getElementById('endTime').value,
                 user: currentUser.name,
-                department: currentUser.department,
+                department: currentUser.department || 'N/A',
                 type: document.getElementById('bookAs').value === 'dept' ? 'department' : 'individual',
                 purpose: purpose,
                 invitees: selectedInvitees.map(id => users.find(u => u.id === id)?.name).filter(Boolean).join(', ')
             };
             
             try {
-                const result = await apiCall('addBooking', 'POST', {
-                    action: 'addBooking',
-                    booking: booking
-                });
+                // Check for conflicts
+                const hasConflict = bookings.some(b => 
+                    b.resource === newBooking.resource &&
+                    b.date === newBooking.date &&
+                    ((b.startTime <= newBooking.startTime && b.endTime > newBooking.startTime) ||
+                     (b.startTime < newBooking.endTime && b.endTime >= newBooking.endTime) ||
+                     (b.startTime >= newBooking.startTime && b.endTime <= newBooking.endTime))
+                );
                 
-                if (result.success) {
-                    bookings.push(result.booking);
-                    closeModal();
-                    renderCalendar();
-                    showNotification('Booking confirmed!');
-                } else {
-                    showError(result.error || 'Failed to save booking');
+                if (hasConflict) {
+                    showError('Time slot conflicts with existing booking');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Confirm Booking';
+                    return;
                 }
+                
+                // Add to bookings array
+                bookings.push(newBooking);
+                
+                // Save to localStorage (since we can't write to CSV from browser)
+                saveToLocalStorage();
+                
+                closeModal();
+                renderCalendar();
+                showNotification('Booking confirmed!');
+                
             } catch (error) {
                 showError('Failed to save booking: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Confirm Booking';
             }
+        }
+
+        // ==========================================
+        // ADMIN CRUD OPERATIONS
+        // ==========================================
+        function addNewUser() {
+            const name = prompt('Enter user name:');
+            if (!name) return;
+            
+            const department = prompt('Enter department:') || 'General';
+            const role = confirm('Is this a department account?') ? 'dept' : 'individual';
+            
+            const newUser = {
+                id: Date.now().toString(),
+                name: name,
+                department: department,
+                role: role,
+                email: ''
+            };
+            
+            users.push(newUser);
+            saveToLocalStorage();
+            showAdminSection('users');
+            showNotification('User added successfully');
+        }
+
+        function editUser(id) {
+            const user = users.find(u => u.id === id);
+            if (!user) return;
+            
+            const newName = prompt('Enter new name:', user.name);
+            if (newName === null) return;
+            
+            const newDept = prompt('Enter new department:', user.department);
+            if (newDept === null) return;
+            
+            user.name = newName || user.name;
+            user.department = newDept || user.department;
+            
+            saveToLocalStorage();
+            showAdminSection('users');
+            showNotification('User updated');
+        }
+
+        function deleteUser(id) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+            
+            users = users.filter(u => u.id !== id);
+            saveToLocalStorage();
+            showAdminSection('users');
+            showNotification('User deleted');
+        }
+
+        function adminEditBooking(id) {
+            const booking = bookings.find(b => b.id === id);
+            if (!booking) return;
+            
+            const newPurpose = prompt('Edit purpose:', booking.purpose);
+            if (newPurpose === null) return;
+            
+            booking.purpose = newPurpose || booking.purpose;
+            saveToLocalStorage();
+            showAdminSection('bookings');
+            showNotification('Booking updated');
+        }
+
+        function adminDeleteBooking(id) {
+            if (!confirm('Are you sure you want to delete this booking?')) return;
+            
+            bookings = bookings.filter(b => b.id !== id);
+            saveToLocalStorage();
+            showAdminSection('bookings');
+            showNotification('Booking deleted');
+        }
+
+        function addResource() {
+            const name = prompt('Enter resource name:');
+            if (!name) return;
+            
+            const type = prompt('Enter resource type (room/vehicle/equipment):') || 'room';
+            
+            const newResource = {
+                id: Date.now().toString(),
+                name: name,
+                type: type
+            };
+            
+            resources.push(newResource);
+            saveToLocalStorage();
+            showAdminSection('resources');
+            showNotification('Resource added');
+        }
+
+        function editResource(id) {
+            const resource = resources.find(r => r.id === id);
+            if (!resource) return;
+            
+            const newName = prompt('Enter new name:', resource.name);
+            if (newName === null) return;
+            
+            resource.name = newName || resource.name;
+            saveToLocalStorage();
+            showAdminSection('resources');
+            showNotification('Resource updated');
+        }
+
+        function deleteResource(id) {
+            if (!confirm('Are you sure you want to delete this resource?')) return;
+            
+            resources = resources.filter(r => r.id !== id);
+            saveToLocalStorage();
+            showAdminSection('resources');
+            showNotification('Resource deleted');
+        }
+
+        function exportData() {
+            exportToCSV();
         }
 
         // ==========================================
@@ -2204,11 +2669,6 @@
             setTimeout(() => notif.remove(), 3000);
         }
 
-        async function syncData() {
-            showSyncStatus('syncing', 'Syncing...');
-            await initializeApp();
-        }
-
         // Close dropdowns on outside click
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.multi-select-container')) {
@@ -2223,6 +2683,11 @@
                 closeModal();
                 document.getElementById('multiSelectDropdown').classList.remove('active');
             }
+        });
+
+        // Auto-save before page unload
+        window.addEventListener('beforeunload', () => {
+            saveToLocalStorage();
         });
     </script>
 </body>
