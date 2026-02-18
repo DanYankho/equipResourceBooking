@@ -43,7 +43,63 @@
             letter-spacing: -0.02em;
         }
 
-        /* Portal Selection Overlay */
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.9);
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+            border: 2px solid var(--gold);
+        }
+
+        .debug-panel.visible {
+            display: block;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10000;
+            background: var(--navy);
+            color: var(--gold);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Error Banner */
+        .error-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--plum-dark);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            z-index: 9998;
+            display: none;
+            font-weight: 600;
+        }
+
+        .error-banner.visible {
+            display: block;
+        }
+
+        /* Portal Selection */
         .portal-overlay {
             position: fixed;
             top: 0;
@@ -110,54 +166,29 @@
             padding: 3rem 2rem;
             cursor: pointer;
             transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .portal-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--soft-gold) 100%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            z-index: 0;
-        }
-
-        .portal-card:hover::before {
-            opacity: 0.1;
         }
 
         .portal-card:hover {
             transform: translateY(-10px);
             border-color: var(--gold);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .portal-icon {
             font-size: 4rem;
             margin-bottom: 1.5rem;
-            position: relative;
-            z-index: 1;
         }
 
         .portal-card h2 {
             color: var(--soft-cream);
             font-size: 1.75rem;
             margin-bottom: 0.75rem;
-            position: relative;
-            z-index: 1;
         }
 
         .portal-card p {
             color: var(--blue-grey);
             font-size: 1rem;
             line-height: 1.6;
-            position: relative;
-            z-index: 1;
         }
 
         /* Login Modal */
@@ -189,12 +220,6 @@
             max-width: 450px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
             border: 2px solid var(--gold);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-
-        .login-modal.active .login-box {
-            transform: scale(1);
         }
 
         .login-box h2 {
@@ -221,7 +246,6 @@
             cursor: pointer;
             font-family: 'Libre Franklin', sans-serif;
             font-weight: 600;
-            transition: all 0.3s ease;
         }
 
         .back-btn:hover {
@@ -229,7 +253,7 @@
             color: var(--navy);
         }
 
-        /* User Selection for Regular Users */
+        /* User Selection */
         .user-selection {
             max-height: 400px;
             overflow-y: auto;
@@ -248,7 +272,6 @@
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .user-option {
@@ -283,7 +306,7 @@
             font-size: 0.9rem;
         }
 
-        /* Main Application Layout */
+        /* Main App */
         .app-container {
             display: none;
         }
@@ -336,7 +359,6 @@
             color: var(--navy);
             font-weight: 700;
             font-size: 0.8rem;
-            box-shadow: 0 4px 15px rgba(168, 147, 90, 0.3);
         }
 
         .brand-text h1 {
@@ -367,7 +389,6 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            box-shadow: 0 2px 10px rgba(168, 147, 90, 0.3);
         }
 
         .user-avatar {
@@ -382,11 +403,6 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .user-avatar:hover {
-            transform: scale(1.1);
         }
 
         .logout-btn {
@@ -397,7 +413,6 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 0.8rem;
-            transition: all 0.3s ease;
         }
 
         .logout-btn:hover {
@@ -414,12 +429,12 @@
             margin-right: auto;
         }
 
-        /* Admin Control Portal */
-        .admin-portal {
+        /* Portals */
+        .admin-portal, .user-portal {
             display: none;
         }
 
-        .admin-portal.active {
+        .admin-portal.active, .user-portal.active {
             display: block;
         }
 
@@ -463,23 +478,11 @@
         .admin-card h3 {
             color: var(--navy);
             margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
         }
 
         .admin-card p {
             color: var(--blue-grey);
             font-size: 0.9rem;
-        }
-
-        /* User Booking Portal */
-        .user-portal {
-            display: none;
-        }
-
-        .user-portal.active {
-            display: block;
         }
 
         .user-welcome {
@@ -533,11 +536,6 @@
             box-shadow: 0 4px 20px rgba(13, 33, 54, 0.3);
         }
 
-        .resource-tab:hover:not(.active) {
-            background: rgba(168, 147, 90, 0.1);
-            color: var(--navy);
-        }
-
         /* Controls */
         .controls-bar {
             display: flex;
@@ -586,9 +584,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 20px rgba(13, 33, 54, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .btn-primary:hover:not(:disabled) {
@@ -641,7 +636,7 @@
             color: var(--navy);
         }
 
-        .nav-btn:hover:not(:disabled) {
+        .nav-btn:hover {
             background: var(--navy);
             color: white;
             border-color: var(--navy);
@@ -689,7 +684,7 @@
             overflow: hidden;
         }
 
-        .slot:hover:not(.loading) {
+        .slot:hover {
             border-color: var(--gold);
             background: var(--light-beige);
         }
@@ -714,114 +709,6 @@
             font-size: 0.75rem;
             opacity: 0.9;
             margin-top: 0.25rem;
-        }
-
-        .week-view {
-            display: grid;
-            grid-template-columns: 60px repeat(7, 1fr);
-            gap: 1px;
-            background: var(--beige);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .week-header-cell {
-            background: var(--navy);
-            color: var(--soft-cream);
-            padding: 1rem;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .week-time-cell {
-            background: white;
-            padding: 0.5rem;
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--blue-grey);
-            font-weight: 500;
-        }
-
-        .week-slot {
-            background: white;
-            min-height: 80px;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
-        }
-
-        .week-slot:hover:not(.loading) {
-            background: var(--soft-cream);
-            border-color: var(--gold);
-        }
-
-        .week-slot.booked {
-            background: linear-gradient(135deg, var(--plum-dark) 0%, var(--plum-light) 100%);
-            color: white;
-        }
-
-        .month-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            background: var(--beige);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .month-day-header {
-            background: var(--navy);
-            color: var(--soft-cream);
-            padding: 1rem;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .month-day {
-            background: white;
-            min-height: 120px;
-            padding: 0.75rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .month-day:hover:not(.loading) {
-            background: var(--soft-cream);
-        }
-
-        .month-day.other-month {
-            background: var(--light-beige);
-            color: var(--blue-grey);
-        }
-
-        .day-number {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--navy);
-        }
-
-        .month-day.other-month .day-number {
-            color: var(--blue-grey);
-        }
-
-        .booking-indicator {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .mini-booking {
-            background: var(--plum-dark);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         /* Modal */
@@ -857,12 +744,6 @@
             overflow-y: auto;
             box-shadow: 0 25px 50px rgba(13, 33, 54, 0.5);
             border: 1px solid var(--gold);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1);
         }
 
         .modal-header {
@@ -891,7 +772,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
         }
 
         .close-btn:hover {
@@ -934,7 +814,7 @@
             box-shadow: 0 0 0 4px rgba(168, 147, 90, 0.1);
         }
 
-        /* Time Picker Dial */
+        /* Time Picker */
         .time-picker-container {
             display: flex;
             gap: 2rem;
@@ -1007,7 +887,7 @@
             margin-top: -2rem;
         }
 
-        /* Multi-select Dropdown */
+        /* Multi-select */
         .multi-select-container {
             position: relative;
         }
@@ -1130,55 +1010,23 @@
             accent-color: var(--navy);
         }
 
-        /* Context Menu */
-        .context-menu {
-            position: absolute;
-            background: white;
+        /* Error Message */
+        .error-message {
+            background: var(--plum-light);
+            color: white;
+            padding: 1rem;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(13, 33, 54, 0.2);
-            padding: 0.5rem;
+            margin-bottom: 1rem;
             display: none;
-            z-index: 100;
-            min-width: 200px;
-            border: 1px solid var(--beige);
-        }
-
-        .context-menu.active {
-            display: block;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .context-item {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            display: flex;
             align-items: center;
             gap: 0.75rem;
-            font-size: 0.9rem;
         }
 
-        .context-item:hover {
-            background: var(--soft-cream);
-            color: var(--navy);
+        .error-message.visible {
+            display: flex;
         }
 
-        .context-item.delete {
-            color: var(--plum-light);
-        }
-
-        .context-item.delete:hover {
-            background: var(--plum-dark);
-            color: white;
-        }
-
-        /* Loading State */
+        /* Loading */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -1211,23 +1059,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Error Message */
-        .error-message {
-            background: var(--plum-light);
-            color: white;
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            display: none;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .error-message.visible {
-            display: flex;
-        }
-
-        /* Data Management Tables */
+        /* Data Table */
         .data-table {
             width: 100%;
             background: white;
@@ -1249,7 +1081,6 @@
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.85rem;
-            letter-spacing: 0.05em;
         }
 
         .data-table td {
@@ -1284,11 +1115,6 @@
         .btn-delete {
             background: var(--plum-light);
             color: white;
-        }
-
-        .btn-small:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         /* Sync Status */
@@ -1333,7 +1159,21 @@
     </style>
 </head>
 <body>
-    <!-- Portal Selection Overlay -->
+    <!-- Debug Toggle -->
+    <button class="debug-toggle" onclick="toggleDebug()">🐛 Debug</button>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+        <div id="debugContent">Debug info will appear here...</div>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="errorBanner">
+        <span id="errorBannerText"></span>
+        <button onclick="hideError()" style="margin-left: 20px; background: white; color: var(--plum-dark); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Dismiss</button>
+    </div>
+
+    <!-- Portal Selection -->
     <div class="portal-overlay" id="portalOverlay">
         <div class="portal-container">
             <div class="portal-logo">🏢</div>
@@ -1361,7 +1201,7 @@
         <button class="back-btn" onclick="backToPortals()">← Back</button>
         <div class="login-box">
             <h2>Admin Login</h2>
-            <p>Enter your credentials to access the control panel</p>
+            <p>Enter your credentials</p>
             
             <div class="error-message" id="loginError">
                 <span>⚠️</span>
@@ -1379,7 +1219,7 @@
                     <input type="password" class="form-input" id="adminPassword" required placeholder="Enter password">
                 </div>
                 
-                <button type="submit" class="btn-primary" style="width: 100%;">
+                <button type="submit" class="btn-primary" style="width: 100%;" id="loginSubmitBtn">
                     Login to Admin Portal
                 </button>
             </form>
@@ -1394,7 +1234,10 @@
             <p>Choose your name to continue</p>
             
             <div class="user-selection" id="userSelectionList">
-                <!-- Populated dynamically -->
+                <div style="text-align: center; padding: 2rem; color: var(--blue-grey);">
+                    <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                    Loading users...
+                </div>
             </div>
         </div>
     </div>
@@ -1452,10 +1295,7 @@
                     </div>
                 </div>
 
-                <!-- Admin Content Sections -->
-                <div id="adminContent" style="margin-top: 2rem;">
-                    <!-- Dynamic content loaded here -->
-                </div>
+                <div id="adminContent" style="margin-top: 2rem;"></div>
             </div>
 
             <!-- USER PORTAL -->
@@ -1500,9 +1340,14 @@
                 <!-- Calendar -->
                 <div class="calendar-container">
                     <div class="calendar-header">
-                        <h2 class="calendar-title" id="calendarTitle">February 18, 2026</h2>
+                        <h2 class="calendar-title" id="calendarTitle">Loading...</h2>
                     </div>
-                    <div id="calendarContent"></div>
+                    <div id="calendarContent">
+                        <div style="text-align: center; padding: 3rem; color: var(--blue-grey);">
+                            <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                            Loading calendar...
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1526,7 +1371,6 @@
                     <label class="form-label">Book As</label>
                     <select class="form-select" id="bookAs">
                         <option value="self">Myself</option>
-                        <option value="dept">My Department</option>
                     </select>
                 </div>
 
@@ -1606,14 +1450,6 @@
         </div>
     </div>
 
-    <!-- Context Menu -->
-    <div class="context-menu" id="contextMenu">
-        <div class="context-item" onclick="editBooking()"><span>✏️</span> Edit</div>
-        <div class="context-item" onclick="moveBooking()"><span>📅</span> Move</div>
-        <div class="context-item" onclick="swapBooking()"><span>🔄</span> Swap</div>
-        <div class="context-item delete" onclick="deleteBooking()"><span>🗑️</span> Cancel</div>
-    </div>
-
     <!-- Sync Status -->
     <div class="sync-status" id="syncStatus">
         <span>✓</span>
@@ -1622,28 +1458,24 @@
 
     <script>
         // ==========================================
-        // CONFIGURATION - Google Sheets Setup
+        // CONFIGURATION - UPDATE THIS!
         // ==========================================
         const CONFIG = {
-            // Your Google Sheet ID (from URL)
-            SHEET_ID: '1kLpiSyuJSP3OYTbNVE2fd01BXU1xtRwK3NBwbvghXF8',
+            // Your deployed Apps Script Web App URL
+            API_URL: 'https://script.google.com/macros/s/AKfycbyLblC6bMe3uYzejBObE5xxuK47zOs9og7SjZZTkZA81kaPZyM82hZmlpOMJG-P0b4O/exec',
             
-            // Sheet names
-            SHEETS: {
-                ADMINS: 'Admins',      // Columns: Username | Password | Name | Email
-                USERS: 'Users',        // Columns: ID | Name | Department | Role (user/dept)
-                BOOKINGS: 'Bookings',  // Columns: ID | Resource | Date | Start | End | User | Dept | Type | Purpose | Invitees
-                RESOURCES: 'Resources' // Columns: ID | Name | Type | Description
-            },
             
-            // Apps Script Web App URL (deployed from the script below)
-            API_URL: 'https://script.google.com/macros/s/AKfycbyLblC6bMe3uYzejBObE5xxuK47zOs9og7SjZZTkZA81kaPZyM82hZmlpOMJG-P0b4O/exec'
+            // For CORS issues, you might need to use a proxy or deploy this HTML 
+            // on the same domain as your script (Google Sites, or host on Apps Script itself)
+            
+            // Debug mode
+            DEBUG: true
         };
 
         // ==========================================
-        // STATE MANAGEMENT
+        // STATE
         // ==========================================
-        let currentPortal = null; // 'admin' or 'user'
+        let currentPortal = null;
         let currentUser = null;
         let currentResource = 'boardroom';
         let currentView = 'day';
@@ -1660,7 +1492,94 @@
         let selectedInvitees = [];
 
         // ==========================================
-        // PORTAL SELECTION & AUTH
+        // DEBUGGING
+        // ==========================================
+        function log(message, data) {
+            if (!CONFIG.DEBUG) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            
+            console.log(logEntry, data || '');
+            
+            const debugPanel = document.getElementById('debugPanel');
+            const debugContent = document.getElementById('debugContent');
+            
+            const entry = document.createElement('div');
+            entry.style.marginBottom = '5px';
+            entry.style.borderBottom = '1px solid #333';
+            entry.style.paddingBottom = '5px';
+            
+            if (data) {
+                entry.innerHTML = `<strong>${logEntry}</strong><br><pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                entry.textContent = logEntry;
+            }
+            
+            debugContent.insertBefore(entry, debugContent.firstChild);
+        }
+
+        function toggleDebug() {
+            document.getElementById('debugPanel').classList.toggle('visible');
+        }
+
+        function showError(message) {
+            log('ERROR: ' + message);
+            document.getElementById('errorBannerText').textContent = message;
+            document.getElementById('errorBanner').classList.add('visible');
+        }
+
+        function hideError() {
+            document.getElementById('errorBanner').classList.remove('visible');
+        }
+
+        // ==========================================
+        // API CALLS
+        // ==========================================
+        async function apiCall(action, method = 'GET', data = null) {
+            const url = method === 'GET' 
+                ? `${CONFIG.API_URL}?action=${action}` 
+                : CONFIG.API_URL;
+            
+            log(`API ${method}: ${action}`, data);
+            
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                mode: 'cors'
+            };
+            
+            if (data && method === 'POST') {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                log(`API Response: ${action}`, result);
+                return result;
+                
+            } catch (error) {
+                log(`API Error: ${action}`, error.message);
+                
+                // If it's a CORS error, provide helpful message
+                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                    throw new Error('CORS Error: The Apps Script Web App must be deployed with "Execute as: Me" and "Who has access: Anyone". Also ensure you are not testing from file:// URL.');
+                }
+                
+                throw error;
+            }
+        }
+
+        // ==========================================
+        // PORTAL SELECTION
         // ==========================================
         function selectPortal(type) {
             currentPortal = type;
@@ -1686,196 +1605,180 @@
             currentPortal = null;
         }
 
+        // ==========================================
+        // ADMIN LOGIN
+        // ==========================================
         async function handleAdminLogin(e) {
             e.preventDefault();
+            
             const username = document.getElementById('adminUsername').value;
             const password = document.getElementById('adminPassword').value;
+            const submitBtn = document.getElementById('loginSubmitBtn');
             
-            showLoading(true);
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
             
-            // Load admins from sheet
-            await loadAdmins();
-            
-            const admin = admins.find(a => a.username === username && a.password === password);
-            
-            if (admin) {
-                currentUser = {
-                    ...admin,
-                    role: 'admin',
-                    type: 'admin'
-                };
-                document.getElementById('adminLoginModal').classList.remove('active');
-                initializeApp();
-            } else {
-                document.getElementById('loginError').classList.add('visible');
-                setTimeout(() => document.getElementById('loginError').classList.remove('visible'), 3000);
+            try {
+                const result = await apiCall('login', 'POST', {
+                    action: 'login',
+                    username: username,
+                    password: password
+                });
+                
+                if (result.success) {
+                    currentUser = {
+                        ...result.user,
+                        type: 'admin'
+                    };
+                    document.getElementById('adminLoginModal').classList.remove('active');
+                    await initializeApp();
+                } else {
+                    document.getElementById('loginError').classList.add('visible');
+                    setTimeout(() => {
+                        document.getElementById('loginError').classList.remove('visible');
+                    }, 3000);
+                }
+            } catch (error) {
+                showError('Login failed: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login to Admin Portal';
             }
-            
-            showLoading(false);
         }
 
+        // ==========================================
+        // USER SELECTION
+        // ==========================================
         async function loadUsersForSelection() {
-            showLoading(true);
-            await loadUsers();
-            showLoading(false);
-            
             const container = document.getElementById('userSelectionList');
-            const depts = [...new Set(users.map(u => u.department))];
+            container.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner" style="margin: 0 auto 1rem;"></div>Loading users...</div>';
             
-            container.innerHTML = depts.map(dept => {
-                const deptUsers = users.filter(u => u.department === dept);
-                return `
-                    <div class="dept-section">
-                        <div class="dept-header">${dept}</div>
-                        ${deptUsers.map(user => `
-                            <div class="user-option" onclick="selectUser('${user.id}')">
-                                <div class="user-avatar-small">${user.name.split(' ').map(n => n[0]).join('')}</div>
-                                <div>
-                                    <div style="font-weight: 600; color: var(--navy);">${user.name}</div>
-                                    <div style="font-size: 0.85rem; color: var(--blue-grey);">${user.role === 'dept' ? 'Department' : 'Individual'}</div>
+            try {
+                const result = await apiCall('getUsers');
+                
+                if (Array.isArray(result)) {
+                    users = result;
+                } else if (result.users) {
+                    users = result.users;
+                } else {
+                    throw new Error('Invalid data format received');
+                }
+                
+                // Group by department
+                const depts = [...new Set(users.map(u => u.department))];
+                
+                container.innerHTML = depts.map(dept => {
+                    const deptUsers = users.filter(u => u.department === dept);
+                    return `
+                        <div class="dept-section">
+                            <div class="dept-header">${dept}</div>
+                            ${deptUsers.map(user => `
+                                <div class="user-option" onclick="selectUser('${user.id}')">
+                                    <div class="user-avatar-small">${user.name.split(' ').map(n => n[0]).join('')}</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--navy);">${user.name}</div>
+                                        <div style="font-size: 0.85rem; color: var(--blue-grey);">${user.role === 'dept' ? 'Department' : 'Individual'}</div>
+                                    </div>
                                 </div>
-                            </div>
-                        `).join('')}
+                            `).join('')}
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--plum-light);">
+                        <p>Failed to load users</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;">${error.message}</p>
+                        <button onclick="loadUsersForSelection()" class="btn-primary" style="margin-top: 1rem;">Retry</button>
                     </div>
                 `;
-            }).join('');
+                showError('Failed to load users: ' + error.message);
+            }
         }
 
         function selectUser(userId) {
             const user = users.find(u => u.id === userId);
+            if (!user) {
+                showError('User not found');
+                return;
+            }
+            
             currentUser = {
                 ...user,
                 role: 'user',
                 type: 'user'
             };
+            
             document.getElementById('userSelectionModal').classList.remove('active');
             initializeApp();
-        }
-
-        // ==========================================
-        // DATA LOADING (Google Sheets)
-        // ==========================================
-        async function loadAdmins() {
-            // In production: fetch from Google Sheets
-            // For demo, simulate API call
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    admins = [
-                        { username: 'admin', password: 'admin123', name: 'System Admin', email: 'admin@company.com' },
-                        { username: 'manager', password: 'manager123', name: 'Office Manager', email: 'manager@company.com' }
-                    ];
-                    resolve();
-                }, 500);
-            });
-        }
-
-        async function loadUsers() {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    users = [
-                        { id: '1', name: 'John Doe', department: 'Marketing', role: 'user' },
-                        { id: '2', name: 'Jane Smith', department: 'Finance', role: 'user' },
-                        { id: '3', name: 'Mike Johnson', department: 'IT', role: 'user' },
-                        { id: '4', name: 'Sarah Williams', department: 'HR', role: 'user' },
-                        { id: '5', name: 'Marketing Department', department: 'Marketing', role: 'dept' },
-                        { id: '6', name: 'Finance Department', department: 'Finance', role: 'dept' },
-                        { id: '7', name: 'IT Department', department: 'IT', role: 'dept' },
-                        { id: '8', name: 'HR Department', department: 'HR', role: 'dept' }
-                    ];
-                    resolve();
-                }, 500);
-            });
-        }
-
-        async function loadBookings() {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    bookings = [
-                        {
-                            id: '1',
-                            resource: 'boardroom',
-                            date: formatDate(new Date()),
-                            startTime: '09:00',
-                            endTime: '10:30',
-                            user: 'Jane Smith',
-                            department: 'Finance',
-                            type: 'department',
-                            purpose: 'Budget Review',
-                            invitees: 'HR Department'
-                        }
-                    ];
-                    resolve();
-                }, 500);
-            });
-        }
-
-        async function loadResources() {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    resources = [
-                        { id: 'boardroom', name: 'Main Board Room', type: 'room' },
-                        { id: 'car', name: 'Company Car (Toyota)', type: 'vehicle' }
-                    ];
-                    resolve();
-                }, 300);
-            });
-        }
-
-        async function syncData() {
-            showLoading(true);
-            await Promise.all([loadUsers(), loadBookings(), loadResources()]);
-            showLoading(false);
-            showSyncStatus('success', 'Data synchronized');
-            if (currentPortal === 'admin') {
-                showAdminSection('users');
-            } else {
-                renderCalendar();
-            }
         }
 
         // ==========================================
         // APP INITIALIZATION
         // ==========================================
         async function initializeApp() {
-            showLoading(true);
-            await Promise.all([loadUsers(), loadBookings(), loadResources()]);
-            showLoading(false);
+            document.getElementById('loadingOverlay').classList.add('active');
             
-            document.getElementById('appContainer').classList.add('active');
-            
-            // Update header
-            document.getElementById('headerAvatar').textContent = currentUser.name.charAt(0);
-            document.getElementById('userRoleBadge').textContent = currentUser.role === 'admin' ? 'Administrator' : 'User';
-            
-            if (currentUser.type === 'admin') {
-                // Setup Admin Portal
-                document.getElementById('portalTypeLabel').textContent = 'Admin Control Portal';
-                document.getElementById('adminPortal').classList.add('active');
-                document.getElementById('userPortal').classList.remove('active');
-                document.getElementById('adminName').textContent = currentUser.name;
-                showAdminSection('users');
-            } else {
-                // Setup User Portal
-                document.getElementById('portalTypeLabel').textContent = 'User Booking Portal';
-                document.getElementById('userPortal').classList.add('active');
-                document.getElementById('adminPortal').classList.remove('active');
-                document.getElementById('regularUserName').textContent = currentUser.name;
-                document.getElementById('userDeptName').textContent = currentUser.department;
+            try {
+                // Load all data
+                const result = await apiCall('getAll');
                 
-                // Setup user booking form
-                const bookAs = document.getElementById('bookAs');
-                bookAs.innerHTML = `
-                    <option value="self">${currentUser.name} (Myself)</option>
-                    <option value="dept">${currentUser.department} Department</option>
-                `;
+                if (result.users) users = result.users;
+                if (result.bookings) bookings = result.bookings;
+                if (result.resources) resources = result.resources;
                 
-                updateMultiSelectOptions();
-                renderCalendar();
+                // Show app
+                document.getElementById('appContainer').classList.add('active');
+                
+                // Setup header
+                document.getElementById('headerAvatar').textContent = currentUser.name.charAt(0);
+                document.getElementById('userRoleBadge').textContent = currentUser.role === 'admin' ? 'Administrator' : 'User';
+                
+                if (currentUser.type === 'admin') {
+                    setupAdminPortal();
+                } else {
+                    setupUserPortal();
+                }
+                
+                showSyncStatus('success', 'Data loaded successfully');
+                
+            } catch (error) {
+                showError('Failed to initialize: ' + error.message);
+                console.error('Initialization error:', error);
+            } finally {
+                document.getElementById('loadingOverlay').classList.remove('active');
             }
         }
 
+        function setupAdminPortal() {
+            document.getElementById('portalTypeLabel').textContent = 'Admin Control Portal';
+            document.getElementById('adminPortal').classList.add('active');
+            document.getElementById('userPortal').classList.remove('active');
+            document.getElementById('adminName').textContent = currentUser.name;
+            showAdminSection('users');
+        }
+
+        function setupUserPortal() {
+            document.getElementById('portalTypeLabel').textContent = 'User Booking Portal';
+            document.getElementById('userPortal').classList.add('active');
+            document.getElementById('adminPortal').classList.remove('active');
+            document.getElementById('regularUserName').textContent = currentUser.name;
+            document.getElementById('userDeptName').textContent = currentUser.department;
+            
+            // Setup booking form
+            const bookAs = document.getElementById('bookAs');
+            bookAs.innerHTML = `
+                <option value="self">${currentUser.name} (Myself)</option>
+                <option value="dept">${currentUser.department} Department</option>
+            `;
+            
+            updateMultiSelectOptions();
+            renderCalendar();
+        }
+
         function logout() {
-            location.reload(); // Simple reload to reset everything
+            location.reload();
         }
 
         // ==========================================
@@ -1885,165 +1788,130 @@
             const content = document.getElementById('adminContent');
             
             if (section === 'users') {
-                content.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h3 style="color: var(--navy); font-size: 1.5rem;">User Management</h3>
-                        <button class="btn-primary" onclick="addNewUser()">+ Add User</button>
-                    </div>
-                    <div class="data-table">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Department</th>
-                                    <th>Type</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${users.map(u => `
-                                    <tr>
-                                        <td><strong>${u.name}</strong></td>
-                                        <td>${u.department}</td>
-                                        <td><span style="background: ${u.role === 'dept' ? 'var(--turquoise-light)' : 'var(--gold)'}; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem;">${u.role === 'dept' ? 'Department' : 'Individual'}</span></td>
-                                        <td>
-                                            <div class="action-btns">
-                                                <button class="btn-small btn-edit" onclick="editUser('${u.id}')">Edit</button>
-                                                <button class="btn-small btn-delete" onclick="deleteUser('${u.id}')">Delete</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+                content.innerHTML = renderUsersTable();
             } else if (section === 'bookings') {
-                content.innerHTML = `
-                    <div style="margin-bottom: 1.5rem;">
-                        <h3 style="color: var(--navy); font-size: 1.5rem;">All Bookings</h3>
-                    </div>
-                    <div class="data-table">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Resource</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Booked By</th>
-                                    <th>Purpose</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${bookings.map(b => `
-                                    <tr>
-                                        <td>${b.resource}</td>
-                                        <td>${b.date}</td>
-                                        <td>${b.startTime} - ${b.endTime}</td>
-                                        <td>${b.user}</td>
-                                        <td>${b.purpose}</td>
-                                        <td>
-                                            <div class="action-btns">
-                                                <button class="btn-small btn-edit" onclick="adminEditBooking('${b.id}')">Edit</button>
-                                                <button class="btn-small btn-delete" onclick="adminDeleteBooking('${b.id}')">Delete</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+                content.innerHTML = renderBookingsTable();
             } else if (section === 'resources') {
-                content.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h3 style="color: var(--navy); font-size: 1.5rem;">Resources</h3>
-                        <button class="btn-primary" onclick="addResource()">+ Add Resource</button>
-                    </div>
-                    <div class="data-table">
-                        <table>
-                            <thead>
+                content.innerHTML = renderResourcesTable();
+            }
+        }
+
+        function renderUsersTable() {
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--navy); font-size: 1.5rem;">User Management</h3>
+                    <button class="btn-primary" onclick="addNewUser()">+ Add User</button>
+                </div>
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${users.map(u => `
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Type</th>
-                                    <th>Actions</th>
+                                    <td><strong>${u.name}</strong></td>
+                                    <td>${u.department}</td>
+                                    <td><span style="background: ${u.role === 'dept' ? 'var(--turquoise-light)' : 'var(--gold)'}; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem;">${u.role === 'dept' ? 'Department' : 'Individual'}</span></td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn-small btn-edit" onclick="editUser('${u.id}')">Edit</button>
+                                            <button class="btn-small btn-delete" onclick="deleteUser('${u.id}')">Delete</button>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                ${resources.map(r => `
-                                    <tr>
-                                        <td><strong>${r.name}</strong></td>
-                                        <td>${r.type}</td>
-                                        <td>
-                                            <div class="action-btns">
-                                                <button class="btn-small btn-edit">Edit</button>
-                                                <button class="btn-small btn-delete">Delete</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
 
-        function addNewUser() {
-            const name = prompt('Enter name:');
-            const dept = prompt('Enter department:');
-            const isDept = confirm('Is this a department group account?');
-            
-            if (name && dept) {
-                users.push({
-                    id: Date.now().toString(),
-                    name: name,
-                    department: dept,
-                    role: isDept ? 'dept' : 'user'
-                });
-                showAdminSection('users');
-                showNotification('User added successfully');
-            }
+        function renderBookingsTable() {
+            return `
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--navy); font-size: 1.5rem;">All Bookings</h3>
+                </div>
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Resource</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Booked By</th>
+                                <th>Purpose</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${bookings.map(b => `
+                                <tr>
+                                    <td>${b.resource}</td>
+                                    <td>${b.date}</td>
+                                    <td>${b.startTime} - ${b.endTime}</td>
+                                    <td>${b.user}</td>
+                                    <td>${b.purpose}</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn-small btn-edit" onclick="adminEditBooking('${b.id}')">Edit</button>
+                                            <button class="btn-small btn-delete" onclick="adminDeleteBooking('${b.id}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
 
-        function editUser(id) {
-            const u = users.find(x => x.id === id);
-            const newName = prompt('Edit name:', u.name);
-            const newDept = prompt('Edit department:', u.department);
-            if (newName) u.name = newName;
-            if (newDept) u.department = newDept;
-            showAdminSection('users');
-        }
-
-        function deleteUser(id) {
-            if (confirm('Delete this user?')) {
-                users = users.filter(u => u.id !== id);
-                showAdminSection('users');
-            }
-        }
-
-        function adminEditBooking(id) {
-            // Open booking modal with pre-filled data
-            const b = bookings.find(x => x.id === id);
-            // Implementation similar to regular edit but with admin powers
-        }
-
-        function adminDeleteBooking(id) {
-            if (confirm('Delete this booking?')) {
-                bookings = bookings.filter(b => b.id !== id);
-                showAdminSection('bookings');
-            }
+        function renderResourcesTable() {
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--navy); font-size: 1.5rem;">Resources</h3>
+                    <button class="btn-primary" onclick="addResource()">+ Add Resource</button>
+                </div>
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${resources.map(r => `
+                                <tr>
+                                    <td><strong>${r.name}</strong></td>
+                                    <td>${r.type}</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn-small btn-edit">Edit</button>
+                                            <button class="btn-small btn-delete">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
 
         // ==========================================
-        // USER BOOKING FUNCTIONS
+        // USER FUNCTIONS
         // ==========================================
         function updateMultiSelectOptions() {
             const dropdown = document.getElementById('multiSelectDropdown');
             dropdown.innerHTML = '';
             
-            // Filter out current user and show all others
             const others = users.filter(u => u.id !== currentUser.id);
             
             others.forEach(user => {
@@ -2077,7 +1945,7 @@
             } else {
                 container.innerHTML = selectedInvitees.map(id => {
                     const u = users.find(x => x.id === id);
-                    return `<span class="selected-tag">${u.name} <button onclick="event.stopPropagation(); removeSelection('${id}')">×</button></span>`;
+                    return `<span class="selected-tag">${u ? u.name : id} <button onclick="event.stopPropagation(); removeSelection('${id}')">×</button></span>`;
                 }).join('');
             }
         }
@@ -2090,7 +1958,7 @@
         }
 
         // ==========================================
-        // CALENDAR FUNCTIONS (Same as before)
+        // CALENDAR FUNCTIONS
         // ==========================================
         function changeView(view) {
             currentView = view;
@@ -2109,7 +1977,10 @@
         function renderCalendar() {
             const container = document.getElementById('calendarContent');
             const title = document.getElementById('calendarTitle');
-            title.textContent = currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            title.textContent = currentDate.toLocaleDateString('en-US', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
 
             if (currentView === 'day') renderDayView(container);
             else if (currentView === 'week') renderWeekView(container);
@@ -2118,45 +1989,67 @@
 
         function renderDayView(container) {
             let html = '<div class="day-view"><div class="time-slots">';
-            for (let i = 8; i < 19; i++) html += `<div class="time-label">${String(i).padStart(2,'0')}:00</div>`;
+            for (let i = 8; i < 19; i++) {
+                html += `<div class="time-label">${String(i).padStart(2,'0')}:00</div>`;
+            }
             html += '</div><div class="day-column">';
+            
             const dateStr = formatDate(currentDate);
             
             for (let i = 8; i < 19; i++) {
                 const time = `${String(i).padStart(2,'0')}:00`;
-                const booking = bookings.find(b => b.resource === currentResource && b.date === dateStr && b.startTime <= time && b.endTime > time);
+                const booking = findBooking(dateStr, time);
                 
                 if (booking) {
-                    const isDept = booking.type === 'department';
-                    const canModify = currentUser.role === 'admin' || booking.user === currentUser.name;
-                    html += `
-                        <div class="slot booked ${isDept ? 'department' : ''}" 
-                             ${canModify ? `onclick="handleSlotClick('${booking.id}', event)" oncontextmenu="handleContextMenu(event, '${booking.id}')"` : ''}>
-                            <div class="slot-content">
-                                ${booking.purpose}
-                                <div class="slot-meta">${booking.user} • ${booking.startTime}-${booking.endTime}</div>
-                            </div>
-                        </div>`;
+                    html += createBookingSlot(booking);
                 } else {
                     html += `<div class="slot" onclick="openBookingModal('${time}')"></div>`;
                 }
             }
+            
             html += '</div></div>';
             container.innerHTML = html;
         }
 
         function renderWeekView(container) {
-            // Implementation similar to previous version
-            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--blue-grey);">Week view loading...</div>';
+            container.innerHTML = '<div style="padding: 2rem; text-align: center;">Week view - To be implemented</div>';
         }
 
         function renderMonthView(container) {
-            // Implementation similar to previous version  
-            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--blue-grey);">Month view loading...</div>';
+            container.innerHTML = '<div style="padding: 2rem; text-align: center;">Month view - To be implemented</div>';
+        }
+
+        function findBooking(date, time) {
+            return bookings.find(b => 
+                b.resource === currentResource && 
+                b.date === date && 
+                b.startTime <= time && 
+                b.endTime > time
+            );
+        }
+
+        function createBookingSlot(booking) {
+            const isDept = booking.type === 'department';
+            const canModify = currentUser.role === 'admin' || booking.user === currentUser.name;
+            
+            return `
+                <div class="slot booked ${isDept ? 'department' : ''}" 
+                     ${canModify ? `onclick="handleSlotClick('${booking.id}', event)"` : ''}>
+                    <div class="slot-content">
+                        ${booking.purpose}
+                        <div class="slot-meta">${booking.user} • ${booking.startTime}-${booking.endTime}</div>
+                    </div>
+                </div>`;
+        }
+
+        function handleSlotClick(id, e) {
+            // For now just show details, can add context menu later
+            const b = bookings.find(x => x.id === id);
+            alert(`Booking: ${b.purpose}\nBy: ${b.user}\nTime: ${b.startTime} - ${b.endTime}`);
         }
 
         // ==========================================
-        // TIME PICKER & BOOKING MODAL
+        // BOOKING MODAL
         // ==========================================
         function adjustTime(type, minutes) {
             if (type === 'start') {
@@ -2209,14 +2102,18 @@
 
         async function saveBooking(e) {
             e.preventDefault();
+            
             const purpose = document.getElementById('bookingPurpose').value.trim();
             if (!purpose) {
                 showError('Purpose is required');
                 return;
             }
             
+            const submitBtn = document.getElementById('submitBookingBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            
             const booking = {
-                id: Date.now().toString(),
                 resource: currentResource,
                 date: document.getElementById('bookingDate').value,
                 startTime: document.getElementById('startTime').value,
@@ -2225,74 +2122,34 @@
                 department: currentUser.department,
                 type: document.getElementById('bookAs').value === 'dept' ? 'department' : 'individual',
                 purpose: purpose,
-                invitees: selectedInvitees.map(id => users.find(u => u.id === id)?.name).join(', ')
+                invitees: selectedInvitees.map(id => users.find(u => u.id === id)?.name).filter(Boolean).join(', ')
             };
             
-            // Check conflicts
-            const conflict = bookings.find(b => 
-                b.resource === booking.resource &&
-                b.date === booking.date &&
-                ((b.startTime <= booking.startTime && b.endTime > booking.startTime) ||
-                 (b.startTime < booking.endTime && b.endTime >= booking.endTime))
-            );
-            
-            if (conflict) {
-                showError('This time slot conflicts with an existing booking');
-                return;
+            try {
+                const result = await apiCall('addBooking', 'POST', {
+                    action: 'addBooking',
+                    booking: booking
+                });
+                
+                if (result.success) {
+                    bookings.push(result.booking);
+                    closeModal();
+                    renderCalendar();
+                    showNotification('Booking confirmed!');
+                } else {
+                    showError(result.error || 'Failed to save booking');
+                }
+            } catch (error) {
+                showError('Failed to save booking: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Confirm Booking';
             }
-            
-            bookings.push(booking);
-            closeModal();
-            renderCalendar();
-            showNotification('Booking confirmed!');
-        }
-
-        function showError(msg) {
-            document.getElementById('errorText').textContent = msg;
-            document.getElementById('errorMessage').classList.add('visible');
-            setTimeout(() => document.getElementById('errorMessage').classList.remove('visible'), 5000);
         }
 
         // ==========================================
-        // CONTEXT MENU & UTILITIES
+        // NAVIGATION
         // ==========================================
-        function handleContextMenu(e, bookingId) {
-            e.preventDefault();
-            selectedSlot = bookingId;
-            const menu = document.getElementById('contextMenu');
-            menu.style.left = e.pageX + 'px';
-            menu.style.top = e.pageY + 'px';
-            menu.classList.add('active');
-        }
-
-        function handleSlotClick(id, e) {
-            if (currentUser.role === 'admin') {
-                handleContextMenu(e, id);
-            }
-        }
-
-        function editBooking() {
-            // Implementation for editing
-            document.getElementById('contextMenu').classList.remove('active');
-        }
-
-        function moveBooking() {
-            document.getElementById('contextMenu').classList.remove('active');
-        }
-
-        function swapBooking() {
-            document.getElementById('contextMenu').classList.remove('active');
-        }
-
-        function deleteBooking() {
-            if (confirm('Cancel this booking?')) {
-                bookings = bookings.filter(b => b.id !== selectedSlot);
-                renderCalendar();
-                showNotification('Booking cancelled');
-            }
-            document.getElementById('contextMenu').classList.remove('active');
-        }
-
         function navigatePrev() {
             if (currentView === 'day') currentDate.setDate(currentDate.getDate() - 1);
             else if (currentView === 'week') currentDate.setDate(currentDate.getDate() - 7);
@@ -2312,12 +2169,11 @@
             renderCalendar();
         }
 
+        // ==========================================
+        // UTILITIES
+        // ==========================================
         function formatDate(date) {
             return date.toISOString().split('T')[0];
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').classList.toggle('active', show);
         }
 
         function showSyncStatus(type, msg) {
@@ -2345,36 +2201,29 @@
             `;
             notif.textContent = msg;
             document.body.appendChild(notif);
-            setTimeout(() => {
-                notif.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => notif.remove(), 300);
-            }, 3000);
+            setTimeout(() => notif.remove(), 3000);
         }
 
-        // Close context menu on click outside
+        async function syncData() {
+            showSyncStatus('syncing', 'Syncing...');
+            await initializeApp();
+        }
+
+        // Close dropdowns on outside click
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.context-menu')) {
-                document.getElementById('contextMenu').classList.remove('active');
-            }
             if (!e.target.closest('.multi-select-container')) {
                 document.getElementById('multiSelectDropdown').classList.remove('active');
                 document.querySelector('.multi-select-trigger').classList.remove('active');
             }
         });
 
-        // Add animation styles
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.getElementById('multiSelectDropdown').classList.remove('active');
             }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
+        });
     </script>
 </body>
 </html>
