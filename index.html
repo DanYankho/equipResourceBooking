@@ -1595,23 +1595,23 @@
         // ==========================================
         
         function setupFirebaseListeners() {
+            log('Setting up Firebase listeners...');
+            
             // Users listener
-            const usersRef = database.ref('users');
-            const usersListener = usersRef.on('value', (snapshot) => {
+            database.ref('users').on('value', (snapshot) => {
                 const data = snapshot.val();
                 users = data ? Object.values(data) : [];
                 log('Users updated from Firebase', users.length);
                 
+                // Refresh UI if needed
                 if (currentUser && currentUser.type === 'admin') {
                     const currentSection = document.querySelector('.admin-content-section')?.dataset.section;
                     if (currentSection === 'users') showAdminSection('users');
                 }
             });
-            firebaseListeners.push(() => usersRef.off('value', usersListener));
-
+        
             // Bookings listener
-            const bookingsRef = database.ref('bookings');
-            const bookingsListener = bookingsRef.on('value', (snapshot) => {
+            database.ref('bookings').on('value', (snapshot) => {
                 const data = snapshot.val();
                 bookings = data ? Object.values(data) : [];
                 log('Bookings updated from Firebase', bookings.length);
@@ -1623,11 +1623,9 @@
                     if (currentSection === 'bookings') showAdminSection('bookings');
                 }
             });
-            firebaseListeners.push(() => bookingsRef.off('value', bookingsListener));
-
+        
             // Resources listener
-            const resourcesRef = database.ref('resources');
-            const resourcesListener = resourcesRef.on('value', (snapshot) => {
+            database.ref('resources').on('value', (snapshot) => {
                 const data = snapshot.val();
                 resources = data ? Object.values(data) : [];
                 log('Resources updated from Firebase', resources.length);
@@ -1637,17 +1635,14 @@
                     if (currentSection === 'resources') showAdminSection('resources');
                 }
             });
-            firebaseListeners.push(() => resourcesRef.off('value', resourcesListener));
-
+        
             // Admins listener
-            const adminsRef = database.ref('admins');
-            const adminsListener = adminsRef.on('value', (snapshot) => {
+            database.ref('admins').on('value', (snapshot) => {
                 const data = snapshot.val();
                 admins = data ? Object.values(data) : [];
                 log('Admins updated from Firebase', admins.length);
             });
-            firebaseListeners.push(() => adminsRef.off('value', adminsListener));
-
+        
             document.getElementById('liveIndicator').style.display = 'inline-flex';
             log('Firebase listeners activated');
         }
