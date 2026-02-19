@@ -1659,32 +1659,42 @@
         }
 
         async function initializeDefaultData() {
-            const usersSnapshot = await database.ref('users').once('value');
-            if (!usersSnapshot.exists()) {
-                log('Initializing default data...');
+            try {
+                const usersSnapshot = await database.ref('users').once('value');
+                console.log('Users snapshot:', usersSnapshot.val()); // Debug log
                 
-                const defaultUsers = {
-                    'user1': { id: '1', name: 'John Smith', department: 'Marketing', role: 'individual', email: 'john@company.com' },
-                    'user2': { id: '2', name: 'Sarah Johnson', department: 'Sales', role: 'individual', email: 'sarah@company.com' },
-                    'user3': { id: '3', name: 'Marketing Dept', department: 'Marketing', role: 'dept', email: 'marketing@company.com' },
-                    'user4': { id: '4', name: 'Sales Dept', department: 'Sales', role: 'dept', email: 'sales@company.com' }
-                };
-                
-                const defaultResources = {
-                    'res1': { id: 'boardroom', name: 'Main Board Room', type: 'room' },
-                    'res2': { id: 'car', name: 'Company Car 1', type: 'vehicle' }
-                };
-                
-                const defaultAdmins = {
-                    'admin1': { username: 'admin', password: 'admin123', name: 'System Administrator' }
-                };
-
-                await database.ref('users').set(defaultUsers);
-                await database.ref('resources').set(defaultResources);
-                await database.ref('admins').set(defaultAdmins);
-                await database.ref('bookings').set({});
-                
-                log('Default data initialized');
+                if (!usersSnapshot.exists() || usersSnapshot.val() === null) {
+                    console.log('Initializing default data...');
+                    
+                    const defaultUsers = {
+                        'user1': { id: '1', name: 'John Smith', department: 'Marketing', role: 'individual', email: 'john@company.com' },
+                        'user2': { id: '2', name: 'Sarah Johnson', department: 'Sales', role: 'individual', email: 'sarah@company.com' },
+                        'user3': { id: '3', name: 'Marketing Dept', department: 'Marketing', role: 'dept', email: 'marketing@company.com' },
+                        'user4': { id: '4', name: 'Sales Dept', department: 'Sales', role: 'dept', email: 'sales@company.com' }
+                    };
+                    
+                    const defaultResources = {
+                        'res1': { id: 'boardroom', name: 'Main Board Room', type: 'room' },
+                        'res2': { id: 'car', name: 'Company Car 1', type: 'vehicle' }
+                    };
+                    
+                    const defaultAdmins = {
+                        'admin1': { username: 'admin', password: 'admin123', name: 'System Administrator' }
+                    };
+        
+                    await database.ref('users').set(defaultUsers);
+                    await database.ref('resources').set(defaultResources);
+                    await database.ref('admins').set(defaultAdmins);
+                    await database.ref('bookings').set({});
+                    
+                    console.log('Default data initialized successfully');
+                    
+                    // Wait a moment for data to sync
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            } catch (error) {
+                console.error('Error initializing data:', error);
+                throw error;
             }
         }
 
