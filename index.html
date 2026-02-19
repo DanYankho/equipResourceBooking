@@ -1,0 +1,2649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Booking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --navy: #0d2136;
+            --gold: #a8935a;
+            --soft-gold: #d6cabo;
+            --beige: #d8d0c6;
+            --light-beige: #e6e1da;
+            --soft-cream: #f4f2ef;
+            --grey: #d3d6d9;
+            --blue-grey: #8a949e;
+            --green-dark: #2f3527;
+            --green-light: #81845a;
+            --turquoise-dark: #002937;
+            --turquoise-light: #004551;
+            --plum-dark: #512137;
+            --plum-light: #7e2138;
+        }
+
+        body {
+            font-family: 'Libre Franklin', sans-serif;
+            background: linear-gradient(135deg, var(--soft-cream) 0%, var(--light-beige) 100%);
+            color: var(--navy);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: Georgia, serif;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.9);
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+            border: 2px solid var(--gold);
+        }
+
+        .debug-panel.visible {
+            display: block;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10000;
+            background: var(--navy);
+            color: var(--gold);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .error-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--plum-dark);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            z-index: 9998;
+            display: none;
+            font-weight: 600;
+        }
+
+        .error-banner.visible {
+            display: block;
+        }
+
+        .portal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--turquoise-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            transition: opacity 0.5s ease;
+        }
+
+        .portal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .portal-container {
+            text-align: center;
+            max-width: 900px;
+            width: 90%;
+        }
+
+        .portal-logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--soft-gold) 100%);
+            border-radius: 24px;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .portal-container h1 {
+            color: var(--soft-cream);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .portal-container > p {
+            color: var(--gold);
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .portal-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .portal-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(168, 147, 90, 0.3);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .portal-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .portal-card h2 {
+            color: var(--soft-cream);
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .portal-card p {
+            color: var(--blue-grey);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(13, 33, 54, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 6000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--gold);
+        }
+
+        .login-box h2 {
+            color: var(--navy);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .login-box > p {
+            color: var(--blue-grey);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Libre Franklin', sans-serif;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        .user-selection {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .dept-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .dept-header {
+            background: var(--navy);
+            color: var(--gold);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .user-option {
+            padding: 1rem;
+            background: var(--soft-cream);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-option:hover {
+            border-color: var(--gold);
+            background: white;
+            transform: translateX(5px);
+        }
+
+        .user-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--turquoise-dark), var(--turquoise-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .app-container {
+            display: none;
+        }
+
+        .app-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: rgba(13, 33, 54, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gold);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(13, 33, 54, 0.3);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-placeholder {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--soft-gold) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy);
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .brand-text h1 {
+            color: var(--soft-cream);
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .brand-text span {
+            color: var(--gold);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .role-badge {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--soft-gold) 100%);
+            color: var(--navy);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--turquoise-dark) 0%, var(--turquoise-light) 100%);
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        .main-container {
+            margin-top: 100px;
+            padding: 2rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .admin-portal, .user-portal {
+            display: none;
+        }
+
+        .admin-portal.active, .user-portal.active {
+            display: block;
+        }
+
+        .admin-welcome {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--turquoise-dark) 100%);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gold);
+        }
+
+        .admin-welcome h2 {
+            color: var(--gold);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            border: 2px solid var(--beige);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(13, 33, 54, 0.1);
+        }
+
+        .admin-card h3 {
+            color: var(--navy);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-card p {
+            color: var(--blue-grey);
+            font-size: 0.9rem;
+        }
+
+        .user-welcome {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--beige);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-welcome h2 {
+            color: var(--navy);
+            margin-bottom: 0.25rem;
+        }
+
+        .user-welcome p {
+            color: var(--blue-grey);
+        }
+
+        .resource-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 0.5rem;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 147, 90, 0.2);
+            width: fit-content;
+        }
+
+        .resource-tab {
+            padding: 1rem 2rem;
+            border: none;
+            background: transparent;
+            color: var(--blue-grey);
+            font-family: 'Libre Franklin', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .resource-tab.active {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--turquoise-dark) 100%);
+            color: var(--soft-cream);
+            box-shadow: 0 4px 20px rgba(13, 33, 54, 0.3);
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .view-filters {
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(13, 33, 54, 0.08);
+        }
+
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--blue-grey);
+            font-family: 'Libre Franklin', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--turquoise-dark) 100%);
+            color: var(--soft-cream);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-family: 'Libre Franklin', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(13, 33, 54, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(13, 33, 54, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(13, 33, 54, 0.1);
+            border: 1px solid rgba(168, 147, 90, 0.2);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-title {
+            font-size: 1.75rem;
+            color: var(--navy);
+        }
+
+        .nav-arrows {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--beige);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: var(--navy);
+        }
+
+        .nav-btn:hover {
+            background: var(--navy);
+            color: white;
+            border-color: var(--navy);
+        }
+
+        .day-view {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 1rem;
+        }
+
+        .time-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .time-label {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+            color: var(--blue-grey);
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-right: 2px solid var(--beige);
+        }
+
+        .day-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .slot {
+            height: 60px;
+            background: var(--soft-cream);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slot:hover {
+            border-color: var(--gold);
+            background: var(--light-beige);
+        }
+
+        .slot.booked {
+            background: linear-gradient(135deg, var(--plum-dark) 0%, var(--plum-light) 100%);
+            color: white;
+            cursor: pointer;
+        }
+
+        .slot.booked.department {
+            background: linear-gradient(135deg, var(--turquoise-dark) 0%, var(--turquoise-light) 100%);
+        }
+
+        .slot-content {
+            padding: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .slot-meta {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(13, 33, 54, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(13, 33, 54, 0.5);
+            border: 1px solid var(--gold);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-beige);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--navy);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--blue-grey);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: var(--soft-cream);
+            color: var(--navy);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--navy);
+            font-size: 0.9rem;
+        }
+
+        .form-label.required::after {
+            content: ' *';
+            color: var(--plum-light);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--beige);
+            border-radius: 12px;
+            font-family: 'Libre Franklin', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--soft-cream);
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(168, 147, 90, 0.1);
+        }
+
+        .time-picker-container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+            background: var(--soft-cream);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 2px solid var(--beige);
+        }
+
+        .time-dial {
+            text-align: center;
+        }
+
+        .time-dial-label {
+            font-size: 0.8rem;
+            color: var(--blue-grey);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .dial-display {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--turquoise-dark) 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(13, 33, 54, 0.3);
+        }
+
+        .dial-controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .dial-btn {
+            width: 36px;
+            height: 36px;
+            border: 2px solid var(--beige);
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+            color: var(--navy);
+        }
+
+        .dial-btn:hover {
+            border-color: var(--gold);
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        .time-separator {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-top: -2rem;
+        }
+
+        .multi-select-container {
+            position: relative;
+        }
+
+        .multi-select-trigger {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--beige);
+            border-radius: 12px;
+            background: var(--soft-cream);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .multi-select-trigger:hover {
+            border-color: var(--gold);
+        }
+
+        .multi-select-trigger.active {
+            border-color: var(--gold);
+            background: white;
+        }
+
+        .selected-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .selected-tag {
+            background: var(--navy);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .selected-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .placeholder-text {
+            color: var(--blue-grey);
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--gold);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(13, 33, 54, 0.2);
+        }
+
+        .multi-select-dropdown.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--soft-cream);
+        }
+
+        .dropdown-item:hover {
+            background: var(--soft-cream);
+        }
+
+        .dropdown-item.selected {
+            background: var(--light-beige);
+        }
+
+        .dropdown-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--navy);
+        }
+
+        .recurrence-options {
+            background: var(--soft-cream);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            border: 1px solid var(--beige);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--navy);
+        }
+
+        .error-message {
+            background: var(--plum-light);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .error-message.visible {
+            display: flex;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--beige);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .data-table {
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(13, 33, 54, 0.1);
+        }
+
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: var(--navy);
+            color: var(--gold);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--beige);
+        }
+
+        .data-table tr:hover {
+            background: var(--soft-cream);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: var(--turquoise-light);
+            color: white;
+        }
+
+        .btn-delete {
+            background: var(--plum-light);
+            color: white;
+        }
+
+        .sync-status {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--navy);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 20px rgba(13, 33, 54, 0.3);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .sync-status.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--green-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green-light);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .conflict-warning {
+            background: var(--plum-light);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .conflict-warning.visible {
+            display: block;
+        }
+
+        .export-section {
+            background: var(--soft-cream);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 2px dashed var(--beige);
+        }
+
+        @media (max-width: 768px) {
+            .portal-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-picker-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .time-separator {
+                margin-top: 0;
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Debug Toggle -->
+    <button class="debug-toggle" onclick="toggleDebug()">🐛 Debug</button>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+        <div id="debugContent">Debug info will appear here...</div>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="errorBanner">
+        <span id="errorBannerText"></span>
+        <button onclick="hideError()" style="margin-left: 20px; background: white; color: var(--plum-dark); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Dismiss</button>
+    </div>
+
+    <!-- Portal Selection -->
+    <div class="portal-overlay" id="portalOverlay">
+        <div class="portal-container">
+            <div class="portal-logo">🏢</div>
+            <h1>Executive Booking System</h1>
+            <p>Select Your Portal</p>
+            
+            <div class="portal-cards">
+                <div class="portal-card" onclick="selectPortal('admin')">
+                    <div class="portal-icon">🔐</div>
+                    <h2>Admin Portal</h2>
+                    <p>Manage users, departments, bookings, and system settings. Requires authentication.</p>
+                </div>
+                
+                <div class="portal-card" onclick="selectPortal('user')">
+                    <div class="portal-icon">📅</div>
+                    <h2>User Portal</h2>
+                    <p>Book board rooms and company cars. View schedules and manage your reservations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="login-modal" id="adminLoginModal">
+        <button class="back-btn" onclick="backToPortals()">← Back</button>
+        <div class="login-box">
+            <h2>Admin Login</h2>
+            <p>Enter your credentials</p>
+            
+            <div class="error-message" id="loginError">
+                <span>⚠️</span>
+                <span id="loginErrorText">Invalid credentials</span>
+            </div>
+            
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="adminUsername" required placeholder="Enter username">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="adminPassword" required placeholder="Enter password">
+                </div>
+                
+                <button type="submit" class="btn-primary" style="width: 100%;" id="loginSubmitBtn">
+                    Login to Admin Portal
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Selection Modal -->
+    <div class="login-modal" id="userSelectionModal">
+        <button class="back-btn" onclick="backToPortals()">← Back</button>
+        <div class="login-box" style="max-width: 600px;">
+            <h2>Select User</h2>
+            <p>Choose your name to continue</p>
+            
+            <div class="user-selection" id="userSelectionList">
+                <div style="text-align: center; padding: 2rem; color: var(--blue-grey);">
+                    <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                    Loading users...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="color: var(--navy); font-weight: 600;">Connecting to Firebase...</p>
+    </div>
+
+    <!-- Main Application -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-placeholder" id="siteLogo">LOGO</div>
+                    <div class="brand-text">
+                        <h1>Executive Booking</h1>
+                        <span id="portalTypeLabel">User Portal</span>
+                    </div>
+                </div>
+                <div class="user-section">
+                    <div class="live-indicator" id="liveIndicator" style="display: none;">
+                        <span class="live-dot"></span>
+                        <span>Live</span>
+                    </div>
+                    <span class="role-badge" id="userRoleBadge">User</span>
+                    <div class="user-avatar" id="headerAvatar">U</div>
+                    <button class="logout-btn" onclick="logout()">Switch Portal</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <!-- ADMIN PORTAL -->
+            <div class="admin-portal" id="adminPortal">
+                <div class="admin-welcome">
+                    <h2>Welcome, <span id="adminName">Administrator</span></h2>
+                    <p style="opacity: 0.9; margin-top: 0.5rem;">Manage your organization's resources and users</p>
+                </div>
+
+                <!-- Export Section -->
+                <div class="export-section">
+                    <h3 style="margin-bottom: 1rem; color: var(--navy);">💾 Data Export</h3>
+                    <p style="margin-bottom: 1rem; color: var(--blue-grey); font-size: 0.9rem;">
+                        Download all data as CSV files for backup or analysis.
+                    </p>
+                    <button class="btn-primary" onclick="exportAllData()">Export All Data to CSV</button>
+                </div>
+
+                <div class="admin-grid">
+                    <div class="admin-card" onclick="showAdminSection('users')">
+                        <h3>👥 Manage Users</h3>
+                        <p>Add, edit, or remove users and departments from the system</p>
+                    </div>
+                    <div class="admin-card" onclick="showAdminSection('bookings')">
+                        <h3>📅 All Bookings</h3>
+                        <p>View, edit, move, or cancel any reservation in the system</p>
+                    </div>
+                    <div class="admin-card" onclick="showAdminSection('resources')">
+                        <h3>🏢 Resources</h3>
+                        <p>Configure board rooms, cars, and other bookable assets</p>
+                    </div>
+                    <div class="admin-card" onclick="showAdminSection('admins')">
+                        <h3>🔐 Admin Users</h3>
+                        <p>Manage administrator accounts</p>
+                    </div>
+                </div>
+
+                <div id="adminContent" style="margin-top: 2rem;"></div>
+            </div>
+
+            <!-- USER PORTAL -->
+            <div class="user-portal" id="userPortal">
+                <div class="user-welcome">
+                    <div>
+                        <h2>Welcome, <span id="regularUserName">User</span></h2>
+                        <p>Department: <span id="userDeptName">Marketing</span></p>
+                    </div>
+                    <button class="btn-primary" onclick="openBookingModal()">
+                        <span>+</span> New Booking
+                    </button>
+                </div>
+
+                <!-- Resource Tabs -->
+                <div class="resource-tabs">
+                    <button class="resource-tab active" onclick="switchResource('boardroom')">
+                        🏢 Board Room
+                    </button>
+                    <button class="resource-tab" onclick="switchResource('car')">
+                        🚗 Company Car
+                    </button>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls-bar">
+                    <div class="view-filters">
+                        <button class="filter-btn active" onclick="changeView('day')">Day</button>
+                        <button class="filter-btn" onclick="changeView('week')">Week</button>
+                        <button class="filter-btn" onclick="changeView('month')">Month</button>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="nav-arrows">
+                            <button class="nav-btn" onclick="navigatePrev()">‹</button>
+                            <button class="nav-btn" onclick="navigateToday()">Today</button>
+                            <button class="nav-btn" onclick="navigateNext()">›</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar -->
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <h2 class="calendar-title" id="calendarTitle">Loading...</h2>
+                    </div>
+                    <div id="calendarContent">
+                        <div style="text-align: center; padding: 3rem; color: var(--blue-grey);">
+                            <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                            Loading calendar...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">New Booking</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="conflict-warning" id="conflictWarning">
+                ⚠️ This time slot conflicts with an existing booking!
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                <span>⚠️</span>
+                <span id="errorText"></span>
+            </div>
+            
+            <form id="bookingForm" onsubmit="saveBooking(event)">
+                <div class="form-group">
+                    <label class="form-label">Book As</label>
+                    <select class="form-select" id="bookAs">
+                        <option value="self">Myself</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="bookingDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Time Range</label>
+                    <div class="time-picker-container">
+                        <div class="time-dial">
+                            <div class="time-dial-label">Start</div>
+                            <div class="dial-display" id="startTimeDisplay">09:00</div>
+                            <div class="dial-controls">
+                                <button type="button" class="dial-btn" onclick="adjustTime('start', -30)">−</button>
+                                <button type="button" class="dial-btn" onclick="adjustTime('start', 30)">+</button>
+                            </div>
+                        </div>
+                        <div class="time-separator">to</div>
+                        <div class="time-dial">
+                            <div class="time-dial-label">End</div>
+                            <div class="dial-display" id="endTimeDisplay">10:00</div>
+                            <div class="dial-controls">
+                                <button type="button" class="dial-btn" onclick="adjustTime('end', -30)">−</button>
+                                <button type="button" class="dial-btn" onclick="adjustTime('end', 30)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="startTime" value="09:00">
+                    <input type="hidden" id="endTime" value="10:00">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Purpose / Notes</label>
+                    <input type="text" class="form-input" id="bookingPurpose" required placeholder="e.g., Q1 Strategy Meeting">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Invite Others (Optional)</label>
+                    <div class="multi-select-container" id="inviteContainer">
+                        <div class="multi-select-trigger" onclick="toggleMultiSelect()">
+                            <div class="selected-items" id="selectedItems">
+                                <span class="placeholder-text">Select departments or people...</span>
+                            </div>
+                            <span style="color: var(--blue-grey);">▼</span>
+                        </div>
+                        <div class="multi-select-dropdown" id="multiSelectDropdown"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="recurring" onchange="toggleRecurrence()">
+                        <label for="recurring" style="font-weight: 600; cursor: pointer;">Make this a recurring booking</label>
+                    </div>
+                    <div class="recurrence-options" id="recurrenceOptions" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Repeat</label>
+                            <select class="form-select" id="recurrenceType">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Until</label>
+                            <input type="date" class="form-input" id="recurrenceEnd">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;" id="submitBookingBtn">
+                    Confirm Booking
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sync Status -->
+    <div class="sync-status" id="syncStatus">
+        <span>✓</span>
+        <span>Synced</span>
+    </div>
+
+    <!-- FIREBASE CONFIGURATION - YOUR PROJECT -->
+    <script>
+        // ==========================================
+        // FIREBASE CONFIGURATION - REPLACE WITH YOUR VALUES
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAURxQJYzXb6NSzPoN6tQibZXuCyveZoKw",
+            authDomain: "executive-booking-system.firebaseapp.com",
+            databaseURL: "https://executive-booking-system-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "executive-booking-system",
+            storageBucket: "executive-booking-system.firebasestorage.app",
+            messagingSenderId: "999349397455",
+            appId: "1:999349397455:web:dd4767d1a058d7756014ba"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+        const CONFIG = {
+            DEBUG: true
+        };
+
+        // ==========================================
+        // STATE
+        // ==========================================
+        let currentPortal = null;
+        let currentUser = null;
+        let currentResource = 'boardroom';
+        let currentView = 'day';
+        let currentDate = new Date();
+        
+        let users = [];
+        let bookings = [];
+        let resources = [];
+        let admins = [];
+        
+        let startTimeMinutes = 540;
+        let endTimeMinutes = 600;
+        let selectedInvitees = [];
+        let firebaseListeners = [];
+
+        // ==========================================
+        // DEBUGGING
+        // ==========================================
+        function log(message, data) {
+            if (!CONFIG.DEBUG) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            
+            console.log(logEntry, data || '');
+            
+            const debugPanel = document.getElementById('debugPanel');
+            const debugContent = document.getElementById('debugContent');
+            
+            const entry = document.createElement('div');
+            entry.style.marginBottom = '5px';
+            entry.style.borderBottom = '1px solid #333';
+            entry.style.paddingBottom = '5px';
+            
+            if (data) {
+                entry.innerHTML = `<strong>${logEntry}</strong><br><pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                entry.textContent = logEntry;
+            }
+            
+            debugContent.insertBefore(entry, debugContent.firstChild);
+        }
+
+        function toggleDebug() {
+            document.getElementById('debugPanel').classList.toggle('visible');
+        }
+
+        function showError(message) {
+            log('ERROR: ' + message);
+            document.getElementById('errorBannerText').textContent = message;
+            document.getElementById('errorBanner').classList.add('visible');
+            setTimeout(hideError, 5000);
+        }
+
+        function hideError() {
+            document.getElementById('errorBanner').classList.remove('visible');
+        }
+
+        // ==========================================
+        // FIREBASE DATA OPERATIONS
+        // ==========================================
+        
+        function setupFirebaseListeners() {
+            // Users listener
+            const usersRef = database.ref('users');
+            const usersListener = usersRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                users = data ? Object.values(data) : [];
+                log('Users updated from Firebase', users.length);
+                
+                if (currentUser && currentUser.type === 'admin') {
+                    const currentSection = document.querySelector('.admin-content-section')?.dataset.section;
+                    if (currentSection === 'users') showAdminSection('users');
+                }
+            });
+            firebaseListeners.push(() => usersRef.off('value', usersListener));
+
+            // Bookings listener
+            const bookingsRef = database.ref('bookings');
+            const bookingsListener = bookingsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                bookings = data ? Object.values(data) : [];
+                log('Bookings updated from Firebase', bookings.length);
+                
+                if (currentUser && currentUser.type === 'user') {
+                    renderCalendar();
+                } else if (currentUser && currentUser.type === 'admin') {
+                    const currentSection = document.querySelector('.admin-content-section')?.dataset.section;
+                    if (currentSection === 'bookings') showAdminSection('bookings');
+                }
+            });
+            firebaseListeners.push(() => bookingsRef.off('value', bookingsListener));
+
+            // Resources listener
+            const resourcesRef = database.ref('resources');
+            const resourcesListener = resourcesRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                resources = data ? Object.values(data) : [];
+                log('Resources updated from Firebase', resources.length);
+                
+                if (currentUser && currentUser.type === 'admin') {
+                    const currentSection = document.querySelector('.admin-content-section')?.dataset.section;
+                    if (currentSection === 'resources') showAdminSection('resources');
+                }
+            });
+            firebaseListeners.push(() => resourcesRef.off('value', resourcesListener));
+
+            // Admins listener
+            const adminsRef = database.ref('admins');
+            const adminsListener = adminsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                admins = data ? Object.values(data) : [];
+                log('Admins updated from Firebase', admins.length);
+            });
+            firebaseListeners.push(() => adminsRef.off('value', adminsListener));
+
+            document.getElementById('liveIndicator').style.display = 'inline-flex';
+            log('Firebase listeners activated');
+        }
+
+        function stopFirebaseListeners() {
+            firebaseListeners.forEach(unsubscribe => unsubscribe());
+            firebaseListeners = [];
+            document.getElementById('liveIndicator').style.display = 'none';
+            log('Firebase listeners stopped');
+        }
+
+        async function initializeDefaultData() {
+            const usersSnapshot = await database.ref('users').once('value');
+            if (!usersSnapshot.exists()) {
+                log('Initializing default data...');
+                
+                const defaultUsers = {
+                    'user1': { id: '1', name: 'John Smith', department: 'Marketing', role: 'individual', email: 'john@company.com' },
+                    'user2': { id: '2', name: 'Sarah Johnson', department: 'Sales', role: 'individual', email: 'sarah@company.com' },
+                    'user3': { id: '3', name: 'Marketing Dept', department: 'Marketing', role: 'dept', email: 'marketing@company.com' },
+                    'user4': { id: '4', name: 'Sales Dept', department: 'Sales', role: 'dept', email: 'sales@company.com' }
+                };
+                
+                const defaultResources = {
+                    'res1': { id: 'boardroom', name: 'Main Board Room', type: 'room' },
+                    'res2': { id: 'car', name: 'Company Car 1', type: 'vehicle' }
+                };
+                
+                const defaultAdmins = {
+                    'admin1': { username: 'admin', password: 'admin123', name: 'System Administrator' }
+                };
+
+                await database.ref('users').set(defaultUsers);
+                await database.ref('resources').set(defaultResources);
+                await database.ref('admins').set(defaultAdmins);
+                await database.ref('bookings').set({});
+                
+                log('Default data initialized');
+            }
+        }
+
+        // ==========================================
+        // PORTAL SELECTION
+        // ==========================================
+        function selectPortal(type) {
+            currentPortal = type;
+            document.getElementById('portalOverlay').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('portalOverlay').classList.add('hidden');
+                
+                if (type === 'admin') {
+                    document.getElementById('adminLoginModal').classList.add('active');
+                } else {
+                    loadUsersForSelection();
+                    document.getElementById('userSelectionModal').classList.add('active');
+                }
+            }, 500);
+        }
+
+        function backToPortals() {
+            document.getElementById('adminLoginModal').classList.remove('active');
+            document.getElementById('userSelectionModal').classList.remove('active');
+            document.getElementById('portalOverlay').classList.remove('hidden');
+            document.getElementById('portalOverlay').style.opacity = '1';
+            currentPortal = null;
+        }
+
+        // ==========================================
+        // ADMIN LOGIN
+        // ==========================================
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            
+            try {
+                const admin = admins.find(a => a.username === username && a.password === password);
+                
+                if (admin) {
+                    currentUser = {
+                        ...admin,
+                        type: 'admin',
+                        role: 'admin'
+                    };
+                    document.getElementById('adminLoginModal').classList.remove('active');
+                    await initializeApp();
+                } else {
+                    document.getElementById('loginError').classList.add('visible');
+                    setTimeout(() => {
+                        document.getElementById('loginError').classList.remove('visible');
+                    }, 3000);
+                }
+            } catch (error) {
+                showError('Login failed: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login to Admin Portal';
+            }
+        }
+
+        // ==========================================
+        // USER SELECTION
+        // ==========================================
+        async function loadUsersForSelection() {
+            const container = document.getElementById('userSelectionList');
+            container.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner" style="margin: 0 auto 1rem;"></div>Loading users...</div>';
+            
+            try {
+                await waitForData(() => users.length > 0, 5000);
+                
+                if (users.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--blue-grey);">
+                            <p>No users found in system.</p>
+                            <button onclick="loadUsersForSelection()" class="btn-primary" style="margin-top: 1rem;">Retry</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const depts = [...new Set(users.map(u => u.department))];
+                
+                container.innerHTML = depts.map(dept => {
+                    const deptUsers = users.filter(u => u.department === dept);
+                    return `
+                        <div class="dept-section">
+                            <div class="dept-header">${dept}</div>
+                            ${deptUsers.map(user => `
+                                <div class="user-option" onclick="selectUser('${user.id}')">
+                                    <div class="user-avatar-small">${user.name.split(' ').map(n => n[0]).join('')}</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--navy);">${user.name}</div>
+                                        <div style="font-size: 0.85rem; color: var(--blue-grey);">${user.role === 'dept' ? 'Department' : 'Individual'}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--plum-light);">
+                        <p>Failed to load users</p>
+                        <button onclick="loadUsersForSelection()" class="btn-primary" style="margin-top: 1rem;">Retry</button>
+                    </div>
+                `;
+                showError('Failed to load users: ' + error.message);
+            }
+        }
+
+        function waitForData(condition, timeout) {
+            return new Promise((resolve, reject) => {
+                const start = Date.now();
+                const check = () => {
+                    if (condition()) {
+                        resolve();
+                    } else if (Date.now() - start > timeout) {
+                        reject(new Error('Timeout waiting for data'));
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                };
+                check();
+            });
+        }
+
+        function selectUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) {
+                showError('User not found');
+                return;
+            }
+            
+            currentUser = {
+                ...user,
+                role: 'user',
+                type: 'user'
+            };
+            
+            document.getElementById('userSelectionModal').classList.remove('active');
+            initializeApp();
+        }
+
+        // ==========================================
+        // APP INITIALIZATION
+        // ==========================================
+        async function initializeApp() {
+            document.getElementById('loadingOverlay').classList.add('active');
+            
+            try {
+                await initializeDefaultData();
+                setupFirebaseListeners();
+                
+                document.getElementById('appContainer').classList.add('active');
+                
+                document.getElementById('headerAvatar').textContent = currentUser.name.charAt(0);
+                document.getElementById('userRoleBadge').textContent = currentUser.role === 'admin' ? 'Administrator' : 'User';
+                
+                if (currentUser.type === 'admin') {
+                    setupAdminPortal();
+                } else {
+                    setupUserPortal();
+                }
+                
+                showSyncStatus('success', 'Connected to Firebase');
+                
+            } catch (error) {
+                showError('Failed to initialize: ' + error.message);
+            } finally {
+                document.getElementById('loadingOverlay').classList.remove('active');
+            }
+        }
+
+        function setupAdminPortal() {
+            document.getElementById('portalTypeLabel').textContent = 'Admin Control Portal';
+            document.getElementById('adminPortal').classList.add('active');
+            document.getElementById('userPortal').classList.remove('active');
+            document.getElementById('adminName').textContent = currentUser.name;
+            showAdminSection('users');
+        }
+
+        function setupUserPortal() {
+            document.getElementById('portalTypeLabel').textContent = 'User Booking Portal';
+            document.getElementById('userPortal').classList.add('active');
+            document.getElementById('adminPortal').classList.remove('active');
+            document.getElementById('regularUserName').textContent = currentUser.name;
+            document.getElementById('userDeptName').textContent = currentUser.department || 'N/A';
+            
+            const bookAs = document.getElementById('bookAs');
+            bookAs.innerHTML = `
+                <option value="self">${currentUser.name} (Myself)</option>
+                <option value="dept">${currentUser.department || 'Department'} Department</option>
+            `;
+            
+            updateMultiSelectOptions();
+            renderCalendar();
+        }
+
+        function logout() {
+            stopFirebaseListeners();
+            location.reload();
+        }
+
+        // ==========================================
+        // ADMIN SECTIONS
+        // ==========================================
+        function showAdminSection(section) {
+            const content = document.getElementById('adminContent');
+            
+            if (section === 'users') {
+                content.innerHTML = renderUsersTable();
+            } else if (section === 'bookings') {
+                content.innerHTML = renderBookingsTable();
+            } else if (section === 'resources') {
+                content.innerHTML = renderResourcesTable();
+            } else if (section === 'admins') {
+                content.innerHTML = renderAdminsTable();
+            }
+        }
+
+        function renderUsersTable() {
+            return `
+                <div class="admin-content-section" data-section="users">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="color: var(--navy); font-size: 1.5rem;">User Management (${users.length} users)</h3>
+                        <button class="btn-primary" onclick="addNewUser()">+ Add User</button>
+                    </div>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${users.map(u => `
+                                    <tr>
+                                        <td>${u.id}</td>
+                                        <td><strong>${u.name}</strong></td>
+                                        <td>${u.department || 'N/A'}</td>
+                                        <td><span style="background: ${u.role === 'dept' ? 'var(--turquoise-light)' : 'var(--gold)'}; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem;">${u.role === 'dept' ? 'Department' : 'Individual'}</span></td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="btn-small btn-edit" onclick="editUser('${u.id}')">Edit</button>
+                                                <button class="btn-small btn-delete" onclick="deleteUser('${u.id}')">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBookingsTable() {
+            const sortedBookings = [...bookings].sort((a, b) => {
+                const dateA = new Date(a.date + 'T' + a.startTime);
+                const dateB = new Date(b.date + 'T' + b.startTime);
+                return dateB - dateA;
+            });
+
+            return `
+                <div class="admin-content-section" data-section="bookings">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="color: var(--navy); font-size: 1.5rem;">All Bookings (${bookings.length} total)</h3>
+                    </div>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Resource</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Booked By</th>
+                                    <th>Purpose</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sortedBookings.map(b => `
+                                    <tr>
+                                        <td>${b.id}</td>
+                                        <td>${b.resource}</td>
+                                        <td>${b.date}</td>
+                                        <td>${b.startTime} - ${b.endTime}</td>
+                                        <td>${b.user}</td>
+                                        <td>${b.purpose}</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="btn-small btn-edit" onclick="adminEditBooking('${b.id}')">Edit</button>
+                                                <button class="btn-small btn-delete" onclick="adminDeleteBooking('${b.id}')">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResourcesTable() {
+            return `
+                <div class="admin-content-section" data-section="resources">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="color: var(--navy); font-size: 1.5rem;">Resources (${resources.length} total)</h3>
+                        <button class="btn-primary" onclick="addResource()">+ Add Resource</button>
+                    </div>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${resources.map(r => `
+                                    <tr>
+                                        <td>${r.id}</td>
+                                        <td><strong>${r.name}</strong></td>
+                                        <td>${r.type}</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="btn-small btn-edit" onclick="editResource('${r.id}')">Edit</button>
+                                                <button class="btn-small btn-delete" onclick="deleteResource('${r.id}')">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdminsTable() {
+            return `
+                <div class="admin-content-section" data-section="admins">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="color: var(--navy); font-size: 1.5rem;">Admin Users (${admins.length} total)</h3>
+                        <button class="btn-primary" onclick="addNewAdmin()">+ Add Admin</button>
+                    </div>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${admins.map(a => `
+                                    <tr>
+                                        <td>${a.username}</td>
+                                        <td><strong>${a.name}</strong></td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="btn-small btn-edit" onclick="editAdmin('${a.username}')">Edit</button>
+                                                <button class="btn-small btn-delete" onclick="deleteAdmin('${a.username}')">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // USER FUNCTIONS
+        // ==========================================
+        function updateMultiSelectOptions() {
+            const dropdown = document.getElementById('multiSelectDropdown');
+            dropdown.innerHTML = '';
+            
+            const others = users.filter(u => u.id !== currentUser.id);
+            
+            others.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (selectedInvitees.includes(user.id) ? ' selected' : '');
+                item.innerHTML = `
+                    <input type="checkbox" ${selectedInvitees.includes(user.id) ? 'checked' : ''}>
+                    <span>${user.name} (${user.department || 'N/A'})</span>
+                `;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    const idx = selectedInvitees.indexOf(user.id);
+                    if (idx > -1) selectedInvitees.splice(idx, 1);
+                    else selectedInvitees.push(user.id);
+                    updateSelectedDisplay();
+                    updateMultiSelectOptions();
+                };
+                dropdown.appendChild(item);
+            });
+        }
+
+        function toggleMultiSelect() {
+            document.getElementById('multiSelectDropdown').classList.toggle('active');
+            document.querySelector('.multi-select-trigger').classList.toggle('active');
+        }
+
+        function updateSelectedDisplay() {
+            const container = document.getElementById('selectedItems');
+            if (selectedInvitees.length === 0) {
+                container.innerHTML = '<span class="placeholder-text">Select departments or people...</span>';
+            } else {
+                container.innerHTML = selectedInvitees.map(id => {
+                    const u = users.find(x => x.id === id);
+                    return `<span class="selected-tag">${u ? u.name : id} <button onclick="event.stopPropagation(); removeSelection('${id}')">×</button></span>`;
+                }).join('');
+            }
+        }
+
+        function removeSelection(id) {
+            const idx = selectedInvitees.indexOf(id);
+            if (idx > -1) selectedInvitees.splice(idx, 1);
+            updateSelectedDisplay();
+            updateMultiSelectOptions();
+        }
+
+        // ==========================================
+        // CALENDAR FUNCTIONS
+        // ==========================================
+        function changeView(view) {
+            currentView = view;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderCalendar();
+        }
+
+        function switchResource(resource) {
+            currentResource = resource;
+            document.querySelectorAll('.resource-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const container = document.getElementById('calendarContent');
+            const title = document.getElementById('calendarTitle');
+            
+            title.textContent = currentDate.toLocaleDateString('en-US', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+
+            if (currentView === 'day') renderDayView(container);
+            else if (currentView === 'week') renderWeekView(container);
+            else if (currentView === 'month') renderMonthView(container);
+        }
+
+        function renderDayView(container) {
+            let html = '<div class="day-view"><div class="time-slots">';
+            for (let i = 8; i < 19; i++) {
+                html += `<div class="time-label">${String(i).padStart(2,'0')}:00</div>`;
+            }
+            html += '</div><div class="day-column">';
+            
+            const dateStr = formatDate(currentDate);
+            
+            for (let i = 8; i < 19; i++) {
+                const time = `${String(i).padStart(2,'0')}:00`;
+                const booking = findBooking(dateStr, time);
+                
+                if (booking) {
+                    html += createBookingSlot(booking);
+                } else {
+                    html += `<div class="slot" onclick="openBookingModal('${time}')"></div>`;
+                }
+            }
+            
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        function renderWeekView(container) {
+            container.innerHTML = '<div style="padding: 2rem; text-align: center;">Week view - To be implemented</div>';
+        }
+
+        function renderMonthView(container) {
+            container.innerHTML = '<div style="padding: 2rem; text-align: center;">Month view - To be implemented</div>';
+        }
+
+        function findBooking(date, time) {
+            return bookings.find(b => 
+                b.resource === currentResource && 
+                b.date === date && 
+                b.startTime <= time && 
+                b.endTime > time
+            );
+        }
+
+        function createBookingSlot(booking) {
+            const isDept = booking.type === 'department';
+            const canModify = currentUser.role === 'admin' || booking.user === currentUser.name;
+            
+            return `
+                <div class="slot booked ${isDept ? 'department' : ''}" 
+                     ${canModify ? `onclick="handleSlotClick('${booking.id}', event)"` : ''}>
+                    <div class="slot-content">
+                        ${booking.purpose}
+                        <div class="slot-meta">${booking.user} • ${booking.startTime}-${booking.endTime}</div>
+                    </div>
+                </div>`;
+        }
+
+        function handleSlotClick(id, e) {
+            const b = bookings.find(x => x.id === id);
+            if (confirm(`Booking: ${b.purpose}\nBy: ${b.user}\nTime: ${b.startTime} - ${b.endTime}\n\nDelete this booking?`)) {
+                deleteBooking(id);
+            }
+        }
+
+        // ==========================================
+        // BOOKING MODAL
+        // ==========================================
+        function adjustTime(type, minutes) {
+            if (type === 'start') {
+                startTimeMinutes += minutes;
+                if (startTimeMinutes < 480) startTimeMinutes = 480;
+                if (startTimeMinutes >= endTimeMinutes) endTimeMinutes = startTimeMinutes + 30;
+            } else {
+                endTimeMinutes += minutes;
+                if (endTimeMinutes <= startTimeMinutes) startTimeMinutes = endTimeMinutes - 30;
+                if (endTimeMinutes > 1140) endTimeMinutes = 1140;
+            }
+            updateTimeDisplay();
+            checkConflict();
+        }
+
+        function updateTimeDisplay() {
+            const format = (m) => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+            document.getElementById('startTimeDisplay').textContent = format(startTimeMinutes);
+            document.getElementById('endTimeDisplay').textContent = format(endTimeMinutes);
+            document.getElementById('startTime').value = format(startTimeMinutes);
+            document.getElementById('endTime').value = format(endTimeMinutes);
+        }
+
+        function openBookingModal(time = '09:00') {
+            const modal = document.getElementById('bookingModal');
+            document.getElementById('bookingDate').value = formatDate(currentDate);
+            
+            const [h, m] = time.split(':').map(Number);
+            startTimeMinutes = h * 60 + m;
+            endTimeMinutes = startTimeMinutes + 60;
+            updateTimeDisplay();
+            
+            document.getElementById('bookingPurpose').value = '';
+            selectedInvitees = [];
+            updateSelectedDisplay();
+            document.getElementById('recurring').checked = false;
+            document.getElementById('recurrenceOptions').style.display = 'none';
+            document.getElementById('errorMessage').classList.remove('visible');
+            document.getElementById('conflictWarning').classList.remove('visible');
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').classList.remove('active');
+        }
+
+        function toggleRecurrence() {
+            const show = document.getElementById('recurring').checked;
+            document.getElementById('recurrenceOptions').style.display = show ? 'block' : 'none';
+        }
+
+        function checkConflict() {
+            const date = document.getElementById('bookingDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            
+            if (!date || !startTime || !endTime) return;
+            
+            const hasConflict = bookings.some(b => 
+                b.resource === currentResource &&
+                b.date === date &&
+                ((b.startTime <= startTime && b.endTime > startTime) ||
+                 (b.startTime < endTime && b.endTime >= endTime) ||
+                 (b.startTime >= startTime && b.endTime <= endTime))
+            );
+            
+            const warning = document.getElementById('conflictWarning');
+            if (hasConflict) {
+                warning.classList.add('visible');
+            } else {
+                warning.classList.remove('visible');
+            }
+        }
+
+        async function saveBooking(e) {
+            e.preventDefault();
+            
+            const purpose = document.getElementById('bookingPurpose').value.trim();
+            if (!purpose) {
+                showError('Purpose is required');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBookingBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            
+            const newBooking = {
+                id: Date.now().toString(),
+                resource: currentResource,
+                date: document.getElementById('bookingDate').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                user: currentUser.name,
+                department: currentUser.department || 'N/A',
+                type: document.getElementById('bookAs').value === 'dept' ? 'department' : 'individual',
+                purpose: purpose,
+                invitees: selectedInvitees.map(id => users.find(u => u.id === id)?.name).filter(Boolean).join(', ')
+            };
+            
+            try {
+                // Check for conflicts
+                const hasConflict = bookings.some(b => 
+                    b.resource === newBooking.resource &&
+                    b.date === newBooking.date &&
+                    ((b.startTime <= newBooking.startTime && b.endTime > newBooking.startTime) ||
+                     (b.startTime < newBooking.endTime && b.endTime >= newBooking.endTime) ||
+                     (b.startTime >= newBooking.startTime && b.endTime <= newBooking.endTime))
+                );
+                
+                if (hasConflict) {
+                    showError('Time slot conflicts with existing booking');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Confirm Booking';
+                    return;
+                }
+                
+                // Save to Firebase
+                await database.ref('bookings/' + newBooking.id).set(newBooking);
+                
+                closeModal();
+                showNotification('Booking confirmed! ✓ Saved to Firebase');
+                
+            } catch (error) {
+                showError('Failed to save booking: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Confirm Booking';
+            }
+        }
+
+        // ==========================================
+        // ADMIN CRUD OPERATIONS
+        // ==========================================
+        async function addNewUser() {
+            const name = prompt('Enter user name:');
+            if (!name) return;
+            
+            const department = prompt('Enter department:') || 'General';
+            const role = confirm('Is this a department account?') ? 'dept' : 'individual';
+            
+            const newUser = {
+                id: Date.now().toString(),
+                name: name,
+                department: department,
+                role: role,
+                email: ''
+            };
+            
+            try {
+                await database.ref('users/user' + newUser.id).set(newUser);
+                showNotification('User added successfully ✓');
+            } catch (error) {
+                showError('Failed to add user: ' + error.message);
+            }
+        }
+
+        async function editUser(id) {
+            const user = users.find(u => u.id === id);
+            if (!user) return;
+            
+            const newName = prompt('Enter new name:', user.name);
+            if (newName === null) return;
+            
+            const newDept = prompt('Enter new department:', user.department);
+            if (newDept === null) return;
+            
+            const updates = {
+                name: newName || user.name,
+                department: newDept || user.department
+            };
+            
+            try {
+                const userKey = Object.keys(users).find(key => users[key].id === id);
+                await database.ref('users/' + userKey).update(updates);
+                showNotification('User updated ✓');
+            } catch (error) {
+                showError('Failed to update user: ' + error.message);
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+            
+            try {
+                const userKey = Object.keys(users).find(key => users[key].id === id);
+                await database.ref('users/' + userKey).remove();
+                showNotification('User deleted ✓');
+            } catch (error) {
+                showError('Failed to delete user: ' + error.message);
+            }
+        }
+
+        async function adminEditBooking(id) {
+            const booking = bookings.find(b => b.id === id);
+            if (!booking) return;
+            
+            const newPurpose = prompt('Edit purpose:', booking.purpose);
+            if (newPurpose === null) return;
+            
+            try {
+                await database.ref('bookings/' + id).update({ purpose: newPurpose });
+                showNotification('Booking updated ✓');
+            } catch (error) {
+                showError('Failed to update booking: ' + error.message);
+            }
+        }
+
+        async function adminDeleteBooking(id) {
+            if (!confirm('Are you sure you want to delete this booking?')) return;
+            await deleteBooking(id);
+        }
+
+        async function deleteBooking(id) {
+            try {
+                await database.ref('bookings/' + id).remove();
+                showNotification('Booking deleted ✓');
+            } catch (error) {
+                showError('Failed to delete booking: ' + error.message);
+            }
+        }
+
+        async function addResource() {
+            const name = prompt('Enter resource name:');
+            if (!name) return;
+            
+            const type = prompt('Enter resource type (room/vehicle/equipment):') || 'room';
+            
+            const newResource = {
+                id: Date.now().toString(),
+                name: name,
+                type: type
+            };
+            
+            try {
+                await database.ref('resources/res' + newResource.id).set(newResource);
+                showNotification('Resource added ✓');
+            } catch (error) {
+                showError('Failed to add resource: ' + error.message);
+            }
+        }
+
+        async function editResource(id) {
+            const resource = resources.find(r => r.id === id);
+            if (!resource) return;
+            
+            const newName = prompt('Enter new name:', resource.name);
+            if (newName === null) return;
+            
+            try {
+                const resKey = Object.keys(resources).find(key => resources[key].id === id);
+                await database.ref('resources/' + resKey).update({ name: newName });
+                showNotification('Resource updated ✓');
+            } catch (error) {
+                showError('Failed to update resource: ' + error.message);
+            }
+        }
+
+        async function deleteResource(id) {
+            if (!confirm('Are you sure you want to delete this resource?')) return;
+            
+            try {
+                const resKey = Object.keys(resources).find(key => resources[key].id === id);
+                await database.ref('resources/' + resKey).remove();
+                showNotification('Resource deleted ✓');
+            } catch (error) {
+                showError('Failed to delete resource: ' + error.message);
+            }
+        }
+
+        async function addNewAdmin() {
+            const username = prompt('Enter username:');
+            if (!username) return;
+            
+            const password = prompt('Enter password:');
+            if (!password) return;
+            
+            const name = prompt('Enter full name:') || username;
+            
+            const newAdmin = {
+                username: username,
+                password: password,
+                name: name
+            };
+            
+            try {
+                await database.ref('admins/' + username).set(newAdmin);
+                showNotification('Admin added successfully ✓');
+            } catch (error) {
+                showError('Failed to add admin: ' + error.message);
+            }
+        }
+
+        async function editAdmin(username) {
+            const admin = admins.find(a => a.username === username);
+            if (!admin) return;
+            
+            const newName = prompt('Enter new name:', admin.name);
+            if (newName === null) return;
+            
+            try {
+                await database.ref('admins/' + username).update({ name: newName });
+                showNotification('Admin updated ✓');
+            } catch (error) {
+                showError('Failed to update admin: ' + error.message);
+            }
+        }
+
+        async function deleteAdmin(username) {
+            if (!confirm('Are you sure you want to delete this admin?')) return;
+            if (admins.length <= 1) {
+                showError('Cannot delete the last admin');
+                return;
+            }
+            
+            try {
+                await database.ref('admins/' + username).remove();
+                showNotification('Admin deleted ✓');
+            } catch (error) {
+                showError('Failed to delete admin: ' + error.message);
+            }
+        }
+
+        function exportAllData() {
+            const data = {
+                users: users,
+                bookings: bookings,
+                resources: resources,
+                admins: admins,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'booking-system-backup-' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Data exported ✓');
+        }
+
+        // ==========================================
+        // NAVIGATION
+        // ==========================================
+        function navigatePrev() {
+            if (currentView === 'day') currentDate.setDate(currentDate.getDate() - 1);
+            else if (currentView === 'week') currentDate.setDate(currentDate.getDate() - 7);
+            else if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function navigateNext() {
+            if (currentView === 'day') currentDate.setDate(currentDate.getDate() + 1);
+            else if (currentView === 'week') currentDate.setDate(currentDate.getDate() + 7);
+            else if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function navigateToday() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function showSyncStatus(type, msg) {
+            const status = document.getElementById('syncStatus');
+            status.className = 'sync-status visible ' + type;
+            status.innerHTML = `<span>${type === 'success' ? '✓' : '⟳'}</span><span>${msg}</span>`;
+            setTimeout(() => status.classList.remove('visible'), 3000);
+        }
+
+        function showNotification(msg) {
+            const notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                background: var(--navy);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 12px;
+                border-left: 4px solid var(--gold);
+                box-shadow: 0 10px 30px rgba(13,33,54,0.3);
+                z-index: 3000;
+                animation: slideIn 0.3s ease;
+                font-weight: 600;
+            `;
+            notif.textContent = msg;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.multi-select-container')) {
+                document.getElementById('multiSelectDropdown').classList.remove('active');
+                document.querySelector('.multi-select-trigger').classList.remove('active');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.getElementById('multiSelectDropdown').classList.remove('active');
+            }
+        });
+
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            stopFirebaseListeners();
+        });
+    </script>
+</body>
+</html>
