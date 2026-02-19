@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Executive Booking System</title>
+<title>Equip Booking System</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -330,8 +330,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
      LOADING SCREEN
 ════════════════════════════════════ -->
 <div id="loading-screen" class="screen active">
-  <div class="portal-logo" style="margin-bottom:24px;">
-    <svg viewBox="0 0 52 52" fill="none"><rect x="4" y="4" width="20" height="20" rx="4" fill="#0d2136"/><rect x="28" y="4" width="20" height="20" rx="4" fill="#0d2136" opacity=".6"/><rect x="4" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".6"/><rect x="28" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".3"/></svg>
+  <div class="portal-logo" style="margin-bottom:24px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));width:96px;height:96px;border-radius:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 20px 50px rgba(0,0,0,.35);">
+    <img src="Logo.svg" alt="Equip" style="width:64px;height:64px;object-fit:contain;">
   </div>
   <div class="spinner"></div>
   <div class="loading-text" id="loading-msg">Connecting to database…</div>
@@ -347,7 +347,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   <div class="portal-inner fade-in">
     <div class="portal-logo-wrap">
       <div class="portal-logo">
-        <svg viewBox="0 0 52 52" fill="none"><rect x="4" y="4" width="20" height="20" rx="4" fill="#0d2136"/><rect x="28" y="4" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="4" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="28" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".4"/></svg>
+        <img src="Logo.svg" alt="Equip" style="width:64px;height:64px;object-fit:contain;">
       </div>
     </div>
     <div class="portal-divider">
@@ -355,7 +355,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <span class="portal-kicker">Workspace Portal</span>
       <div class="portal-divider-line right"></div>
     </div>
-    <h1 class="portal-title">Reserve &amp; Schedule</h1>
+    <h1 class="portal-title">Equip Booking System</h1>
     <p class="portal-sub">Select your access level to continue</p>
     <div class="portal-cards">
       <div class="portal-card" onclick="selectPortal('admin')">
@@ -369,7 +369,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
         <p>Book the board room or company car. View live schedules and manage your reservations.</p>
       </div>
     </div>
-    <p class="portal-footer">© <span id="yr"></span> Executive Booking System — Powered by Firebase</p>
+    <p class="portal-footer">© <span id="yr"></span> Equip Booking System — Powered by Firebase</p>
   </div>
 </div>
 
@@ -379,8 +379,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <div id="admin-login-screen" class="screen modal-screen">
   <div class="modal-box">
     <button class="modal-back" onclick="showScreen('portal-screen')">← Back</button>
-    <div class="modal-logo"><div class="portal-logo" style="width:64px;height:64px;border-radius:16px;"><svg viewBox="0 0 52 52" fill="none"><rect x="4" y="4" width="20" height="20" rx="4" fill="#0d2136"/><rect x="28" y="4" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="4" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="28" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".4"/></svg></div></div>
-    <h2>Admin Login</h2>
+    <div class="modal-logo"><div class="portal-logo" style="width:64px;height:64px;border-radius:16px;"><img src="Logo.svg" alt="Equip" style="width:40px;height:40px;object-fit:contain;"></div></div>
     <p class="subtitle">Enter your credentials to access the admin portal</p>
     <div class="error-msg" id="login-error">Invalid username or password.</div>
     <div class="form-group">
@@ -401,8 +400,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <div id="user-select-screen" class="screen modal-screen">
   <div class="modal-box wide">
     <button class="modal-back" onclick="showScreen('portal-screen')">← Back</button>
-    <div class="modal-logo"><div class="portal-logo" style="width:64px;height:64px;border-radius:16px;"><svg viewBox="0 0 52 52" fill="none"><rect x="4" y="4" width="20" height="20" rx="4" fill="#0d2136"/><rect x="28" y="4" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="4" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="28" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".4"/></svg></div></div>
-    <h2>Select Your Profile</h2>
+    <div class="modal-logo"><div class="portal-logo" style="width:64px;height:64px;border-radius:16px;"><img src="Logo.svg" alt="Equip" style="width:40px;height:40px;object-fit:contain;"></div></div>
     <p class="subtitle">Choose your name to access the booking portal</p>
     <div class="user-list" id="user-list"></div>
   </div>
@@ -415,8 +413,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><svg viewBox="0 0 52 52" fill="none"><rect x="4" y="4" width="20" height="20" rx="4" fill="#0d2136"/><rect x="28" y="4" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="4" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".7"/><rect x="28" y="28" width="20" height="20" rx="4" fill="#0d2136" opacity=".4"/></svg></div>
-      <div class="sidebar-brand"><h1>Reserve &amp; Schedule</h1><span>Workspace Portal</span></div>
+      <div class="sidebar-logo-icon"><img src="Logo.svg" alt="Equip" style="width:22px;height:22px;object-fit:contain;"></div>
+      <div class="sidebar-brand"><h1>Equip Booking</h1><span>Workspace Portal</span></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sb-avatar">U</div>
@@ -524,7 +522,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       </div>
       <div class="form-group">
         <label class="form-label">Date</label>
-        <input class="form-input" type="date" id="bk-date" onchange="checkConflict()">
+        <input class="form-input" type="date" id="bk-date" onchange="checkConflict();updateRecPreview();">
       </div>
       <div class="form-group">
         <label class="form-label">Time</label>
@@ -571,10 +569,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
           <button class="rec-btn" id="rec-weekly" onclick="setRecurrence('weekly')">Weekly</button>
           <button class="rec-btn" id="rec-monthly" onclick="setRecurrence('monthly')">Monthly</button>
         </div>
-        <div id="rec-count-wrap" style="display:none;margin-top:10px;display:flex;align-items:center;gap:10px;">
-          <span style="font-size:13px;color:var(--blue-grey);">Repeat</span>
-          <input class="form-input" type="number" id="rec-count" value="4" min="2" max="52" style="width:80px;text-align:center;">
-          <span style="font-size:13px;color:var(--blue-grey);" id="rec-count-label">times</span>
+        <div id="rec-until-wrap" style="display:none;margin-top:12px;">
+          <label class="form-label">Repeat Until</label>
+          <input class="form-input" type="date" id="rec-until" onchange="updateRecPreview()">
+          <div style="margin-top:6px;font-size:11px;color:var(--blue-grey);" id="rec-preview"></div>
         </div>
       </div>
       <div class="form-group">
@@ -1220,7 +1218,8 @@ function openBookModal(prefillDate, prefillTime) {
   document.getElementById('bk-date').value    = prefillDate || dateStr(S.date);
   document.getElementById('bk-conflict').classList.remove('visible');
   document.getElementById('bk-error').classList.remove('visible');
-  document.getElementById('rec-count-wrap').style.display = 'none';
+  document.getElementById('rec-until').value = '';
+  document.getElementById('rec-until-wrap').style.display = 'none';
   renderAttendeeTags();
   updateDials();
   openModal('modal-book');
@@ -1258,7 +1257,17 @@ function setRecurrence(r) {
   ['once','daily','weekdays','weekly','monthly'].forEach(v => {
     document.getElementById('rec-'+v).classList.toggle('active',v===r);
   });
-  document.getElementById('rec-count-wrap').style.display = r==='once' ? 'none' : 'flex';
+  const wrap = document.getElementById('rec-until-wrap');
+  wrap.style.display = r==='once' ? 'none' : 'block';
+  if (r !== 'once') {
+    const untilInput = document.getElementById('rec-until');
+    if (!untilInput.value) {
+      // Default: 3 months ahead
+      const def = new Date(); def.setMonth(def.getMonth()+3);
+      untilInput.value = dateStr(def);
+    }
+    updateRecPreview();
+  }
 }
 
 function populateAttendeeDropdowns() {
@@ -1308,28 +1317,33 @@ function checkConflict() {
 }
 
 // Generate dates for recurrence
-function buildRecurrenceDates(baseDate, type, count) {
+// Generate dates for recurrence — uses "until date" not a count
+function buildRecurrenceDates(baseDate, type, untilDate) {
+  if (type === 'once' || !untilDate || untilDate < baseDate) return [baseDate];
   const dates = [];
-  const d = new Date(baseDate+'T12:00:00');
-  if (type === 'once') return [baseDate];
-  const n = Math.max(2, parseInt(count)||4);
-  if (type === 'daily') {
-    for(let i=0;i<n;i++) dates.push(dateStr(addDays(d,i)));
-  } else if (type === 'weekdays') {
-    let cur = new Date(d), added=0;
-    while(added<n) {
-      if(cur.getDay()!==0&&cur.getDay()!==6){dates.push(dateStr(cur));added++;}
-      cur=addDays(cur,1);
+  let cur = new Date(baseDate+'T12:00:00');
+  const until = new Date(untilDate+'T12:00:00');
+  const MAX = 365; // safety cap
+  while (cur <= until && dates.length < MAX) {
+    if (type !== 'weekdays' || (cur.getDay() !== 0 && cur.getDay() !== 6)) {
+      dates.push(dateStr(cur));
     }
-  } else if (type === 'weekly') {
-    for(let i=0;i<n;i++) dates.push(dateStr(addDays(d,i*7)));
-  } else if (type === 'monthly') {
-    for(let i=0;i<n;i++){
-      const x=new Date(d); x.setMonth(x.getMonth()+i);
-      dates.push(dateStr(x));
-    }
+    if      (type === 'daily' || type === 'weekdays') cur = addDays(cur, 1);
+    else if (type === 'weekly')   cur = addDays(cur, 7);
+    else if (type === 'monthly')  { const x = new Date(cur); x.setMonth(x.getMonth()+1); cur = x; }
+    else break;
   }
-  return dates;
+  return dates.length > 0 ? dates : [baseDate];
+}
+
+function updateRecPreview() {
+  const dateVal = document.getElementById('bk-date').value;
+  const until   = document.getElementById('rec-until').value;
+  const preview = document.getElementById('rec-preview');
+  if (!preview) return;
+  if (!dateVal || !until || S.bkRecurrence === 'once') { preview.textContent = ''; return; }
+  const dates = buildRecurrenceDates(dateVal, S.bkRecurrence, until);
+  preview.textContent = `${dates.length} booking${dates.length !== 1 ? 's' : ''} will be created`;
 }
 
 async function saveBooking() {
@@ -1350,29 +1364,29 @@ async function saveBooking() {
   const btn = document.getElementById('bk-submit-btn');
   btn.textContent = 'Saving…'; btn.disabled = true;
 
-  const groupId = uid();
-  const count = document.getElementById('rec-count').value;
-  const dates = buildRecurrenceDates(date, S.bkRecurrence, count);
+  const untilDate = document.getElementById('rec-until').value;
+  const dates = buildRecurrenceDates(date, S.bkRecurrence, untilDate);
+  const groupId = dates.length > 1 ? uid() : null;
 
   try {
     for (const d of dates) {
       const bk = {
-        id: uid(),
         resource: S.bkResource,
         date: d,
         startTime: startT,
         endTime: endT,
         user: S.currentUser.name,
-        userId: S.currentUser.id || S.currentUser._key,
+        userId: S.currentUser.id || S.currentUser._key || '',
         department: S.currentUser.department || '',
         bookedAs: S.bkAs,
         purpose,
         attendees: S.bkAttendees.join(', '),
         notes: document.getElementById('bk-notes').value.trim(),
-        groupId: dates.length > 1 ? groupId : null,
+        groupId,
         createdAt: new Date().toISOString()
       };
-      await db.ref('bookings/' + bk.id).set(bk);
+      // *** FIX: use .push() to generate unique Firebase key ***
+      await db.ref('bookings').push(bk);
     }
     closeModal('modal-book');
     notify(dates.length > 1 ? `${dates.length} recurring bookings saved ✓` : 'Booking confirmed ✓');
@@ -1629,13 +1643,14 @@ async function saveUser() {
   const dept  = document.getElementById('user-dept').value.trim();
   const role  = document.getElementById('user-role').value;
   if (!name) { alert('Name is required.'); return; }
-  const data  = { name, email, department:dept, role, id: key ? undefined : uid() };
-  if (!data.id) delete data.id;
+  const data = { name, email, department:dept, role };
   if (key) {
+    // Editing existing user — update in place
     await db.ref('users/'+key).update(data);
   } else {
+    // *** FIX: use .push() so each user gets a unique Firebase key ***
     data.id = uid();
-    await db.ref('users/user_'+data.id).set(data);
+    await db.ref('users').push(data);
   }
   populateAttendeeDropdowns();
   closeModal('modal-add-user');
@@ -1672,8 +1687,13 @@ async function saveAdmin() {
   const pass = document.getElementById('admin-password-input').value.trim();
   if (!name||!uname||!pass) { alert('All fields required.'); return; }
   const data = {name, username:uname, password:pass};
-  if (key) { await db.ref('admins/'+key).update(data); }
-  else { await db.ref('admins/'+uname).set(data); }
+  if (key) {
+    // Editing existing admin — update in place
+    await db.ref('admins/'+key).update(data);
+  } else {
+    // *** FIX: use .push() so each admin gets a unique Firebase key ***
+    await db.ref('admins').push(data);
+  }
   closeModal('modal-add-admin');
   notify('Admin saved ✓');
 }
