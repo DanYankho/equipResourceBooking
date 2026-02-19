@@ -43,13 +43,63 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ::-webkit-scrollbar-track{background:var(--lt-beige);}
 ::-webkit-scrollbar-thumb{background:var(--soft-gold);border-radius:4px;}
 
-/* ─── SCREEN MANAGEMENT ─── */
+/* ─── SCREEN MANAGEMENT + ANIMATIONS ─── */
 .screen{display:none;position:fixed;inset:0;z-index:100;}
 .screen.active{display:flex;}
+
+/* Page transition system */
+.screen.slide-in-right { animation: slideInRight 0.45s cubic-bezier(.22,.68,0,1.2) forwards; }
+.screen.slide-in-left  { animation: slideInLeft  0.45s cubic-bezier(.22,.68,0,1.2) forwards; }
+.screen.slide-out-left { animation: slideOutLeft 0.35s cubic-bezier(.4,0,1,1) forwards; }
+.screen.slide-out-right{ animation: slideOutRight 0.35s cubic-bezier(.4,0,1,1) forwards; }
+.screen.fade-up        { animation: fadeUp 0.5s cubic-bezier(.22,.68,0,1.1) forwards; }
+
+@keyframes slideInRight { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
+@keyframes slideInLeft  { from{opacity:0;transform:translateX(-60px)} to{opacity:1;transform:translateX(0)} }
+@keyframes slideOutLeft { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-60px)} }
+@keyframes slideOutRight{ from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(60px)} }
+@keyframes fadeUp       { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+
 #loading-screen{background:linear-gradient(135deg,var(--navy),var(--dk-teal));align-items:center;justify-content:center;flex-direction:column;gap:20px;}
 .spinner{width:44px;height:44px;border:3px solid rgba(168,147,90,.3);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:var(--soft-gold);font-size:13px;letter-spacing:3px;text-transform:uppercase;}
+
+/* Button ripple */
+.btn-ripple{position:relative;overflow:hidden;}
+.btn-ripple::after{content:'';position:absolute;width:100px;height:100px;background:rgba(255,255,255,.25);border-radius:50%;transform:scale(0);opacity:1;pointer-events:none;}
+.btn-ripple.rippling::after{animation:ripple .5s ease-out forwards;}
+@keyframes ripple{to{transform:scale(4);opacity:0;}}
+
+/* Panel switch animation */
+.panel-fade { animation: panelFade 0.4s cubic-bezier(.22,.68,0,1.1); }
+@keyframes panelFade { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* Modal open/close - display controlled by JS */
+.overlay{position:fixed;inset:0;background:rgba(13,33,54,.6);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;
+  opacity:0;transition:opacity .35s ease;}
+.overlay.open{opacity:1;}
+.overlay .modal{transform:translateY(24px) scale(.97);transition:transform .4s cubic-bezier(.22,.68,0,1.2);}
+.overlay.open .modal{transform:translateY(0) scale(1);}
+
+/* Calendar chip entrance */
+.bk-chip { animation: chipIn .2s ease; }
+@keyframes chipIn { from{opacity:0;transform:scaleY(.7)} to{opacity:1;transform:scaleY(1)} }
+
+/* Notify animation */
+@keyframes notifIn  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes notifOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(20px)} }
+
+/* Month cell hover */
+.month-cell { transition: background .2s ease; }
+.mini-cal   { transition: all .25s cubic-bezier(.22,.68,0,1.2); }
+.user-option{ transition: all .2s cubic-bezier(.22,.68,0,1.2); }
+.portal-card{ transition: all .35s cubic-bezier(.22,.68,0,1.2); }
+
+/* Nav item transitions */
+.nav-item { transition: all .2s cubic-bezier(.22,.68,0,1.2); }
+.res-tab  { transition: all .22s ease; }
+.view-tab { transition: all .22s ease; }
 
 /* ─── PORTAL SELECTION ─── */
 #portal-screen{background:linear-gradient(145deg,var(--navy) 0%,var(--dk-teal) 60%,var(--dk-plum) 100%);align-items:center;justify-content:center;flex-direction:column;overflow-y:auto;}
@@ -59,8 +109,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .portal-deco-3{width:200px;height:200px;top:30%;left:5%;}
 .portal-inner{text-align:center;width:90%;max-width:860px;position:relative;z-index:1;padding:40px 0;}
 .portal-logo-wrap{margin-bottom:32px;}
-.portal-logo{width:96px;height:96px;border-radius:22px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));margin:0 auto;display:flex;align-items:center;justify-content:center;box-shadow:0 20px 50px rgba(0,0,0,.35),0 0 0 1px rgba(168,147,90,.4);}
-.portal-logo svg{width:52px;height:52px;}
+.portal-logo{width:180px;height:180px;border-radius:36px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));margin:0 auto;display:flex;align-items:center;justify-content:center;box-shadow:0 28px 70px rgba(0,0,0,.4),0 0 0 2px rgba(168,147,90,.5);}
+.portal-logo svg{width:100px;height:100px;}
 .portal-divider{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:10px;}
 .portal-divider-line{height:1px;width:50px;background:linear-gradient(to right,transparent,var(--gold));}
 .portal-divider-line.right{background:linear-gradient(to left,transparent,var(--gold));}
@@ -77,6 +127,143 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .portal-card h2{color:var(--white);font-size:22px;margin-bottom:8px;}
 .portal-card p{color:var(--blue-grey);font-size:13px;line-height:1.6;}
 .portal-footer{color:rgba(138,148,158,.4);font-size:11px;margin-top:40px;letter-spacing:.5px;}
+
+/* ═══════════════════════════════════════════════
+   MOBILE & TABLET RESPONSIVE
+═══════════════════════════════════════════════ */
+
+/* ─── Mobile bottom nav (phones < 768px) ─── */
+.mobile-bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--navy);border-top:1px solid rgba(168,147,90,.25);
+  z-index:300;padding:0 8px;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.mobile-bottom-nav .mbn-inner{display:flex;align-items:stretch;}
+.mbn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding:10px 4px;border:none;background:transparent;color:var(--blue-grey);font-size:10px;
+  letter-spacing:.5px;text-transform:uppercase;font-weight:600;transition:all .2s ease;}
+.mbn-btn.active{color:var(--gold);}
+.mbn-btn .mbn-icon{font-size:20px;line-height:1;}
+.mbn-btn .mbn-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);margin-top:2px;opacity:0;transition:opacity .2s;}
+.mbn-btn.active .mbn-dot{opacity:1;}
+
+/* ─── Mobile topbar ─── */
+.mobile-topbar{
+  display:none;background:var(--navy);padding:12px 16px;
+  border-bottom:1px solid rgba(168,147,90,.2);
+  align-items:center;justify-content:space-between;flex-shrink:0;
+  padding-top:max(12px, env(safe-area-inset-top,12px));
+}
+.mobile-topbar-logo{display:flex;align-items:center;gap:10px;}
+.mobile-topbar-logo img{width:32px;height:32px;object-fit:contain;}
+.mobile-topbar-logo span{color:var(--white);font-family:'Georgia',serif;font-size:15px;}
+.mobile-topbar-user{display:flex;align-items:center;gap:10px;}
+.mobile-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--dk-teal));
+  color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid var(--gold);}
+.mobile-avatar.admin-av{background:linear-gradient(135deg,var(--gold),var(--soft-gold));color:var(--navy);}
+
+/* ─── Mobile calendar controls ─── */
+.mobile-cal-controls{
+  display:none;padding:10px 14px;background:var(--white);
+  border-bottom:1px solid var(--grey);gap:8px;flex-direction:column;flex-shrink:0;
+}
+.mobile-res-tabs{display:flex;gap:6px;}
+.mobile-res-tabs .res-tab{flex:1;justify-content:center;font-size:12px;padding:9px 8px;}
+.mobile-view-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.mobile-view-tabs{display:flex;gap:3px;background:var(--cream);border-radius:9px;padding:3px;}
+.mobile-view-tabs .view-tab{padding:6px 10px;font-size:11px;}
+.mobile-nav-row{display:flex;align-items:center;gap:6px;justify-content:center;}
+.mobile-nav-row .btn-today{font-size:11px;padding:6px 12px;}
+.mobile-nav-row .btn-nav{width:30px;height:30px;font-size:14px;}
+.mobile-nav-row .topbar-title{font-size:13px;min-width:auto;flex:1;text-align:center;}
+.mobile-book-fab{
+  position:fixed;bottom:76px;right:16px;
+  width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--soft-gold));
+  border:none;color:var(--navy);font-size:24px;font-weight:700;
+  box-shadow:0 6px 24px rgba(168,147,90,.5);z-index:200;
+  display:none;align-items:center;justify-content:center;
+  transition:all .25s cubic-bezier(.22,.68,0,1.2);
+}
+.mobile-book-fab:active{transform:scale(.9);}
+.mobile-book-fab.visible{display:flex;}
+
+/* ─── Phone breakpoint ─── */
+@media(max-width:767px){
+  /* hide desktop sidebar & topbar */
+  .sidebar{display:none!important;}
+  .topbar{display:none!important;}
+  /* show mobile chrome */
+  .mobile-topbar{display:flex;}
+  .mobile-cal-controls{display:flex;}
+  .mobile-bottom-nav{display:block;}
+  .mobile-book-fab.visible{display:flex;}
+
+  /* app layout stacks vertically */
+  #app{flex-direction:column;}
+  .main-content{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+
+  /* calendar wrap gets padding for bottom nav */
+  .calendar-wrap{padding:12px 10px;padding-bottom:80px;}
+
+  /* admin panel */
+  .admin-topbar{padding:14px 14px 0;}
+  .admin-topbar h2{font-size:18px;margin-bottom:10px;}
+  .admin-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .admin-tab{padding:8px 14px;font-size:12px;white-space:nowrap;}
+  .admin-body{padding:14px;padding-bottom:80px;}
+
+  /* data table horizontal scroll on mobile */
+  .data-table{overflow-x:auto;}
+  .data-table table{min-width:600px;}
+
+  /* portal cards single column already handled */
+  .portal-inner{padding:28px 0;}
+  .portal-logo{width:120px;height:120px;border-radius:26px;}
+  .portal-title{font-size:clamp(22px,6vw,32px);}
+
+  /* modals fill more screen */
+  .modal{border-radius:18px 18px 0 0;max-height:92vh;position:fixed;bottom:0;left:0;right:0;width:100%!important;max-width:100%!important;}
+  .overlay{align-items:flex-end;padding:0;}
+  .overlay .modal{transform:translateY(100%);border-radius:18px 18px 0 0;}
+  .overlay.open .modal{transform:translateY(0);}
+
+  /* time grid on mobile - show fewer hours, scrollable */
+  .time-grid{border-radius:10px;}
+
+  /* month cells smaller */
+  .month-cell{min-height:72px;padding:5px 3px;}
+  .mc-num{width:22px;height:22px;font-size:11px;}
+  .mc-chip{font-size:9px;padding:2px 4px;}
+
+  /* year grid 2 columns */
+  .year-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+
+  /* form grid single col on phone */
+  .form-grid-2{grid-template-columns:1fr;}
+  .info-grid{grid-template-columns:1fr 1fr;}
+
+  /* modal body padding */
+  .modal-body{padding:16px 18px;}
+  .modal-hdr{padding:18px 20px;}
+  .modal-footer{flex-wrap:wrap;}
+
+  /* time dials compact */
+  .time-dials{padding:14px;gap:14px;}
+  .dial-face{width:70px;height:70px;font-size:16px;}
+}
+
+/* ─── Tablet breakpoint ─── */
+@media(min-width:768px) and (max-width:1024px){
+  .sidebar{width:180px;}
+  .sidebar-logo-icon{width:52px;height:52px;}
+  .calendar-wrap{padding:14px 16px;}
+  .topbar{flex-wrap:wrap;gap:10px;padding:10px 16px;}
+  .year-grid{grid-template-columns:repeat(3,1fr);}
+  .data-table table{min-width:500px;}
+  .data-table{overflow-x:auto;}
+}
 
 /* ─── LOGIN MODAL ─── */
 .modal-screen{background:rgba(13,33,54,.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;z-index:200;}
@@ -105,10 +292,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 /* ─── SIDEBAR ─── */
 .sidebar{width:220px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid rgba(168,147,90,.18);}
 .sidebar-logo{padding:20px 18px;border-bottom:1px solid rgba(168,147,90,.12);display:flex;align-items:center;gap:12px;}
-.sidebar-logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sidebar-logo-icon svg{width:22px;height:22px;}
+.sidebar-logo-icon{width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sidebar-logo-icon svg{width:46px;height:46px;}
 .sidebar-brand{overflow:hidden;}
-.sidebar-brand h1{color:var(--white);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sidebar-brand h1{color:var(--white);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sidebar-brand span{color:var(--gold);font-size:10px;letter-spacing:2px;text-transform:uppercase;}
 .sidebar-user{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;}
 .sidebar-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--dk-teal));color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}
@@ -300,8 +487,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .detail-title{color:var(--white);font-family:'Georgia',serif;font-size:22px;line-height:1.2;}
 
 /* ─── NOTIFICATIONS ─── */
-.notif{position:fixed;bottom:28px;right:28px;background:var(--navy);color:var(--white);padding:14px 22px;border-radius:12px;border-left:4px solid var(--gold);box-shadow:var(--shadow-md);font-size:13px;font-weight:600;z-index:9999;transform:translateY(10px);opacity:0;transition:all .3s ease;}
-.notif.show{opacity:1;transform:translateY(0);}
+.notif{position:fixed;bottom:28px;right:28px;background:var(--navy);color:var(--white);padding:14px 22px;border-radius:12px;border-left:4px solid var(--gold);box-shadow:var(--shadow-md);font-size:13px;font-weight:600;z-index:9999;display:none;}
+@media(max-width:767px){.notif{bottom:90px;right:12px;left:12px;text-align:center;}}
 
 /* ─── FORM TIME DIAL ─── */
 .time-dials{display:flex;align-items:center;justify-content:center;gap:24px;background:var(--cream);padding:20px;border-radius:14px;border:1px solid var(--grey);}
@@ -330,8 +517,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
      LOADING SCREEN
 ════════════════════════════════════ -->
 <div id="loading-screen" class="screen active">
-  <div class="portal-logo" style="margin-bottom:24px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));width:96px;height:96px;border-radius:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 20px 50px rgba(0,0,0,.35);">
-    <img src="Logo.svg" alt="Equip" style="width:64px;height:64px;object-fit:contain;">
+  <div class="portal-logo" style="margin-bottom:24px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));width:180px;height:180px;border-radius:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 28px 70px rgba(0,0,0,.4);">
+    <img src="Logo.svg" alt="Equip" style="width:130px;height:130px;object-fit:contain;">
   </div>
   <div class="spinner"></div>
   <div class="loading-text" id="loading-msg">Connecting to database…</div>
@@ -347,7 +534,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   <div class="portal-inner fade-in">
     <div class="portal-logo-wrap">
       <div class="portal-logo">
-        <img src="Logo.svg" alt="Equip" style="width:64px;height:64px;object-fit:contain;">
+        <img src="Logo.svg" alt="Equip" style="width:130px;height:130px;object-fit:contain;">
       </div>
     </div>
     <div class="portal-divider">
@@ -378,8 +565,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ════════════════════════════════════ -->
 <div id="admin-login-screen" class="screen modal-screen">
   <div class="modal-box">
-    <button class="modal-back" onclick="showScreen('portal-screen')">← Back</button>
-    <div class="modal-logo"><div class="portal-logo" style="width:64px;height:64px;border-radius:16px;"><img src="Logo.svg" alt="Equip" style="width:40px;height:40px;object-fit:contain;"></div></div>
+    <button class="modal-back" onclick="showScreen('portal-screen','back')">← Back</button>
+    <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
     <p class="subtitle">Enter your credentials to access the admin portal</p>
     <div class="error-msg" id="login-error">Invalid username or password.</div>
     <div class="form-group">
@@ -399,8 +586,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ════════════════════════════════════ -->
 <div id="user-select-screen" class="screen modal-screen">
   <div class="modal-box wide">
-    <button class="modal-back" onclick="showScreen('portal-screen')">← Back</button>
-    <div class="modal-logo"><div class="portal-logo" style="width:64px;height:64px;border-radius:16px;"><img src="Logo.svg" alt="Equip" style="width:40px;height:40px;object-fit:contain;"></div></div>
+    <button class="modal-back" onclick="showScreen('portal-screen','back')">← Back</button>
+    <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
     <p class="subtitle">Choose your name to access the booking portal</p>
     <div class="user-list" id="user-list"></div>
   </div>
@@ -410,10 +597,46 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
      MAIN APP
 ════════════════════════════════════ -->
 <div id="app">
+  <!-- MOBILE TOPBAR -->
+  <div class="mobile-topbar" id="mobile-topbar">
+    <div class="mobile-topbar-logo">
+      <img src="Logo.svg" alt="Equip">
+      <span>Equip Booking</span>
+    </div>
+    <div class="mobile-topbar-user">
+      <div class="mobile-avatar" id="mob-avatar">U</div>
+      <button class="btn-signout" style="padding:6px 12px;font-size:11px;" onclick="doLogout()">Exit</button>
+    </div>
+  </div>
+
+  <!-- MOBILE CALENDAR CONTROLS -->
+  <div class="mobile-cal-controls" id="mobile-cal-controls" style="display:none;">
+    <div class="mobile-res-tabs">
+      <button class="res-tab active" id="mob-tab-boardroom" onclick="switchResource('boardroom')">
+        <span class="res-dot" style="background:#004551;"></span> Board Room
+      </button>
+      <button class="res-tab" id="mob-tab-car" onclick="switchResource('car')">
+        <span class="res-dot" style="background:#7e2138;"></span> Car
+      </button>
+    </div>
+    <div class="mobile-nav-row">
+      <button class="btn-today" onclick="goToday()">Today</button>
+      <button class="btn-nav" onclick="navPrev()">‹</button>
+      <div class="topbar-title serif" id="mob-cal-title">—</div>
+      <button class="btn-nav" onclick="navNext()">›</button>
+    </div>
+    <div class="mobile-view-tabs">
+      <button class="view-tab" onclick="switchView('day')">Day</button>
+      <button class="view-tab active" onclick="switchView('week')">Week</button>
+      <button class="view-tab" onclick="switchView('month')">Month</button>
+      <button class="view-tab" onclick="switchView('year')">Year</button>
+    </div>
+  </div>
+
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><img src="Logo.svg" alt="Equip" style="width:22px;height:22px;object-fit:contain;"></div>
+      <div class="sidebar-logo-icon"><img src="Logo.svg" alt="Equip" style="width:46px;height:46px;object-fit:contain;"></div>
       <div class="sidebar-brand"><h1>Equip Booking</h1><span>Workspace Portal</span></div>
     </div>
     <div class="sidebar-user">
@@ -700,6 +923,29 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 
 <div class="notif" id="notif"></div>
 
+<!-- MOBILE FAB -->
+<button class="mobile-book-fab" id="mob-fab" onclick="openBookModal(null,null)" aria-label="New booking">＋</button>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="mobile-bottom-nav" id="mobile-bottom-nav" style="display:none;">
+  <div class="mbn-inner">
+    <button class="mbn-btn active" id="mbn-calendar" onclick="mobileSwitchPanel('calendar')">
+      <span class="mbn-icon">📅</span>
+      <span>Calendar</span>
+      <div class="mbn-dot"></div>
+    </button>
+    <button class="mbn-btn" id="mbn-admin" onclick="mobileSwitchPanel('admin')" style="display:none;">
+      <span class="mbn-icon">⚙️</span>
+      <span>Admin</span>
+      <div class="mbn-dot"></div>
+    </button>
+    <button class="mbn-btn" onclick="doLogout()">
+      <span class="mbn-icon">🚪</span>
+      <span>Sign Out</span>
+    </button>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  FIREBASE CONFIG  ← your existing config, unchanged
@@ -824,10 +1070,27 @@ async function ensureDefaultData() {
 // ═══════════════════════════════════════════════════════════════
 //  SCREEN MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById(id);
-  if (el) el.classList.add('active');
+function showScreen(id, direction) {
+  // Find currently active screen
+  const current = document.querySelector('.screen.active');
+  const next = document.getElementById(id);
+  if (!next || next === current) return;
+
+  // Animate out current
+  if (current) {
+    current.style.pointerEvents = 'none';
+    const outClass = direction === 'back' ? 'slide-out-right' : 'slide-out-left';
+    current.classList.add(outClass);
+    setTimeout(() => {
+      current.classList.remove('active', outClass);
+      current.style.pointerEvents = '';
+    }, 350);
+  }
+
+  // Animate in next
+  const inClass = direction === 'back' ? 'slide-in-left' : (id === 'portal-screen' ? 'fade-up' : 'slide-in-right');
+  next.classList.add('active', inClass);
+  setTimeout(() => next.classList.remove(inClass), 500);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -912,15 +1175,26 @@ function initApp() {
   document.getElementById('sb-name').textContent = u.name;
   document.getElementById('sb-role').textContent = S.isAdmin ? 'Administrator' : (u.department || 'User');
   document.getElementById('sb-avatar').textContent = initials(u.name);
+  document.getElementById('mob-avatar').textContent = initials(u.name);
+
   if (S.isAdmin) {
     document.getElementById('sb-avatar').classList.add('admin-av');
+    document.getElementById('mob-avatar').classList.add('admin-av');
     document.getElementById('nav-admin').style.display = 'flex';
+    document.getElementById('mbn-admin').style.display = 'flex';
   }
+
+  // Show mobile chrome
+  const isMobile = window.innerWidth < 768;
+  document.getElementById('mobile-topbar').style.display = '';  // CSS media query handles it
+  document.getElementById('mobile-bottom-nav').style.display = '';
+  document.getElementById('mob-fab').classList.add('visible');
 
   // Populate booking form attendee dropdowns
   populateAttendeeDropdowns();
 
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  // Hide all screens, show app
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
   document.getElementById('app').classList.add('active');
 
   if (S.isAdmin) {
@@ -928,7 +1202,7 @@ function initApp() {
   } else {
     switchPanel('calendar');
   }
-  notify('Welcome, ' + u.name + ' ✓');
+  notify('Welcome, ' + u.name.split(' ')[0] + ' ✓');
 }
 
 function doLogout() {
@@ -936,25 +1210,50 @@ function doLogout() {
   S.isAdmin = false;
   document.getElementById('app').classList.remove('active');
   document.getElementById('nav-admin').style.display = 'none';
+  document.getElementById('mbn-admin').style.display = 'none';
   document.getElementById('sb-avatar').classList.remove('admin-av');
-  showScreen('portal-screen');
+  document.getElementById('mob-avatar').classList.remove('admin-av');
+  document.getElementById('mob-fab').classList.remove('visible');
+  showScreen('portal-screen', 'back');
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  PANEL SWITCHING
 // ═══════════════════════════════════════════════════════════════
 function switchPanel(panel) {
-  document.getElementById('panel-calendar').style.display = panel === 'calendar' ? 'flex' : 'none';
-  document.getElementById('panel-calendar').style.flexDirection = 'column';
-  document.getElementById('panel-admin').style.display   = panel === 'admin'    ? 'flex' : 'none';
+  const calEl   = document.getElementById('panel-calendar');
+  const adminEl = document.getElementById('panel-admin');
+  const mobCal  = document.getElementById('mobile-cal-controls');
+  const mobFab  = document.getElementById('mob-fab');
+
+  calEl.style.display   = panel === 'calendar' ? 'flex' : 'none';
+  calEl.style.flexDirection = 'column';
+  adminEl.style.display = panel === 'admin'    ? 'flex' : 'none';
+
+  // Show/hide mobile calendar controls
+  if (mobCal) mobCal.style.display = panel === 'calendar' ? 'flex' : 'none';
+  if (mobFab) { panel === 'calendar' ? mobFab.classList.add('visible') : mobFab.classList.remove('visible'); }
+
+  // Animate the panel in
+  const activePanel = panel === 'calendar' ? calEl : adminEl;
+  activePanel.classList.add('panel-fade');
+  setTimeout(() => activePanel.classList.remove('panel-fade'), 400);
+
+  // Desktop nav
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (panel === 'calendar') {
-    document.getElementById('nav-calendar').classList.add('active');
-    renderCalendar();
-  } else {
-    document.getElementById('nav-admin').classList.add('active');
-    renderAdminTab();
-  }
+  if (panel === 'calendar') document.getElementById('nav-calendar').classList.add('active');
+  else document.getElementById('nav-admin').classList.add('active');
+
+  // Mobile bottom nav
+  document.querySelectorAll('.mbn-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mbn-'+panel)?.classList.add('active');
+
+  if (panel === 'calendar') renderCalendar();
+  else renderAdminTab();
+}
+
+function mobileSwitchPanel(panel) {
+  switchPanel(panel);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1011,6 +1310,19 @@ function renderCalendar() {
     case 'month': renderMonthView(wrap, bks); break;
     case 'year':  renderYearView(wrap, bks);  break;
   }
+  // Sync mobile title
+  const mobTitle = document.getElementById('mob-cal-title');
+  const desktopTitle = document.getElementById('cal-title');
+  if (mobTitle && desktopTitle) mobTitle.textContent = desktopTitle.textContent;
+  // Sync mobile resource tabs
+  ['boardroom','car'].forEach(r => {
+    const mob = document.getElementById('mob-tab-'+r);
+    if (mob) mob.classList.toggle('active', r === S.resource);
+  });
+  // Sync mobile view tabs
+  document.querySelectorAll('.mobile-view-tabs .view-tab').forEach((btn,i) => {
+    btn.classList.toggle('active', ['day','week','month','year'][i] === S.view);
+  });
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -1438,23 +1750,41 @@ function openDetail(key) {
 
   const actEl = document.getElementById('detail-actions');
   if (canManage) {
+    const hasGroup = b.groupId && S.bookings.filter(x => x.groupId === b.groupId).length > 1;
+    const seriesCount = hasGroup ? S.bookings.filter(x => x.groupId === b.groupId).length : 0;
     actEl.innerHTML = `
       ${S.isAdmin ? `<button class="btn-prim teal" onclick="openMoveModal('${key}');closeModal('modal-detail');">Move</button>` : ''}
       ${S.isAdmin ? `<button class="btn-prim plum" onclick="openSwapModal('${key}');closeModal('modal-detail');">Swap</button>` : ''}
-      <button class="btn-sec" style="flex:1;background:rgba(192,57,43,.08);border-color:rgba(192,57,43,.25);color:var(--danger);" onclick="deleteBooking('${key}')">Remove</button>
+      <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
+        <button class="btn-sec" style="background:rgba(192,57,43,.08);border-color:rgba(192,57,43,.25);color:var(--danger);" onclick="deleteBooking('${key}', false)">Remove This Booking</button>
+        ${hasGroup ? `<button class="btn-sec" style="background:rgba(192,57,43,.15);border-color:var(--danger);color:var(--danger);font-weight:700;" onclick="deleteBooking('${key}', true)">Remove All ${seriesCount} in Series</button>` : ''}
+      </div>
     `;
   } else { actEl.innerHTML = ''; }
 
   openModal('modal-detail');
 }
 
-async function deleteBooking(key) {
-  if (!confirm('Remove this booking?')) return;
-  try {
-    await db.ref('bookings/'+key).remove();
-    closeModal('modal-detail');
-    notify('Booking removed ✓');
-  } catch(e) { alert('Failed: '+e.message); }
+async function deleteBooking(key, deleteSeries) {
+  const b = S.bookings.find(x => x._key === key);
+  if (!b) return;
+
+  if (deleteSeries && b.groupId) {
+    const seriesKeys = S.bookings.filter(x => x.groupId === b.groupId).map(x => x._key);
+    if (!confirm(`Remove all ${seriesKeys.length} bookings in this series?`)) return;
+    try {
+      await Promise.all(seriesKeys.map(k => db.ref('bookings/'+k).remove()));
+      closeModal('modal-detail');
+      notify(`${seriesKeys.length} bookings removed ✓`);
+    } catch(e) { alert('Failed: '+e.message); }
+  } else {
+    if (!confirm('Remove this booking?')) return;
+    try {
+      await db.ref('bookings/'+key).remove();
+      closeModal('modal-detail');
+      notify('Booking removed ✓');
+    } catch(e) { alert('Failed: '+e.message); }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1534,21 +1864,25 @@ function renderAdminTab() {
 
 function renderAdminBookings() {
   const sorted = [...S.bookings].sort((a,b)=>a.date>b.date?-1:1);
-  const rows = sorted.map(b => `
+  const rows = sorted.map(b => {
+    const hasSeries = b.groupId && S.bookings.filter(x=>x.groupId===b.groupId).length > 1;
+    return `
     <tr>
       <td><span class="badge ${b.resource==='boardroom'?'badge-teal':'badge-plum'}">${b.resource==='boardroom'?'Board Room':'Car'}</span></td>
       <td>${b.date}</td>
       <td>${b.startTime} – ${b.endTime}</td>
-      <td><strong>${b.purpose}</strong></td>
+      <td><strong>${b.purpose}</strong>${hasSeries?` <span style="font-size:10px;color:var(--gold);background:rgba(168,147,90,.15);padding:1px 6px;border-radius:10px;">Series</span>`:''}</td>
       <td>${b.user||'—'}</td>
       <td>
         <div class="action-btns">
           <button class="btn-sm btn-move" onclick="openMoveModal('${b._key}')">Move</button>
           <button class="btn-sm btn-swap" onclick="openSwapModal('${b._key}')">Swap</button>
-          <button class="btn-sm btn-del" onclick="adminDeleteBooking('${b._key}')">Delete</button>
+          <button class="btn-sm btn-del" onclick="deleteBooking('${b._key}',false)">Del</button>
+          ${hasSeries?`<button class="btn-sm" style="background:var(--dk-plum);color:white;" onclick="deleteBooking('${b._key}',true)">Del Series</button>`:''}
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   return `
     <div class="section-hdr">
       <h3>All Bookings (${S.bookings.length})</h3>
@@ -1707,9 +2041,35 @@ async function adminDeleteAdmin(key) {
 // ═══════════════════════════════════════════════════════════════
 //  MODAL HELPERS
 // ═══════════════════════════════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.addEventListener('keydown', e => { if (e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open')); });
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'flex';
+  // Force reflow then add open class for CSS transition
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => el.classList.add('open'));
+  });
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('open');
+  setTimeout(() => { if (!el.classList.contains('open')) el.style.display = 'none'; }, 380);
+}
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o => closeModal(o.id));
+});
+
+// Button ripple on tap/click
+document.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  btn.classList.add('btn-ripple');
+  btn.classList.remove('rippling');
+  // Trigger animation
+  requestAnimationFrame(() => btn.classList.add('rippling'));
+  setTimeout(() => btn.classList.remove('rippling','btn-ripple'), 550);
+});
 
 // ═══════════════════════════════════════════════════════════════
 //  NOTIFICATION
@@ -1718,9 +2078,15 @@ let notifTimer;
 function notify(msg) {
   const el = document.getElementById('notif');
   el.textContent = msg;
-  el.classList.add('show');
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  el.style.animation = 'notifIn .35s cubic-bezier(.22,.68,0,1.2) forwards';
+  el.style.display = 'block';
   clearTimeout(notifTimer);
-  notifTimer = setTimeout(()=>el.classList.remove('show'), 3200);
+  notifTimer = setTimeout(() => {
+    el.style.animation = 'notifOut .3s ease forwards';
+    setTimeout(() => { el.style.display='none'; }, 300);
+  }, 3200);
 }
 
 // ═══════════════════════════════════════════════════════════════
