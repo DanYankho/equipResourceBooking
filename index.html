@@ -761,22 +761,22 @@ window.addEventListener('DOMContentLoaded', () => {
       };
 
       db.ref('users').on('value', snap => {
-        S.users = [];
-        snap.forEach(c => S.users.push({...c.val(), _key:c.key}));
+        const raw = snap.val() || {};
+        S.users = Object.entries(raw).map(([key, val]) => ({...val, _key: key}));
         if (!ready.users) { ready.users = true; check(); }
         refreshIfNeeded('users');
       });
 
       db.ref('bookings').on('value', snap => {
-        S.bookings = [];
-        snap.forEach(c => S.bookings.push({...c.val(), _key:c.key}));
+        const raw = snap.val() || {};
+        S.bookings = Object.entries(raw).map(([key, val]) => ({...val, _key: key}));
         if (!ready.bookings) { ready.bookings = true; check(); }
         refreshIfNeeded('bookings');
       });
 
       db.ref('admins').on('value', snap => {
-        S.admins = [];
-        snap.forEach(c => S.admins.push({...c.val(), _key:c.key}));
+        const raw = snap.val() || {};
+        S.admins = Object.entries(raw).map(([key, val]) => ({...val, _key: key}));
         if (!ready.admins) { ready.admins = true; check(); }
         refreshIfNeeded('admins');
       });
