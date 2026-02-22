@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equip Booking</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{
+    height:100%;width:100%;overflow:hidden;
+    background:#0d1f33;
+    /* Matches the loading screen bg of both apps so the flash is invisible */
+  }
+</style>
+<script>
+  (function() {
+    // ── Detection logic ──────────────────────────────────────
+    // Treat as mobile if:
+    //  • Touch device AND narrow viewport (≤ 900px), OR
+    //  • User agent is a known mobile/tablet OS
+    var w = window.innerWidth || screen.width;
+    var h = window.innerHeight || screen.height;
+
+    var uaMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|Tablet|tablet/i.test(navigator.userAgent);
+    var narrowScreen = w <= 900;
+    var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    var isPortrait = h > w;
+
+    // Mobile: touch device on a small/portrait screen, OR explicit mobile UA
+    var isMobile = (hasTouch && narrowScreen) || (uaMobile && narrowScreen) || (uaMobile && isPortrait);
+
+    // Redirect immediately — no paint, no flash
+    var target = isMobile ? 'mobile.html' : 'desktop.html';
+    window.location.replace(target);
+  })();
+</script>
+</head>
+<body>
+  <!-- 
+    This body is never visible. The script above redirects
+    synchronously before any rendering occurs.
+    The background colour matches the loading screens of both
+    apps so that even on the slowest devices the transition
+    looks intentional.
+  -->
+</body>
+</htm
+l>
