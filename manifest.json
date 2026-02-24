@@ -2,7 +2,7 @@
   "name": "Equip Booking System",
   "short_name": "Equip",
   "description": "Workspace booking for board room and company car",
-  "start_url": "/",
+  "start_url": "/equipResourceBooking/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d1f33",
