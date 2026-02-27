@@ -52,7 +52,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .screen{display:none;position:fixed;inset:0;z-index:100;}
 .screen.active{display:flex;}
 
-/* Page transition system */
 .screen.slide-in-right { animation: slideInRight 0.45s cubic-bezier(.22,.68,0,1.2) forwards; }
 .screen.slide-in-left  { animation: slideInLeft  0.45s cubic-bezier(.22,.68,0,1.2) forwards; }
 .screen.slide-out-left { animation: slideOutLeft 0.35s cubic-bezier(.4,0,1,1) forwards; }
@@ -70,38 +69,40 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:var(--soft-gold);font-size:13px;letter-spacing:3px;text-transform:uppercase;}
 
-/* Button ripple */
 .btn-ripple{position:relative;overflow:hidden;}
 .btn-ripple::after{content:'';position:absolute;width:100px;height:100px;background:rgba(255,255,255,.25);border-radius:50%;transform:scale(0);opacity:1;pointer-events:none;}
 .btn-ripple.rippling::after{animation:ripple .5s ease-out forwards;}
 @keyframes ripple{to{transform:scale(4);opacity:0;}}
 
-/* Panel switch animation */
 .panel-fade { animation: panelFade 0.4s cubic-bezier(.22,.68,0,1.1); }
 @keyframes panelFade { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-/* Modal open/close - display controlled by JS */
 .overlay{position:fixed;inset:0;background:rgba(13,33,54,.6);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;
   opacity:0;transition:opacity .35s ease;}
 .overlay.open{opacity:1;}
 .overlay .modal{transform:translateY(24px) scale(.97);transition:transform .4s cubic-bezier(.22,.68,0,1.2);}
 .overlay.open .modal{transform:translateY(0) scale(1);}
 
-/* Calendar chip entrance */
 .bk-chip { animation: chipIn .2s ease; }
 @keyframes chipIn { from{opacity:0;transform:scaleY(.7)} to{opacity:1;transform:scaleY(1)} }
 
-/* Notify animation */
 @keyframes notifIn  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 @keyframes notifOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(20px)} }
 
-/* Month cell hover */
+/* Shake animation for failed login */
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-10px)}
+  40%{transform:translateX(10px)}
+  60%{transform:translateX(-8px)}
+  80%{transform:translateX(8px)}
+}
+.shake { animation: shake .35s ease; }
+
 .month-cell { transition: background .2s ease; }
 .mini-cal   { transition: all .25s cubic-bezier(.22,.68,0,1.2); }
 .user-option{ transition: all .2s cubic-bezier(.22,.68,0,1.2); }
 .portal-card{ transition: all .35s cubic-bezier(.22,.68,0,1.2); }
-
-/* Nav item transitions */
 .nav-item { transition: all .2s cubic-bezier(.22,.68,0,1.2); }
 .res-tab  { transition: all .22s ease; }
 .view-tab { transition: all .22s ease; }
@@ -142,68 +143,29 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .modal-box h2{text-align:center;color:var(--navy);font-size:26px;margin-bottom:6px;}
 .modal-box .subtitle{text-align:center;color:var(--blue-grey);font-size:13px;margin-bottom:32px;}
 
-/* ─── USER SELECTION ─── */
-.user-list{max-height:420px;overflow-y:auto;}
-.dept-group{margin-bottom:20px;}
-.dept-label{background:var(--navy);color:var(--gold);padding:8px 14px;border-radius:8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
-.user-option{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--cream);border:2px solid transparent;border-radius:12px;margin-bottom:6px;cursor:pointer;transition:all .2s ease;}
-.user-option:hover{border-color:var(--gold);background:var(--white);transform:translateX(4px);}
-.u-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--dk-teal));color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
-.u-name{font-weight:600;color:var(--navy);font-size:14px;}
-.u-dept{font-size:12px;color:var(--blue-grey);}
-
 /* ─── MAIN APP ─── */
 #app{display:none;flex-direction:row;height:100vh;}
 #app.active{display:flex;}
 
 /* ─── SIDEBAR ─── */
 .sidebar{width:240px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid rgba(168,147,90,.18);}
-
-/* Logo header — centered stacked */
-.sidebar-logo{
-  padding:24px 18px 20px;
-  border-bottom:1px solid rgba(168,147,90,.14);
-  display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;
-}
-.sidebar-logo-icon{
-  width:80px;height:80px;border-radius:20px;
-  background:linear-gradient(135deg,var(--gold),var(--soft-gold));
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:0 8px 28px rgba(168,147,90,.35);
-}
+.sidebar-logo{padding:24px 18px 20px;border-bottom:1px solid rgba(168,147,90,.14);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
+.sidebar-logo-icon{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 8px 28px rgba(168,147,90,.35);}
 .sidebar-logo-icon img{width:54px;height:54px;object-fit:contain;}
 .sidebar-brand{}
-.sidebar-brand h1{
-  color:var(--white);font-family:'Georgia',serif;font-size:16px;
-  font-weight:normal;letter-spacing:.3px;line-height:1.2;margin-bottom:3px;
-}
+.sidebar-brand h1{color:var(--white);font-family:'Georgia',serif;font-size:16px;font-weight:normal;letter-spacing:.3px;line-height:1.2;margin-bottom:3px;}
 .sidebar-brand span{color:var(--gold);font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:500;}
-
-/* User card */
-.sidebar-user{
-  padding:14px 16px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex;align-items:center;gap:12px;
-  background:rgba(255,255,255,.03);
-}
-.sidebar-avatar{
-  width:38px;height:38px;border-radius:50%;
-  background:linear-gradient(135deg,var(--teal),var(--dk-teal));
-  color:var(--white);display:flex;align-items:center;justify-content:center;
-  font-weight:700;font-size:13px;flex-shrink:0;
-  border:2px solid rgba(168,147,90,.3);
-}
+.sidebar-user{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.03);}
+.sidebar-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--dk-teal));color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;border:2px solid rgba(168,147,90,.3);}
 .sidebar-avatar.admin-av{background:linear-gradient(135deg,var(--gold),var(--soft-gold));color:var(--navy);}
 .sidebar-user-info{overflow:hidden;flex:1;}
 .sidebar-user-name{color:var(--white);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
 .sidebar-user-role{color:var(--blue-grey);font-size:11px;margin-top:1px;}
-
 .sidebar-nav{flex:1;padding:16px 12px;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;color:var(--blue-grey);font-size:13px;font-weight:400;border:1px solid transparent;background:transparent;width:100%;text-align:left;margin-bottom:3px;}
 .nav-item:hover{background:rgba(255,255,255,.06);color:var(--soft-gold);}
 .nav-item.active{background:rgba(168,147,90,.16);border-color:rgba(168,147,90,.28);color:var(--soft-gold);font-weight:600;}
 .nav-item .nav-icon{font-size:16px;width:20px;text-align:center;}
-
 .sidebar-resources{margin:0 12px 12px;background:rgba(168,147,90,.07);border-radius:10px;padding:12px 14px;}
 .sidebar-resources .sr-label{color:var(--gold);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
 .sr-item{display:flex;align-items:center;gap:8px;color:var(--blue-grey);font-size:12px;margin-bottom:5px;}
@@ -253,7 +215,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .day-cell{border-right:1px solid var(--lt-beige);position:relative;cursor:pointer;}
 .day-cell:hover{background:rgba(168,147,90,.04);}
 .day-cell.today-col{background:rgba(168,147,90,.03);}
-/* Booking chip in time grid */
 .bk-chip{position:absolute;left:3px;right:3px;border-radius:6px;padding:4px 7px;overflow:hidden;z-index:5;cursor:pointer;transition:filter .15s;}
 .bk-chip:hover{filter:brightness(1.1);}
 .bk-chip.boardroom{background:linear-gradient(135deg,var(--teal),#006375);}
@@ -320,6 +281,15 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .btn-move{background:var(--dk-green);color:var(--white);}
 .btn-swap{background:var(--plum);color:var(--white);}
 .btn-del{background:var(--danger);color:var(--white);}
+
+/* ─── Dept Password cards ─── */
+.dept-pass-card{background:var(--white);border-radius:12px;border:1px solid var(--grey);padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow-sm);}
+.dept-pass-av{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));color:var(--navy);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dept-pass-info{flex:1;}
+.dept-pass-name{font-weight:600;font-size:14px;color:var(--navy);}
+.dept-pass-members{font-size:12px;color:var(--blue-grey);margin-top:2px;}
+.dept-pass-fields{display:flex;gap:8px;align-items:center;flex:2;}
+.dept-pass-fields .form-input{flex:1;margin:0;}
 
 /* ─── MODALS ─── */
 .overlay{position:fixed;inset:0;background:rgba(13,33,54,.6);backdrop-filter:blur(5px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
@@ -403,6 +373,9 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .logo-ph{display:flex;align-items:center;justify-content:center;}
 .search-bar{width:100%;padding:9px 14px;border:1px solid var(--grey);border-radius:9px;font-size:13px;background:var(--white);margin-bottom:16px;}
 .search-bar:focus{outline:none;border-color:var(--gold);}
+
+/* Dept password helper text */
+.helper-text{font-size:12px;color:var(--blue-grey);line-height:1.55;margin-bottom:20px;padding:12px 16px;background:rgba(168,147,90,.08);border-radius:9px;border-left:3px solid var(--gold);}
 </style>
 </head>
 <body>
@@ -461,6 +434,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   <div class="modal-box">
     <button class="modal-back" onclick="showScreen('portal-screen','back')">← Back</button>
     <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
+    <h2>Admin Login</h2>
     <p class="subtitle">Enter your credentials to access the admin portal</p>
     <div class="error-msg" id="login-error">Invalid username or password.</div>
     <div class="form-group">
@@ -476,14 +450,27 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 </div>
 
 <!-- ════════════════════════════════════
-     USER SELECTION
+     USER LOGIN  ← replaces old user-select
 ════════════════════════════════════ -->
-<div id="user-select-screen" class="screen modal-screen">
-  <div class="modal-box wide">
+<div id="user-login-screen" class="screen modal-screen">
+  <div class="modal-box">
     <button class="modal-back" onclick="showScreen('portal-screen','back')">← Back</button>
     <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
-    <p class="subtitle">Choose your name to access the booking portal</p>
-    <div class="user-list" id="user-list"></div>
+    <h2>User Login</h2>
+    <p class="subtitle">Sign in with your email and department password</p>
+    <div class="error-msg" id="user-login-error">Incorrect email or department password.</div>
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input class="form-input" id="user-email-input" type="email" placeholder="yourname@company.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Department Password</label>
+      <input class="form-input" id="user-dept-pass-input" type="password" placeholder="Enter your department password" onkeydown="if(event.key==='Enter')doUserLogin()">
+    </div>
+    <p style="font-size:12px;color:var(--blue-grey);margin-bottom:20px;line-height:1.55;">
+      Your department password is shared with all members of your department. Contact your admin if you don't have it.
+    </p>
+    <button class="btn-book" style="width:100%;padding:13px;" onclick="doUserLogin()" id="user-login-btn">Sign In</button>
   </div>
 </div>
 
@@ -492,10 +479,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ════════════════════════════════════ -->
 <div id="app">
 
-
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <!-- Logo section: icon centered, name below -->
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon">
         <img src="Logo.svg" alt="Equip" style="width:54px;height:54px;object-fit:contain;">
@@ -506,7 +491,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       </div>
     </div>
 
-    <!-- Signed-in user -->
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sb-avatar">U</div>
       <div class="sidebar-user-info">
@@ -515,7 +499,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       </div>
     </div>
 
-    <!-- Navigation -->
     <nav class="sidebar-nav">
       <button class="nav-item active" id="nav-calendar" onclick="switchPanel('calendar')">
         <span class="nav-icon">📅</span> Calendar
@@ -525,14 +508,12 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       </button>
     </nav>
 
-    <!-- Resources legend -->
     <div class="sidebar-resources">
       <div class="sr-label">Resources</div>
       <div class="sr-item"><div class="sr-dot" style="background:#004551;"></div> Board Room</div>
       <div class="sr-item"><div class="sr-dot" style="background:#7e2138;"></div> Company Car</div>
     </div>
 
-    <!-- Footer: live sync + sign out -->
     <div class="sidebar-bottom">
       <div class="sidebar-live" id="sb-live" style="display:none;"><div class="live-dot"></div> Live Sync</div>
       <button class="btn-signout" onclick="doLogout()">← Sign Out</button>
@@ -578,6 +559,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
           <button class="admin-tab active" onclick="showAdminTab('bookings')">All Bookings</button>
           <button class="admin-tab" onclick="showAdminTab('users')">Users</button>
           <button class="admin-tab" onclick="showAdminTab('admins')">Admins</button>
+          <button class="admin-tab" onclick="showAdminTab('deptPasswords')">Dept Passwords</button>
         </div>
       </div>
       <div class="admin-body fade-in" id="admin-body"></div>
@@ -710,18 +692,9 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     <div class="modal-hdr teal"><div><h3>Move Booking</h3><p>Change the date and time</p></div><button class="btn-close" onclick="closeModal('modal-move')">×</button></div>
     <div class="modal-body">
       <div class="info-card" id="move-booking-info"></div>
-      <div class="form-group">
-        <label class="form-label">New Date</label>
-        <input class="form-input" type="date" id="move-date">
-      </div>
-      <div class="form-group">
-        <label class="form-label">New Start Time</label>
-        <input class="form-input" type="time" id="move-start" step="1800">
-      </div>
-      <div class="form-group">
-        <label class="form-label">New End Time</label>
-        <input class="form-input" type="time" id="move-end" step="1800">
-      </div>
+      <div class="form-group"><label class="form-label">New Date</label><input class="form-input" type="date" id="move-date"></div>
+      <div class="form-group"><label class="form-label">New Start Time</label><input class="form-input" type="time" id="move-start" step="1800"></div>
+      <div class="form-group"><label class="form-label">New End Time</label><input class="form-input" type="time" id="move-end" step="1800"></div>
       <div class="modal-footer">
         <button class="btn-prim teal" onclick="confirmMove()">Move Booking</button>
         <button class="btn-sec" onclick="closeModal('modal-move')">Cancel</button>
@@ -759,10 +732,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <input type="hidden" id="edit-user-key">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="user-name" placeholder="e.g. Alexandra Morgan"></div>
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="user-email" type="email" placeholder="name@company.com"></div>
-      <div class="form-group">
-        <label class="form-label">Department</label>
-        <input class="form-input" id="user-dept" placeholder="e.g. Finance">
-      </div>
+      <div class="form-group"><label class="form-label">Department</label><input class="form-input" id="user-dept" placeholder="e.g. Finance"></div>
       <div class="form-group">
         <label class="form-label">Account Type</label>
         <select class="form-select" id="user-role">
@@ -799,7 +769,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-//  FIREBASE CONFIG  ← your existing config, unchanged
+//  FIREBASE CONFIG
 // ═══════════════════════════════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyAURxQJYzXb6NSzPoN6tQibZXuCyveZoKw",
@@ -817,91 +787,76 @@ const db = firebase.database();
 //  STATE
 // ═══════════════════════════════════════════════════════════════
 let S = {
-  users:[],bookings:[],admins:[],
+  users:[],bookings:[],admins:[],deptPasswords:{},
   currentUser:null,isAdmin:false,
   resource:'boardroom',view:'week',
   date: new Date(),
   adminTab:'bookings',
-  // booking form state
   bkResource:'boardroom',bkAs:'self',
   bkStartMin:540,bkEndMin:600,
   bkAttendees:[],bkRecurrence:'once',
-  // move/swap targets
   moveTarget:null, swapTarget:null
 };
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 
 // ═══════════════════════════════════════════════════════════════
-//  *** THE FIX: Load Firebase data BEFORE showing any login ***
-//  Both bugs (invalid credentials + timeout) were caused by
-//  listeners not being set up until AFTER login — meaning the
-//  admins/users arrays were empty when login checks ran.
-//  Now we load everything on page open, then show portals.
+//  BOOT — load all data before showing portal
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting to database…');
 
-  // Step 1: ensure default data exists (runs .once — no cost)
   ensureDefaultData()
     .then(() => {
       setLoadingMsg('Loading workspace data…');
-      // Step 2: set up real-time listeners — counts how many
-      // collections have fired their FIRST value event
-      let ready = {users:false, bookings:false, admins:false};
+      let ready = {users:false, bookings:false, admins:false, deptPasswords:false};
       const check = () => {
-        if (ready.users && ready.bookings && ready.admins) {
-          // ALL data loaded — now safe to show portal
+        if (ready.users && ready.bookings && ready.admins && ready.deptPasswords) {
           document.getElementById('sb-live').style.display = 'flex';
           showScreen('portal-screen');
         }
       };
 
       db.ref('users').on('value', snap => {
-        const raw = snap.val() || {};
-        S.users = Object.entries(raw).map(([key, val]) => ({...val, _key: key}));
+        S.users = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
         if (!ready.users) { ready.users = true; check(); }
         refreshIfNeeded('users');
       });
 
       db.ref('bookings').on('value', snap => {
-        const raw = snap.val() || {};
-        S.bookings = Object.entries(raw).map(([key, val]) => ({...val, _key: key}));
+        S.bookings = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
         if (!ready.bookings) { ready.bookings = true; check(); }
         refreshIfNeeded('bookings');
       });
 
       db.ref('admins').on('value', snap => {
-        const raw = snap.val() || {};
-        S.admins = Object.entries(raw).map(([key, val]) => ({...val, _key: key}));
+        S.admins = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
         if (!ready.admins) { ready.admins = true; check(); }
         refreshIfNeeded('admins');
       });
+
+      db.ref('deptPasswords').on('value', snap => {
+        S.deptPasswords = snap.val() || {};
+        if (!ready.deptPasswords) { ready.deptPasswords = true; check(); }
+      });
     })
-    .catch(e => {
-      setLoadingMsg('⚠ Connection error: ' + e.message);
-    });
+    .catch(e => { setLoadingMsg('⚠ Connection error: ' + e.message); });
 });
 
-function setLoadingMsg(msg) {
-  document.getElementById('loading-msg').textContent = msg;
-}
+function setLoadingMsg(msg) { document.getElementById('loading-msg').textContent = msg; }
 
 function refreshIfNeeded(collection) {
-  if (!S.currentUser) return; // Not logged in yet, no need to refresh UI
+  if (!S.currentUser) return;
   if (collection === 'bookings' && document.getElementById('panel-calendar').style.display !== 'none') {
     renderCalendar();
   }
-  if ((collection === 'users' || collection === 'bookings' || collection === 'admins') && S.isAdmin) {
-    renderAdminTab();
-  }
+  if (S.isAdmin) renderAdminTab();
 }
 
 // ─── Ensure default data ─────────────────────────────────────
 async function ensureDefaultData() {
   const snap = await db.ref('admins').once('value');
   if (!snap.exists()) {
-    // Seed default data
     await db.ref('admins').set({
       admin1: { username:'admin', password:'admin123', name:'System Administrator' }
     });
@@ -915,6 +870,14 @@ async function ensureDefaultData() {
       user7: { id:'u7', name:'Marketing Dept',     department:'Marketing',      role:'dept',       email:'marketing@corp.com' },
     });
     await db.ref('bookings').set({});
+    // Seed default department passwords
+    await db.ref('deptPasswords').set({
+      'Executive':        'exec2024',
+      'Finance':          'finance2024',
+      'Marketing':        'marketing2024',
+      'Operations':       'ops2024',
+      'Human Resources':  'hr2024',
+    });
   }
 }
 
@@ -922,12 +885,10 @@ async function ensureDefaultData() {
 //  SCREEN MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
 function showScreen(id, direction) {
-  // Find currently active screen
   const current = document.querySelector('.screen.active');
   const next = document.getElementById(id);
   if (!next || next === current) return;
 
-  // Animate out current
   if (current) {
     current.style.pointerEvents = 'none';
     const outClass = direction === 'back' ? 'slide-out-right' : 'slide-out-left';
@@ -938,7 +899,6 @@ function showScreen(id, direction) {
     }, 350);
   }
 
-  // Animate in next
   const inClass = direction === 'back' ? 'slide-in-left' : (id === 'portal-screen' ? 'fade-up' : 'slide-in-right');
   next.classList.add('active', inClass);
   setTimeout(() => next.classList.remove(inClass), 500);
@@ -954,27 +914,25 @@ function selectPortal(type) {
     document.getElementById('login-error').classList.remove('visible');
     showScreen('admin-login-screen');
   } else {
-    renderUserList();
-    showScreen('user-select-screen');
+    // User portal → email + dept password login
+    document.getElementById('user-email-input').value = '';
+    document.getElementById('user-dept-pass-input').value = '';
+    document.getElementById('user-login-error').classList.remove('visible');
+    showScreen('user-login-screen');
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN LOGIN  ← Fix: admins array is now populated before this runs
+//  ADMIN LOGIN
 // ═══════════════════════════════════════════════════════════════
 function doAdminLogin() {
   const u = document.getElementById('admin-user').value.trim();
   const p = document.getElementById('admin-pass').value.trim();
-  const btn = document.getElementById('login-btn');
 
   const admin = S.admins.find(a => a.username === u && a.password === p);
   if (!admin) {
     document.getElementById('login-error').classList.add('visible');
-    // shake
-    const box = document.querySelector('#admin-login-screen .modal-box');
-    box.style.transform = 'translateX(-8px)';
-    setTimeout(() => box.style.transform = 'translateX(8px)', 80);
-    setTimeout(() => box.style.transform = '', 160);
+    shakeBox('admin-login-screen');
     return;
   }
 
@@ -984,38 +942,57 @@ function doAdminLogin() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LIST  ← Fix: users array is now populated before this runs
+//  USER LOGIN  ← new: email + department shared password
 // ═══════════════════════════════════════════════════════════════
-function renderUserList() {
-  const el = document.getElementById('user-list');
-  if (S.users.length === 0) {
-    el.innerHTML = '<div class="empty-state"><p>No users found in system.</p></div>';
+function doUserLogin() {
+  const email   = document.getElementById('user-email-input').value.trim().toLowerCase();
+  const pass    = document.getElementById('user-dept-pass-input').value.trim();
+  const errEl   = document.getElementById('user-login-error');
+  errEl.classList.remove('visible');
+
+  if (!email || !pass) {
+    errEl.textContent = 'Please enter your email and department password.';
+    errEl.classList.add('visible');
     return;
   }
-  const depts = [...new Set(S.users.map(u => u.department))].sort();
-  el.innerHTML = depts.map(dept => {
-    const us = S.users.filter(u => u.department === dept);
-    return `
-      <div class="dept-group">
-        <div class="dept-label">${dept}</div>
-        ${us.map(u => `
-          <div class="user-option" onclick="selectUser('${u._key}')">
-            <div class="u-avatar">${initials(u.name)}</div>
-            <div>
-              <div class="u-name">${u.name}</div>
-              <div class="u-dept">${u.role === 'dept' ? 'Department Account' : 'Individual'}</div>
-            </div>
-          </div>`).join('')}
-      </div>`;
-  }).join('');
-}
 
-function selectUser(key) {
-  const user = S.users.find(u => u._key === key);
-  if (!user) return;
+  // Find user by email (case-insensitive)
+  const user = S.users.find(u => (u.email || '').toLowerCase() === email);
+  if (!user) {
+    errEl.textContent = 'No account found with that email address.';
+    errEl.classList.add('visible');
+    shakeBox('user-login-screen');
+    return;
+  }
+
+  // Check shared department password
+  const dept = user.department || '';
+  const correctPass = S.deptPasswords[dept];
+  if (!correctPass) {
+    errEl.textContent = 'Your department does not have a password set yet. Contact your admin.';
+    errEl.classList.add('visible');
+    return;
+  }
+  if (pass !== correctPass) {
+    errEl.textContent = 'Incorrect department password. Please try again.';
+    errEl.classList.add('visible');
+    shakeBox('user-login-screen');
+    return;
+  }
+
   S.currentUser = {...user, type:'user'};
   S.isAdmin = false;
   initApp();
+}
+
+// Shake the modal box on failed login
+function shakeBox(screenId) {
+  const box = document.querySelector('#' + screenId + ' .modal-box');
+  if (!box) return;
+  box.classList.remove('shake');
+  void box.offsetWidth; // reflow to restart animation
+  box.classList.add('shake');
+  setTimeout(() => box.classList.remove('shake'), 400);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1029,25 +1006,17 @@ function initApp() {
 
   if (S.isAdmin) {
     document.getElementById('sb-avatar').classList.add('admin-av');
-
     document.getElementById('nav-admin').style.display = 'flex';
-
   }
 
-  const isMobile = window.innerWidth < 768;
-
-  // Populate booking form attendee dropdowns
   populateAttendeeDropdowns();
 
-  // Hide all screens, show app
   document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
   document.getElementById('app').classList.add('active');
 
-  if (S.isAdmin) {
-    switchPanel('admin');
-  } else {
-    switchPanel('calendar');
-  }
+  if (S.isAdmin) switchPanel('admin');
+  else switchPanel('calendar');
+
   notify('Welcome, ' + u.name.split(' ')[0] + ' ✓');
 }
 
@@ -1056,9 +1025,7 @@ function doLogout() {
   S.isAdmin = false;
   document.getElementById('app').classList.remove('active');
   document.getElementById('nav-admin').style.display = 'none';
-
   document.getElementById('sb-avatar').classList.remove('admin-av');
-
   showScreen('portal-screen', 'back');
 }
 
@@ -1073,12 +1040,10 @@ function switchPanel(panel) {
   calEl.style.flexDirection = 'column';
   adminEl.style.display = panel === 'admin'    ? 'flex' : 'none';
 
-  // Animate the panel in
   const activePanel = panel === 'calendar' ? calEl : adminEl;
   activePanel.classList.add('panel-fade');
   setTimeout(() => activePanel.classList.remove('panel-fade'), 400);
 
-  // Desktop nav
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (panel === 'calendar') document.getElementById('nav-calendar').classList.add('active');
   else document.getElementById('nav-admin').classList.add('active');
@@ -1107,18 +1072,18 @@ function switchView(v) {
 
 function navPrev() {
   const d = new Date(S.date);
-  if (S.view === 'day')   d.setDate(d.getDate()-1);
-  else if (S.view === 'week') d.setDate(d.getDate()-7);
+  if (S.view === 'day')        d.setDate(d.getDate()-1);
+  else if (S.view === 'week')  d.setDate(d.getDate()-7);
   else if (S.view === 'month') d.setMonth(d.getMonth()-1);
-  else if (S.view === 'year') d.setFullYear(d.getFullYear()-1);
+  else if (S.view === 'year')  d.setFullYear(d.getFullYear()-1);
   S.date = d; renderCalendar();
 }
 function navNext() {
   const d = new Date(S.date);
-  if (S.view === 'day')   d.setDate(d.getDate()+1);
-  else if (S.view === 'week') d.setDate(d.getDate()-7+7);
+  if (S.view === 'day')        d.setDate(d.getDate()+1);
+  else if (S.view === 'week')  d.setDate(d.getDate()+7);
   else if (S.view === 'month') d.setMonth(d.getMonth()+1);
-  else if (S.view === 'year') d.setFullYear(d.getFullYear()+1);
+  else if (S.view === 'year')  d.setFullYear(d.getFullYear()+1);
   S.date = d; renderCalendar();
 }
 function goToday() { S.date = new Date(); renderCalendar(); }
@@ -1128,9 +1093,8 @@ function goToday() { S.date = new Date(); renderCalendar(); }
 // ═══════════════════════════════════════════════════════════════
 const DAYS_SHORT  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const HOUR_START = 6, HOUR_END = 22; // 6am–10pm
+const HOUR_START = 6, HOUR_END = 22;
 const PX_PER_HOUR = 64;
-const resBkgs = {boardroom:'boardroom',car:'car'};
 
 function renderCalendar() {
   const wrap = document.getElementById('calendar-wrap');
@@ -1143,7 +1107,6 @@ function renderCalendar() {
   }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────
 function toMin(t) { const [h,m]=t.split(':').map(Number); return h*60+m; }
 function fromMin(m) { return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -1151,18 +1114,9 @@ function isSameDay(a,b) { return dateStr(a)===dateStr(b); }
 function startOfWeek(d) { const x=new Date(d); x.setDate(x.getDate()-x.getDay()); x.setHours(0,0,0,0); return x; }
 function addDays(d,n) { const x=new Date(d); x.setDate(x.getDate()+n); return x; }
 
-function bksByDay(bks, dateS) {
-  return bks.filter(b => b.date === dateS);
-}
-
-function bkTopPx(startTime) {
-  return (toMin(startTime) - HOUR_START*60) * (PX_PER_HOUR/60);
-}
-function bkHeightPx(startTime, endTime) {
-  return Math.max((toMin(endTime)-toMin(startTime)) * (PX_PER_HOUR/60), 22);
-}
-
-function totalGridH() { return (HOUR_END - HOUR_START) * PX_PER_HOUR; }
+function bksByDay(bks, dateS) { return bks.filter(b => b.date === dateS); }
+function bkTopPx(startTime) { return (toMin(startTime) - HOUR_START*60) * (PX_PER_HOUR/60); }
+function bkHeightPx(startTime, endTime) { return Math.max((toMin(endTime)-toMin(startTime)) * (PX_PER_HOUR/60), 22); }
 
 function renderTimeColumn() {
   let h = '<div style="flex-shrink:0;width:52px;">';
@@ -1178,11 +1132,9 @@ function renderDayCol(dateS, bks, clickable) {
   const today = dateStr(new Date());
   const dayBks = bksByDay(bks, dateS);
   let h = `<div style="flex:1;position:relative;min-width:80px;" class="${dateS===today?'today-col':''}">`;
-  // grid lines
   for (let hr = HOUR_START; hr <= HOUR_END; hr++) {
     h += `<div style="height:${PX_PER_HOUR}px;border-bottom:1px solid var(--lt-beige);border-right:1px solid var(--lt-beige);" ${clickable?`onclick="openBookModal('${dateS}','${String(hr).padStart(2,'0')}:00')"`:''}></div>`;
   }
-  // bookings
   dayBks.forEach(b => {
     const top = bkTopPx(b.startTime);
     const ht = bkHeightPx(b.startTime, b.endTime);
@@ -1195,7 +1147,6 @@ function renderDayCol(dateS, bks, clickable) {
   return h;
 }
 
-// ─── Day View ─────────────────────────────────────────────────
 function renderDayView(wrap, bks) {
   const d = S.date;
   document.getElementById('cal-title').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
@@ -1218,7 +1169,6 @@ function renderDayView(wrap, bks) {
     </div>`;
 }
 
-// ─── Week View ────────────────────────────────────────────────
 function renderWeekView(wrap, bks) {
   const ws = startOfWeek(S.date);
   const we = addDays(ws, 6);
@@ -1251,7 +1201,6 @@ function renderWeekView(wrap, bks) {
   </div>`;
 }
 
-// ─── Month View ───────────────────────────────────────────────
 function renderMonthView(wrap, bks) {
   const d = S.date;
   document.getElementById('cal-title').textContent = `${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()}`;
@@ -1272,8 +1221,8 @@ function renderMonthView(wrap, bks) {
     if(!c.day) return `<div class="month-cell other-month"></div>`;
     const isT = c.ds===today;
     const dayBks = bksByDay(bks, c.ds);
-    const chips = dayBks.slice(0,3).map(b => `
-      <div class="mc-chip ${b.resource}" onclick="event.stopPropagation();openDetail('${b._key}')">${b.purpose}</div>`).join('');
+    const chips = dayBks.slice(0,3).map(b =>
+      `<div class="mc-chip ${b.resource}" onclick="event.stopPropagation();openDetail('${b._key}')">${b.purpose}</div>`).join('');
     const more = dayBks.length > 3 ? `<div class="mc-more">+${dayBks.length-3} more</div>` : '';
     return `<div class="month-cell ${isT?'today':''}" onclick="S.date=new Date('${c.ds}T12:00:00');switchView('day');">
       <div class="mc-num ${isT?'today-num':''}">${c.day}</div>
@@ -1287,7 +1236,6 @@ function renderMonthView(wrap, bks) {
   </div>`;
 }
 
-// ─── Year View ────────────────────────────────────────────────
 function renderYearView(wrap, bks) {
   const yr = S.date.getFullYear();
   document.getElementById('cal-title').textContent = yr;
@@ -1301,11 +1249,9 @@ function renderYearView(wrap, bks) {
       const bd = new Date(b.date+'T12:00:00');
       return bd.getFullYear()===yr && bd.getMonth()===mi;
     });
-
     const cells = [];
     for(let i=0;i<pad;i++) cells.push('');
     for(let d=1;d<=dim;d++) cells.push(d);
-
     const daysHtml = cells.map(d => {
       if(!d) return '<div class="mini-day"></div>';
       const ds = `${yr}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -1313,7 +1259,6 @@ function renderYearView(wrap, bks) {
       const isT  = isSameDay(new Date(ds+'T12:00:00'), today);
       return `<div class="mini-day ${isT?'today-mini':hasB?'has-bk':''}">${d}</div>`;
     }).join('');
-
     return `<div class="mini-cal" onclick="S.date=new Date(${yr},${mi},1);switchView('month');">
       <div class="mini-cal-hdr">
         ${mn} ${yr}
@@ -1339,7 +1284,6 @@ function openBookModal(prefillDate, prefillTime) {
   S.bkRecurrence = 'once';
   S.bkStartMin = prefillTime ? toMin(prefillTime) : 540;
   S.bkEndMin   = S.bkStartMin + 60;
-
   setBkResource(S.bkResource);
   setBkAs('self');
   setRecurrence('once');
@@ -1366,7 +1310,6 @@ function setBkAs(a) {
   document.getElementById('bk-as-self').classList.toggle('active', a==='self');
   document.getElementById('bk-as-dept').classList.toggle('active', a==='dept');
 }
-
 function adjustTime(which, delta) {
   if (which==='start') {
     S.bkStartMin = Math.max(HOUR_START*60, Math.min(HOUR_END*60-30, S.bkStartMin+delta));
@@ -1381,7 +1324,6 @@ function updateDials() {
   document.getElementById('dial-start').textContent = fromMin(S.bkStartMin);
   document.getElementById('dial-end').textContent   = fromMin(S.bkEndMin);
 }
-
 function setRecurrence(r) {
   S.bkRecurrence = r;
   ['once','daily','weekdays','weekly','monthly'].forEach(v => {
@@ -1392,14 +1334,12 @@ function setRecurrence(r) {
   if (r !== 'once') {
     const untilInput = document.getElementById('rec-until');
     if (!untilInput.value) {
-      // Default: 3 months ahead
       const def = new Date(); def.setMonth(def.getMonth()+3);
       untilInput.value = dateStr(def);
     }
     updateRecPreview();
   }
 }
-
 function populateAttendeeDropdowns() {
   const uSel = document.getElementById('att-user-sel');
   const dSel = document.getElementById('att-dept-sel');
@@ -1409,7 +1349,6 @@ function populateAttendeeDropdowns() {
   dSel.innerHTML = '<option value="">Add a department…</option>' +
     depts.map(d => `<option value="${d}">${d}</option>`).join('');
 }
-
 function addAttendeeFromUser() {
   const v = document.getElementById('att-user-sel').value;
   if (v && !S.bkAttendees.includes(v)) { S.bkAttendees.push(v); renderAttendeeTags(); }
@@ -1433,7 +1372,6 @@ function renderAttendeeTags() {
     `<div class="att-tag">${a}<button onclick="removeAttendee('${a.replace(/'/g,"\\'")}')">×</button></div>`
   ).join('');
 }
-
 function checkConflict() {
   const date = document.getElementById('bk-date').value;
   if (!date) return;
@@ -1445,15 +1383,12 @@ function checkConflict() {
   );
   document.getElementById('bk-conflict').classList.toggle('visible', conflict);
 }
-
-// Generate dates for recurrence
-// Generate dates for recurrence — uses "until date" not a count
 function buildRecurrenceDates(baseDate, type, untilDate) {
   if (type === 'once' || !untilDate || untilDate < baseDate) return [baseDate];
   const dates = [];
   let cur = new Date(baseDate+'T12:00:00');
   const until = new Date(untilDate+'T12:00:00');
-  const MAX = 365; // safety cap
+  const MAX = 365;
   while (cur <= until && dates.length < MAX) {
     if (type !== 'weekdays' || (cur.getDay() !== 0 && cur.getDay() !== 6)) {
       dates.push(dateStr(cur));
@@ -1465,7 +1400,6 @@ function buildRecurrenceDates(baseDate, type, untilDate) {
   }
   return dates.length > 0 ? dates : [baseDate];
 }
-
 function updateRecPreview() {
   const dateVal = document.getElementById('bk-date').value;
   const until   = document.getElementById('rec-until').value;
@@ -1475,58 +1409,39 @@ function updateRecPreview() {
   const dates = buildRecurrenceDates(dateVal, S.bkRecurrence, until);
   preview.textContent = `${dates.length} booking${dates.length !== 1 ? 's' : ''} will be created`;
 }
-
 async function saveBooking() {
   const purpose = document.getElementById('bk-purpose').value.trim();
   const date    = document.getElementById('bk-date').value;
   if (!purpose) { showBkError('Please enter a title or purpose.'); return; }
   if (!date)    { showBkError('Please select a date.'); return; }
-
   const startT = fromMin(S.bkStartMin);
   const endT   = fromMin(S.bkEndMin);
-
   const conflict = S.bookings.some(b =>
     b.resource === S.bkResource && b.date === date &&
     toMin(b.startTime) < toMin(endT) && toMin(b.endTime) > toMin(startT)
   );
   if (conflict) { showBkError('Time slot conflicts with an existing booking. Please choose another time.'); return; }
-
   const btn = document.getElementById('bk-submit-btn');
   btn.textContent = 'Saving…'; btn.disabled = true;
-
   const untilDate = document.getElementById('rec-until').value;
   const dates = buildRecurrenceDates(date, S.bkRecurrence, untilDate);
   const groupId = dates.length > 1 ? uid() : null;
-
   try {
     for (const d of dates) {
-      const bk = {
-        resource: S.bkResource,
-        date: d,
-        startTime: startT,
-        endTime: endT,
-        user: S.currentUser.name,
-        userId: S.currentUser.id || S.currentUser._key || '',
-        department: S.currentUser.department || '',
-        bookedAs: S.bkAs,
-        purpose,
+      await db.ref('bookings').push({
+        resource: S.bkResource, date: d, startTime: startT, endTime: endT,
+        user: S.currentUser.name, userId: S.currentUser.id||S.currentUser._key||'',
+        department: S.currentUser.department||'', bookedAs: S.bkAs, purpose,
         attendees: S.bkAttendees.join(', '),
         notes: document.getElementById('bk-notes').value.trim(),
-        groupId,
-        createdAt: new Date().toISOString()
-      };
-      // *** FIX: use .push() to generate unique Firebase key ***
-      await db.ref('bookings').push(bk);
+        groupId, createdAt: new Date().toISOString()
+      });
     }
     closeModal('modal-book');
     notify(dates.length > 1 ? `${dates.length} recurring bookings saved ✓` : 'Booking confirmed ✓');
-  } catch(e) {
-    showBkError('Failed to save: ' + e.message);
-  } finally {
-    btn.textContent = 'Confirm Booking'; btn.disabled = false;
-  }
+  } catch(e) { showBkError('Failed to save: ' + e.message); }
+  finally { btn.textContent = 'Confirm Booking'; btn.disabled = false; }
 }
-
 function showBkError(msg) {
   const el = document.getElementById('bk-error');
   el.textContent = msg;
@@ -1540,32 +1455,24 @@ function openDetail(key) {
   const b = S.bookings.find(x => x._key === key);
   if (!b) return;
   const canManage = S.isAdmin || b.userId === (S.currentUser.id||S.currentUser._key) || b.user === S.currentUser.name;
-  const resLabel = b.resource === 'boardroom' ? 'Board Room' : 'Company Car';
-
   document.getElementById('detail-hdr').className = `detail-res-hdr ${b.resource}`;
-  document.getElementById('detail-resource-label').textContent = resLabel;
+  document.getElementById('detail-resource-label').textContent = b.resource === 'boardroom' ? 'Board Room' : 'Company Car';
   document.getElementById('detail-title').textContent = b.purpose;
-
   const dateObj = new Date(b.date+'T12:00:00');
   document.getElementById('detail-info-grid').innerHTML = `
     <div class="info-card"><div class="ic-label">Date</div><div class="ic-val">${dateObj.toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric'})}</div></div>
     <div class="info-card"><div class="ic-label">Time</div><div class="ic-val">${b.startTime} – ${b.endTime}</div></div>
     <div class="info-card"><div class="ic-label">Booked By</div><div class="ic-val">${b.user||'—'}</div></div>
-    <div class="info-card"><div class="ic-label">Booked As</div><div class="ic-val">${b.bookedAs==='dept'?'Department':'Individual'}</div></div>
-  `;
-
+    <div class="info-card"><div class="ic-label">Booked As</div><div class="ic-val">${b.bookedAs==='dept'?'Department':'Individual'}</div></div>`;
   const attWrap = document.getElementById('detail-attendees-wrap');
   if (b.attendees) {
     attWrap.style.display = 'block';
     document.getElementById('detail-attendees').innerHTML = b.attendees.split(',').filter(Boolean).map(a =>
-      `<div class="att-tag" style="background:rgba(0,69,81,.1);color:var(--teal);">${a.trim()}</div>`
-    ).join('');
+      `<div class="att-tag">${a.trim()}</div>`).join('');
   } else { attWrap.style.display = 'none'; }
-
   const notesEl = document.getElementById('detail-notes');
   if (b.notes) { notesEl.style.display='block'; notesEl.textContent = b.notes; }
   else { notesEl.style.display='none'; }
-
   const actEl = document.getElementById('detail-actions');
   if (canManage) {
     const hasGroup = b.groupId && S.bookings.filter(x => x.groupId === b.groupId).length > 1;
@@ -1576,17 +1483,14 @@ function openDetail(key) {
       <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
         <button class="btn-sec" style="background:rgba(192,57,43,.08);border-color:rgba(192,57,43,.25);color:var(--danger);" onclick="deleteBooking('${key}', false)">Remove This Booking</button>
         ${hasGroup ? `<button class="btn-sec" style="background:rgba(192,57,43,.15);border-color:var(--danger);color:var(--danger);font-weight:700;" onclick="deleteBooking('${key}', true)">Remove All ${seriesCount} in Series</button>` : ''}
-      </div>
-    `;
+      </div>`;
   } else { actEl.innerHTML = ''; }
-
   openModal('modal-detail');
 }
 
 async function deleteBooking(key, deleteSeries) {
   const b = S.bookings.find(x => x._key === key);
   if (!b) return;
-
   if (deleteSeries && b.groupId) {
     const seriesKeys = S.bookings.filter(x => x.groupId === b.groupId).map(x => x._key);
     if (!confirm(`Remove all ${seriesKeys.length} bookings in this series?`)) return;
@@ -1606,7 +1510,7 @@ async function deleteBooking(key, deleteSeries) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  MOVE MODAL
+//  MOVE / SWAP
 // ═══════════════════════════════════════════════════════════════
 function openMoveModal(key) {
   const b = S.bookings.find(x=>x._key===key);
@@ -1632,10 +1536,6 @@ async function confirmMove() {
     notify('Booking moved ✓');
   } catch(e) { alert('Failed: '+e.message); }
 }
-
-// ═══════════════════════════════════════════════════════════════
-//  SWAP MODAL
-// ═══════════════════════════════════════════════════════════════
 function openSwapModal(key) {
   const b = S.bookings.find(x=>x._key===key);
   if (!b) return;
@@ -1668,37 +1568,36 @@ async function confirmSwap() {
 function showAdminTab(tab) {
   S.adminTab = tab;
   document.querySelectorAll('.admin-tab').forEach((t,i) => {
-    t.classList.toggle('active', ['bookings','users','admins'][i]===tab);
+    t.classList.toggle('active', ['bookings','users','admins','deptPasswords'][i]===tab);
   });
   renderAdminTab();
 }
 
 function renderAdminTab() {
   const el = document.getElementById('admin-body');
-  if (S.adminTab === 'bookings') el.innerHTML = renderAdminBookings();
-  else if (S.adminTab === 'users') el.innerHTML = renderAdminUsers();
-  else if (S.adminTab === 'admins') el.innerHTML = renderAdminAdmins();
+  if (!el) return;
+  if      (S.adminTab === 'bookings')      el.innerHTML = renderAdminBookings();
+  else if (S.adminTab === 'users')         el.innerHTML = renderAdminUsers();
+  else if (S.adminTab === 'admins')        el.innerHTML = renderAdminAdmins();
+  else if (S.adminTab === 'deptPasswords') el.innerHTML = renderDeptPasswords();
 }
 
 function renderAdminBookings() {
   const sorted = [...S.bookings].sort((a,b)=>a.date>b.date?-1:1);
   const rows = sorted.map(b => {
     const hasSeries = b.groupId && S.bookings.filter(x=>x.groupId===b.groupId).length > 1;
-    return `
-    <tr>
+    return `<tr>
       <td><span class="badge ${b.resource==='boardroom'?'badge-teal':'badge-plum'}">${b.resource==='boardroom'?'Board Room':'Car'}</span></td>
       <td>${b.date}</td>
       <td>${b.startTime} – ${b.endTime}</td>
       <td><strong>${b.purpose}</strong>${hasSeries?` <span style="font-size:10px;color:var(--gold);background:rgba(168,147,90,.15);padding:1px 6px;border-radius:10px;">Series</span>`:''}</td>
       <td>${b.user||'—'}</td>
-      <td>
-        <div class="action-btns">
-          <button class="btn-sm btn-move" onclick="openMoveModal('${b._key}')">Move</button>
-          <button class="btn-sm btn-swap" onclick="openSwapModal('${b._key}')">Swap</button>
-          <button class="btn-sm btn-del" onclick="deleteBooking('${b._key}',false)">Del</button>
-          ${hasSeries?`<button class="btn-sm" style="background:var(--dk-plum);color:white;" onclick="deleteBooking('${b._key}',true)">Del Series</button>`:''}
-        </div>
-      </td>
+      <td><div class="action-btns">
+        <button class="btn-sm btn-move" onclick="openMoveModal('${b._key}')">Move</button>
+        <button class="btn-sm btn-swap" onclick="openSwapModal('${b._key}')">Swap</button>
+        <button class="btn-sm btn-del" onclick="deleteBooking('${b._key}',false)">Del</button>
+        ${hasSeries?`<button class="btn-sm" style="background:var(--dk-plum);color:white;" onclick="deleteBooking('${b._key}',true)">Del Series</button>`:''}
+      </div></td>
     </tr>`;
   }).join('');
   return `
@@ -1720,12 +1619,10 @@ function renderAdminUsers() {
       <td>${u.department||'—'}</td>
       <td><span class="badge ${u.role==='dept'?'badge-teal':'badge-gold'}">${u.role==='dept'?'Department':'Individual'}</span></td>
       <td>${u.email||'—'}</td>
-      <td>
-        <div class="action-btns">
-          <button class="btn-sm btn-edit" onclick="editUser('${u._key}')">Edit</button>
-          <button class="btn-sm btn-del" onclick="adminDeleteUser('${u._key}')">Delete</button>
-        </div>
-      </td>
+      <td><div class="action-btns">
+        <button class="btn-sm btn-edit" onclick="editUser('${u._key}')">Edit</button>
+        <button class="btn-sm btn-del" onclick="adminDeleteUser('${u._key}')">Delete</button>
+      </div></td>
     </tr>`).join('');
   return `
     <div class="section-hdr">
@@ -1743,12 +1640,10 @@ function renderAdminAdmins() {
     <tr>
       <td><strong>${a.name}</strong></td>
       <td>${a.username}</td>
-      <td>
-        <div class="action-btns">
-          <button class="btn-sm btn-edit" onclick="editAdminEntry('${a._key}')">Edit</button>
-          <button class="btn-sm btn-del" onclick="adminDeleteAdmin('${a._key}')">Delete</button>
-        </div>
-      </td>
+      <td><div class="action-btns">
+        <button class="btn-sm btn-edit" onclick="editAdminEntry('${a._key}')">Edit</button>
+        <button class="btn-sm btn-del" onclick="adminDeleteAdmin('${a._key}')">Delete</button>
+      </div></td>
     </tr>`).join('');
   return `
     <div class="section-hdr">
@@ -1761,13 +1656,52 @@ function renderAdminAdmins() {
     </div>`;
 }
 
-// ─── Admin CRUD ───────────────────────────────────────────────
-async function adminDeleteBooking(key) {
-  if (!confirm('Delete this booking?')) return;
-  await db.ref('bookings/'+key).remove();
-  notify('Booking deleted ✓');
+// ─── Department Passwords admin tab ──────────────────────────
+function renderDeptPasswords() {
+  const depts = [...new Set(S.users.map(u => u.department))].filter(Boolean).sort();
+  if (!depts.length) {
+    return `<div class="section-hdr"><h3>Department Passwords</h3></div>
+      <div class="empty-state"><div class="es-icon">🏢</div><p>No departments found — add users first.</p></div>`;
+  }
+  const cards = depts.map(dept => {
+    const current = S.deptPasswords[dept] || '';
+    const memberCount = S.users.filter(u => u.department === dept).length;
+    const safeId = 'deptpass-' + dept.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="dept-pass-card">
+      <div class="dept-pass-av">${dept.slice(0,2).toUpperCase()}</div>
+      <div class="dept-pass-info">
+        <div class="dept-pass-name">${dept}</div>
+        <div class="dept-pass-members">${memberCount} member${memberCount!==1?'s':''} · shared login password</div>
+      </div>
+      <div class="dept-pass-fields">
+        <input class="form-input" type="text" id="${safeId}"
+          value="${current}" placeholder="Set department password…">
+        <button class="btn-sm btn-edit" style="white-space:nowrap;"
+          onclick="saveDeptPassword('${dept.replace(/'/g,"\\'")}','${dept.replace(/[^a-zA-Z0-9]/g,'_')}')">Save</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="section-hdr"><h3>Department Passwords (${depts.length})</h3></div>
+    <div class="helper-text">
+      Each department shares a single password. Users log in with their individual email address plus this shared department password.
+      Set or update each department's password below — members will need to use the new password immediately.
+    </div>
+    ${cards}`;
 }
 
+async function saveDeptPassword(dept, safeKey) {
+  const input = document.getElementById('deptpass-' + safeKey);
+  const val = input ? input.value.trim() : '';
+  if (!val) { notify('Password cannot be empty.'); return; }
+  try {
+    await db.ref('deptPasswords/' + dept).set(val);
+    notify('Password saved for ' + dept + ' ✓');
+  } catch(e) { alert('Failed: ' + e.message); }
+}
+
+// ─── Admin CRUD ───────────────────────────────────────────────
 function openAddUserModal() {
   document.getElementById('add-user-title').textContent = 'Add New User';
   document.getElementById('edit-user-key').value = '';
@@ -1796,14 +1730,8 @@ async function saveUser() {
   const role  = document.getElementById('user-role').value;
   if (!name) { alert('Name is required.'); return; }
   const data = { name, email, department:dept, role };
-  if (key) {
-    // Editing existing user — update in place
-    await db.ref('users/'+key).update(data);
-  } else {
-    // *** FIX: use .push() so each user gets a unique Firebase key ***
-    data.id = uid();
-    await db.ref('users').push(data);
-  }
+  if (key) { await db.ref('users/'+key).update(data); }
+  else { data.id = uid(); await db.ref('users').push(data); }
   populateAttendeeDropdowns();
   closeModal('modal-add-user');
   notify('User saved ✓');
@@ -1813,7 +1741,6 @@ async function adminDeleteUser(key) {
   await db.ref('users/'+key).remove();
   notify('User deleted ✓');
 }
-
 function openAddAdminModal() {
   document.getElementById('add-admin-title').textContent = 'Add Admin User';
   document.getElementById('edit-admin-key').value = '';
@@ -1839,13 +1766,8 @@ async function saveAdmin() {
   const pass = document.getElementById('admin-password-input').value.trim();
   if (!name||!uname||!pass) { alert('All fields required.'); return; }
   const data = {name, username:uname, password:pass};
-  if (key) {
-    // Editing existing admin — update in place
-    await db.ref('admins/'+key).update(data);
-  } else {
-    // *** FIX: use .push() so each admin gets a unique Firebase key ***
-    await db.ref('admins').push(data);
-  }
+  if (key) { await db.ref('admins/'+key).update(data); }
+  else { await db.ref('admins').push(data); }
   closeModal('modal-add-admin');
   notify('Admin saved ✓');
 }
@@ -1863,10 +1785,7 @@ function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.style.display = 'flex';
-  // Force reflow then add open class for CSS transition
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => el.classList.add('open'));
-  });
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
 }
 function closeModal(id) {
   const el = document.getElementById(id);
@@ -1877,14 +1796,11 @@ function closeModal(id) {
 document.addEventListener('keydown', e => {
   if (e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o => closeModal(o.id));
 });
-
-// Button ripple on tap/click
 document.addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
   btn.classList.add('btn-ripple');
   btn.classList.remove('rippling');
-  // Trigger animation
   requestAnimationFrame(() => btn.classList.add('rippling'));
   setTimeout(() => btn.classList.remove('rippling','btn-ripple'), 550);
 });
@@ -1897,7 +1813,7 @@ function notify(msg) {
   const el = document.getElementById('notif');
   el.textContent = msg;
   el.style.animation = 'none';
-  el.offsetHeight; // reflow
+  el.offsetHeight;
   el.style.animation = 'notifIn .35s cubic-bezier(.22,.68,0,1.2) forwards';
   el.style.display = 'block';
   clearTimeout(notifTimer);
@@ -1910,9 +1826,7 @@ function notify(msg) {
 // ═══════════════════════════════════════════════════════════════
 //  UTILITIES
 // ═══════════════════════════════════════════════════════════════
-function initials(name) {
-  return (name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-}
+function initials(name) { return (name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase(); }
 function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 </script>
 </body>
