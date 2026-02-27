@@ -4,50 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Equip">
 <meta name="theme-color" content="#0d1f33">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="/equipResourceBooking/manifest.json">
+<link rel="apple-touch-icon" href="/equipResourceBooking/apple-touch-icon.png">
 <title>Equip Booking</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{
-    height:100%;width:100%;overflow:hidden;
-    background:#0d1f33;
-    /* Matches the loading screen bg of both apps so the flash is invisible */
-  }
+  html,body{height:100%;width:100%;overflow:hidden;background:#0d1f33;}
 </style>
 <script>
-  (function() {
-    // ── Detection logic ──────────────────────────────────────
-    // Treat as mobile if:
-    //  • Touch device AND narrow viewport (≤ 900px), OR
-    //  • User agent is a known mobile/tablet OS
-    var w = window.innerWidth || screen.width;
-    var h = window.innerHeight || screen.height;
-
-    var uaMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|Tablet|tablet/i.test(navigator.userAgent);
-    var narrowScreen = w <= 900;
-    var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-    var isPortrait = h > w;
-
-    // Mobile: touch device on a small/portrait screen, OR explicit mobile UA
-    var isMobile = (hasTouch && narrowScreen) || (uaMobile && narrowScreen) || (uaMobile && isPortrait);
-
-    // Redirect immediately — no paint, no flash
-    var target = isMobile ? 'mobile.html' : 'desktop.html';
-    window.location.replace(target);
-  })();
+(function(){
+  var ua=navigator.userAgent,w=window.innerWidth||screen.width,h=window.innerHeight||screen.height,short=Math.min(w,h);
+  var hasTouch=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
+  // iPad: explicit UA OR iPadOS 13+ (Macintosh + touch)
+  var isIpad=/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1);
+  // Android tablet: Android but no "Mobile"
+  var isAndroidTablet=/Android/i.test(ua)&&!/Mobile/i.test(ua);
+  // Tablet-sized: touch + short side > 600px (Surface, Kindle, etc.)
+  var isTabletSize=hasTouch&&short>600;
+  // Phone: iPhone/iPod OR small Android OR any small touch device
+  var isPhone=/iPhone|iPod/i.test(ua)||(/Android/i.test(ua)&&/Mobile/i.test(ua))||(hasTouch&&short<=600);
+  // Decision: only true phones go to mobile — tablets/iPads go to desktop
+  var target=(isPhone&&!isIpad&&!isAndroidTablet&&!isTabletSize)?'mobile.html':'desktop.html';
+  window.location.replace(target);
+})();
 </script>
 </head>
-<body>
-  <!-- 
-    This body is never visible. The script above redirects
-    synchronously before any rendering occurs.
-    The background colour matches the loading screens of both
-    apps so that even on the slowest devices the transition
-    looks intentional.
-  -->
-</body>
-</htm
-l>
+<body></body>
+</html>
