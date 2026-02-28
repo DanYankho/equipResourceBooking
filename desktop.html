@@ -117,7 +117,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .portal-inner{text-align:center;width:90%;max-width:860px;position:relative;z-index:1;padding:40px 0;}
 .portal-logo-wrap{margin-bottom:32px;}
 .portal-logo{width:180px;height:180px;border-radius:36px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));margin:0 auto;display:flex;align-items:center;justify-content:center;box-shadow:0 28px 70px rgba(0,0,0,.4),0 0 0 2px rgba(168,147,90,.5);}
-.portal-logo svg{width:100px;height:100px;}
+.portal-logo svg{width:120px;height:120px;}
 .portal-divider{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:10px;}
 .portal-divider-line{height:1px;width:50px;background:linear-gradient(to right,transparent,var(--gold));}
 .portal-divider-line.right{background:linear-gradient(to left,transparent,var(--gold));}
@@ -1009,6 +1009,17 @@ function selectPortal(type) {
   }
 }
 
+// ─── Credential Management API — triggers browser "Save password?" prompt ───
+// Explicitly tells the browser to offer saving after a successful SPA login.
+// Works in Chrome & Edge; silently skipped on unsupported browsers (Safari/Firefox).
+function storeCredential(id, password, name) {
+  if (!window.PasswordCredential) return;
+  try {
+    const cred = new PasswordCredential({ id, password, name });
+    navigator.credentials.store(cred).catch(() => {});
+  } catch(e) {}
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  ADMIN LOGIN
 // ═══════════════════════════════════════════════════════════════
@@ -1023,6 +1034,7 @@ function doAdminLogin() {
     return;
   }
 
+  storeCredential(u, p, admin.name || 'Admin');
   S.currentUser = {...admin, type:'admin'};
   S.isAdmin = true;
   saveSession(S.currentUser, true);
@@ -1030,7 +1042,7 @@ function doAdminLogin() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LOGIN  ← new: email + department shared password
+//  USER LOGIN  ← email + department shared password
 // ═══════════════════════════════════════════════════════════════
 function doUserLogin() {
   const email   = document.getElementById('user-email-input').value.trim().toLowerCase();
@@ -1044,7 +1056,6 @@ function doUserLogin() {
     return;
   }
 
-  // Find user by email (case-insensitive)
   const user = S.users.find(u => (u.email || '').toLowerCase() === email);
   if (!user) {
     errEl.textContent = 'No account found with that email address.';
@@ -1053,7 +1064,6 @@ function doUserLogin() {
     return;
   }
 
-  // Check shared department password
   const dept = user.department || '';
   const correctPass = S.deptPasswords[dept];
   if (!correctPass) {
@@ -1068,6 +1078,7 @@ function doUserLogin() {
     return;
   }
 
+  storeCredential(email, pass, user.name);
   S.currentUser = {...user, type:'user'};
   S.isAdmin = false;
   saveSession(S.currentUser, false);
