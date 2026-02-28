@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <style>
 /* ═══════════════════════════════════════
    TOKENS
@@ -177,9 +178,9 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
 .portal-footer{color:rgba(100,120,140,.35);font-size:var(--sz-xs);margin-top:clamp(24px,7vw,44px);letter-spacing:.5px;}
 
 /* ═══════════════════════════════════════
-   LOGIN / USER-SELECT SHEETS
+   LOGIN SHEETS
 ═══════════════════════════════════════ */
-#admin-login-screen,#user-select-screen{
+#admin-login-screen, #user-login-screen{
   background:rgba(10,18,30,.92);backdrop-filter:blur(12px);
   align-items:flex-end;justify-content:flex-end;padding:0;
 }
@@ -260,35 +261,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   color:var(--muted);font-size:var(--sz-base);border-radius:12px;
   transition:all .2s;min-height:var(--tap);
 }
-
-/* User list */
-.user-search{
-  padding:clamp(11px,3.2vw,15px) var(--sp-sm);border:1.5px solid var(--lt-beige);
-  border-radius:12px;font-size:var(--sz-base);background:var(--cream);
-  width:100%;margin-bottom:var(--sp-sm);min-height:var(--tap);
-}
-.user-search:focus{outline:none;border-color:var(--gold);}
-.dept-label{
-  font-size:var(--sz-xs);letter-spacing:2px;text-transform:uppercase;
-  font-weight:700;color:var(--gold);padding:var(--sp-sm) 0 var(--sp-xs);
-}
-.user-row{
-  display:flex;align-items:center;gap:var(--sp-sm);
-  padding:clamp(12px,3.5vw,18px) clamp(12px,3.5vw,16px);
-  border-radius:14px;margin-bottom:var(--sp-xs);
-  border:1.5px solid transparent;background:var(--cream);
-  cursor:pointer;transition:all .18s;min-height:var(--tap);
-}
-.user-row:active{border-color:var(--gold);background:rgba(201,169,110,.08);}
-.u-av{
-  width:clamp(40px,11vw,52px);height:clamp(40px,11vw,52px);border-radius:50%;
-  background:linear-gradient(135deg,var(--teal),#004d58);
-  color:var(--white);display:flex;align-items:center;justify-content:center;
-  font-weight:700;font-size:clamp(12px,3.5vw,15px);flex-shrink:0;
-}
-.u-name{font-weight:600;font-size:var(--sz-base);color:var(--navy);}
-.u-dept{font-size:var(--sz-sm);color:var(--muted);margin-top:2px;}
-.u-arrow{margin-left:auto;color:var(--beige);font-size:var(--sz-lg);}
 
 /* ═══════════════════════════════════════
    MAIN APP SHELL
@@ -417,8 +389,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
 
 /* ─────────────────────────────────────
    DAY TIME GRID VIEW
-   Full timeline: 06:00 – 22:00
-   Left col = time labels, right = slots
 ───────────────────────────────────── */
 .day-grid-wrap{
   display:flex;flex-direction:column;padding:clamp(10px,3vw,16px);
@@ -437,7 +407,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   letter-spacing:.5px;text-transform:uppercase;
 }
 
-/* The actual grid */
 .day-time-grid{
   position:relative;
   background:var(--white);
@@ -447,7 +416,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   box-shadow:0 2px 12px rgba(13,31,51,.06);
 }
 
-/* Each hour row */
 .tg-row{
   display:flex;
   align-items:flex-start;
@@ -464,7 +432,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   pointer-events:none;
 }
 
-/* Time label */
 .tg-time{
   width:clamp(42px,12vw,56px);flex-shrink:0;
   padding:clamp(5px,1.5vw,8px) clamp(6px,2vw,10px) 0 0;
@@ -474,10 +441,8 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   line-height:1;
   user-select:none;
 }
-/* Hide label on rows that aren't on-the-hour */
 .tg-time.half{opacity:0;}
 
-/* Clickable cell */
 .tg-cell{
   flex:1;height:100%;cursor:pointer;position:relative;
   border-left:1px solid var(--lt-beige);
@@ -485,7 +450,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
 }
 .tg-cell:active{background:rgba(201,169,110,.06);}
 
-/* Booking block inside the grid — absolute, spans correct rows */
 .tg-bk{
   position:absolute;
   left:clamp(44px,12.5vw,58px);
@@ -518,7 +482,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* Current time indicator */
 .tg-now-line{
   position:absolute;left:0;right:0;
   display:flex;align-items:center;
@@ -1252,37 +1215,97 @@ const GRID_END   = 22;  // 22:00
 document.getElementById('yr').textContent = new Date().getFullYear();
 
 // ═══════════════════════════════════════════════════════════
-//  BOOT
+//  BOOT — with anonymous auth + session restore
 // ═══════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
-  ensureDefaultData().then(() => {
-    setLoadingMsg('Loading data…');
-    let ready={users:false,bookings:false,admins:false,deptPasswords:false};
-    const check=()=>{if(ready.users&&ready.bookings&&ready.admins&&ready.deptPasswords) showScreen('portal-screen');};
-    db.ref('users').on('value',snap=>{S.users=Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));if(!ready.users){ready.users=true;check();}refreshIfNeeded('users');});
-    db.ref('bookings').on('value',snap=>{S.bookings=Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));if(!ready.bookings){ready.bookings=true;check();}refreshIfNeeded('bookings');});
-    db.ref('admins').on('value',snap=>{S.admins=Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));if(!ready.admins){ready.admins=true;check();}refreshIfNeeded('admins');});
-    db.ref('deptPasswords').on('value',snap=>{S.deptPasswords=snap.val()||{};if(!ready.deptPasswords){ready.deptPasswords=true;check();}});
-  }).catch(e=>setLoadingMsg('⚠ '+e.message));
-});
-function setLoadingMsg(m){document.getElementById('loading-msg').textContent=m;}
 
-async function ensureDefaultData(){
-  const snap=await db.ref('admins').once('value');
-  if(!snap.exists()){
-    await db.ref('admins').set({admin1:{username:'admin',password:'admin123',name:'System Administrator'}});
+  // Anonymous auth for security rules
+  firebase.auth().onAuthStateChanged(async (fbUser) => {
+    if (!fbUser) {
+      try { await firebase.auth().signInAnonymously(); }
+      catch(e) { setLoadingMsg('⚠ Auth error: ' + e.message); }
+      return;
+    }
+
+    try {
+      setLoadingMsg('Loading workspace…');
+      await loadDataAndSeed();
+
+      // Try to restore session
+      const saved = loadSavedSession();
+      if (saved) {
+        S.currentUser = saved.user;
+        S.isAdmin     = saved.isAdmin;
+        initApp();
+      } else {
+        showScreen('portal-screen');
+      }
+    } catch(e) {
+      setLoadingMsg('⚠ Load error: ' + e.message);
+    }
+  });
+});
+
+function setLoadingMsg(m) { document.getElementById('loading-msg').textContent = m; }
+
+// ═══════════════════════════════════════════════════════════
+//  DATA LOADING + SEED
+// ═══════════════════════════════════════════════════════════
+function loadDataAndSeed() {
+  return new Promise((resolve, reject) => {
+    let ready = {users:false, bookings:false, admins:false, deptPasswords:false};
+    let seeded = false;
+
+    const check = async () => {
+      if (!Object.values(ready).every(Boolean)) return;
+      if (!seeded) {
+        seeded = true;
+        await ensureDefaultData();
+      }
+      resolve();
+    };
+
+    db.ref('users').on('value', snap => {
+      S.users = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
+      if (!ready.users) { ready.users = true; check(); }
+      refreshIfNeeded('users');
+    });
+    db.ref('bookings').on('value', snap => {
+      S.bookings = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
+      if (!ready.bookings) { ready.bookings = true; check(); }
+      refreshIfNeeded('bookings');
+    });
+    db.ref('admins').on('value', snap => {
+      S.admins = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
+      if (!ready.admins) { ready.admins = true; check(); }
+      refreshIfNeeded('admins');
+    });
+    db.ref('deptPasswords').on('value', snap => {
+      S.deptPasswords = snap.val() || {};
+      if (!ready.deptPasswords) { ready.deptPasswords = true; check(); }
+    });
+
+    setTimeout(() => reject(new Error('Database timeout')), 15000);
+  });
+}
+
+async function ensureDefaultData() {
+  const snap = await db.ref('admins').once('value');
+  if (!snap.exists()) {
+    await db.ref('admins').set({
+      admin1: { username:'admin', password:'admin123', name:'System Administrator' }
+    });
     await db.ref('users').set({
-      user1:{id:'u1',name:'Alexandra Morgan',department:'Executive',role:'individual',email:'a.morgan@corp.com'},
-      user2:{id:'u2',name:'James Whitfield',department:'Finance',role:'individual',email:'j.whitfield@corp.com'},
-      user3:{id:'u3',name:'Sarah Chen',department:'Marketing',role:'individual',email:'s.chen@corp.com'},
-      user4:{id:'u4',name:'David Okafor',department:'Operations',role:'individual',email:'d.okafor@corp.com'},
-      user5:{id:'u5',name:'Priya Nair',department:'Human Resources',role:'individual',email:'p.nair@corp.com'},
-      user6:{id:'u6',name:'Finance Dept',department:'Finance',role:'dept',email:'finance@corp.com'},
-      user7:{id:'u7',name:'Marketing Dept',department:'Marketing',role:'dept',email:'marketing@corp.com'},
+      user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',       role:'individual', email:'a.morgan@corp.com' },
+      user2: { id:'u2', name:'James Whitfield',   department:'Finance',         role:'individual', email:'j.whitfield@corp.com' },
+      user3: { id:'u3', name:'Sarah Chen',        department:'Marketing',       role:'individual', email:'s.chen@corp.com' },
+      user4: { id:'u4', name:'David Okafor',      department:'Operations',      role:'individual', email:'d.okafor@corp.com' },
+      user5: { id:'u5', name:'Priya Nair',        department:'Human Resources', role:'individual', email:'p.nair@corp.com' },
+      user6: { id:'u6', name:'Finance Dept',      department:'Finance',         role:'dept',       email:'finance@corp.com' },
+      user7: { id:'u7', name:'Marketing Dept',    department:'Marketing',       role:'dept',       email:'marketing@corp.com' },
     });
     await db.ref('bookings').set({});
-    // Seed default department passwords (admin should change these)
     await db.ref('deptPasswords').set({
       'Executive':       'exec2024',
       'Finance':         'finance2024',
@@ -1290,203 +1313,290 @@ async function ensureDefaultData(){
       'Operations':      'ops2024',
       'Human Resources': 'hr2024',
     });
+    await db.ref('meta/initialized').set(true);
   }
 }
-function refreshIfNeeded(col){
-  if(!S.currentUser)return;
-  if(col==='bookings')renderCalendar();
-  if(S.isAdmin)renderAdminTab();
+
+function refreshIfNeeded(col) {
+  if (!S.currentUser) return;
+  if (col === 'bookings') renderCalendar();
+  if (S.isAdmin) renderAdminTab();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SESSION PERSISTENCE (localStorage)
+// ═══════════════════════════════════════════════════════════
+const SESSION_KEY = 'equipMobile_session';
+
+function saveSession(user, isAdmin) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ 
+      key: user._key, 
+      type: isAdmin ? 'admin' : 'user' 
+    }));
+  } catch(e) {}
+}
+
+function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
+function loadSavedSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const { key, type } = JSON.parse(raw);
+
+    if (type === 'admin') {
+      const admin = S.admins.find(a => a._key === key);
+      if (!admin) { clearSession(); return null; }
+      return { user: {...admin, type:'admin'}, isAdmin: true };
+    } else {
+      const user = S.users.find(u => u._key === key);
+      if (!user) { clearSession(); return null; }
+      return { user: {...user, type:'user'}, isAdmin: false };
+    }
+  } catch(e) { clearSession(); return null; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PASSWORD CREDENTIAL API (browser save password prompt)
+// ═══════════════════════════════════════════════════════════
+function storeCredential(id, password, name) {
+  if (!window.PasswordCredential) return;
+  try {
+    const cred = new PasswordCredential({ id, password, name });
+    navigator.credentials.store(cred).catch(() => {});
+  } catch(e) {}
 }
 
 // ═══════════════════════════════════════════════════════════
 //  SCREEN MANAGEMENT
 // ═══════════════════════════════════════════════════════════
-function showScreen(id,direction){
-  const current=document.querySelector('.screen.active');
-  const next=document.getElementById(id);
-  if(!next||next===current)return;
-  if(current){
-    current.style.pointerEvents='none';
+function showScreen(id, direction) {
+  const current = document.querySelector('.screen.active');
+  const next = document.getElementById(id);
+  if (!next || next === current) return;
+
+  if (current) {
+    current.style.pointerEvents = 'none';
     current.classList.add('exit');
-    setTimeout(()=>{current.classList.remove('active','exit');current.style.pointerEvents='';},300);
+    setTimeout(() => {
+      current.classList.remove('active', 'exit');
+      current.style.pointerEvents = '';
+    }, 300);
   }
-  const cls=direction==='back'?'enter-back':'enter';
-  next.classList.add('active',cls);
-  setTimeout(()=>next.classList.remove(cls),420);
+
+  const cls = direction === 'back' ? 'enter-back' : 'enter';
+  next.classList.add('active', cls);
+  setTimeout(() => next.classList.remove(cls), 420);
 }
-function handleSheetBackdrop(e,screenId,backTo){if(e.target===document.getElementById(screenId))showScreen(backTo,'back');}
+
+function handleSheetBackdrop(e, screenId, backTo) {
+  if (e.target === document.getElementById(screenId)) {
+    showScreen(backTo, 'back');
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
-//  PORTAL / LOGIN / USER SELECT
+//  PORTAL / LOGIN
 // ═══════════════════════════════════════════════════════════
-function selectPortal(type){
-  if(type==='admin'){
-    document.getElementById('admin-user').value='';
-    document.getElementById('admin-pass').value='';
+function selectPortal(type) {
+  if (type === 'admin') {
+    document.getElementById('admin-user').value = '';
+    document.getElementById('admin-pass').value = '';
     document.getElementById('login-error').classList.remove('visible');
     showScreen('admin-login-screen');
-  }else{
-    document.getElementById('user-email-input').value='';
-    document.getElementById('user-dept-pass-input').value='';
+  } else {
+    document.getElementById('user-email-input').value = '';
+    document.getElementById('user-dept-pass-input').value = '';
     document.getElementById('user-login-error').classList.remove('visible');
     showScreen('user-login-screen');
   }
 }
-function doAdminLogin(){
-  const u=document.getElementById('admin-user').value.trim();
-  const p=document.getElementById('admin-pass').value.trim();
-  const admin=S.admins.find(a=>a.username===u&&a.password===p);
-  if(!admin){
+
+function doAdminLogin() {
+  const u = document.getElementById('admin-user').value.trim();
+  const p = document.getElementById('admin-pass').value.trim();
+
+  const admin = S.admins.find(a => a.username === u && a.password === p);
+  if (!admin) {
     document.getElementById('login-error').classList.add('visible');
-    const sh=document.querySelector('#admin-login-screen .sheet');
-    sh.style.transform='translateX(-10px)';
-    setTimeout(()=>sh.style.transform='translateX(10px)',80);
-    setTimeout(()=>sh.style.transform='',160);
+    shakeSheet('admin-login-screen');
     return;
   }
-  S.currentUser={...admin,type:'admin'};S.isAdmin=true;initApp();
+
+  storeCredential(u, p, admin.name || 'Admin');
+  S.currentUser = {...admin, type:'admin'};
+  S.isAdmin = true;
+  saveSession(S.currentUser, true);
+  initApp();
 }
 
-
-// ═══════════════════════════════════════════════════════════
-//  APP INIT / LOGOUT
-// ═══════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════
-//  USER LOGIN (email + department password)
-// ═══════════════════════════════════════════════════════════
-function doUserLogin(){
+function doUserLogin() {
   const email = document.getElementById('user-email-input').value.trim().toLowerCase();
   const pass  = document.getElementById('user-dept-pass-input').value.trim();
   const errEl = document.getElementById('user-login-error');
   errEl.classList.remove('visible');
 
-  if(!email||!pass){
-    errEl.textContent='Please enter your email and department password.';
+  if (!email || !pass) {
+    errEl.textContent = 'Please enter your email and department password.';
     errEl.classList.add('visible');
     return;
   }
 
-  // Find user by email (case-insensitive)
-  const user = S.users.find(u=>(u.email||'').toLowerCase()===email);
-  if(!user){
-    errEl.textContent='No account found with that email address.';
+  const user = S.users.find(u => (u.email || '').toLowerCase() === email);
+  if (!user) {
+    errEl.textContent = 'No account found with that email address.';
     errEl.classList.add('visible');
     shakeSheet('user-login-screen');
     return;
   }
 
-  // Check department password
-  const dept = user.department||'';
+  const dept = user.department || '';
   const correctPass = S.deptPasswords[dept];
-  if(!correctPass){
-    errEl.textContent='Your department does not have a password set yet. Contact your admin.';
+  if (!correctPass) {
+    errEl.textContent = 'Your department does not have a password set yet.';
     errEl.classList.add('visible');
     return;
   }
-  if(pass !== correctPass){
-    errEl.textContent='Incorrect department password. Try again.';
+  if (pass !== correctPass) {
+    errEl.textContent = 'Incorrect department password. Try again.';
     errEl.classList.add('visible');
     shakeSheet('user-login-screen');
     return;
   }
 
-  // Success
-  S.currentUser={...user,type:'user'};
-  S.isAdmin=false;
+  storeCredential(email, pass, user.name);
+  S.currentUser = {...user, type:'user'};
+  S.isAdmin = false;
+  saveSession(S.currentUser, false);
   initApp();
 }
 
-function shakeSheet(screenId){
-  const sh=document.querySelector('#'+screenId+' .sheet');
-  if(!sh)return;
-  sh.style.transform='translateX(-10px)';
-  setTimeout(()=>sh.style.transform='translateX(10px)',80);
-  setTimeout(()=>sh.style.transform='',160);
+function shakeSheet(screenId) {
+  const sh = document.querySelector('#' + screenId + ' .sheet');
+  if (!sh) return;
+  sh.style.transform = 'translateX(-10px)';
+  setTimeout(() => sh.style.transform = 'translateX(10px)', 80);
+  setTimeout(() => sh.style.transform = '', 160);
 }
 
-function initApp(){
-  const u=S.currentUser;
-  document.getElementById('tb-user-btn').textContent=initials(u.name);
-  if(S.isAdmin)document.getElementById('nav-admin').style.display='flex';
-  S.weekSelectedDay=dateStr(S.date);
+// ═══════════════════════════════════════════════════════════
+//  APP INIT / LOGOUT
+// ═══════════════════════════════════════════════════════════
+function initApp() {
+  const u = S.currentUser;
+  document.getElementById('tb-user-btn').textContent = initials(u.name);
+  if (S.isAdmin) document.getElementById('nav-admin').style.display = 'flex';
+  
+  S.weekSelectedDay = dateStr(S.date);
   populateAttendeeDropdowns();
-  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='';});
+
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
   document.getElementById('app').classList.add('active');
-  if(S.isAdmin)switchPanel('admin');else switchPanel('calendar');
-  notify('Welcome, '+u.name.split(' ')[0]+' ✓');
+  
+  if (S.isAdmin) switchPanel('admin');
+  else switchPanel('calendar');
+  
+  notify('Welcome, ' + u.name.split(' ')[0] + ' ✓');
 }
-function doLogout(){
-  S.currentUser=null;S.isAdmin=false;
+
+function doLogout() {
+  clearSession();
+  S.currentUser = null;
+  S.isAdmin = false;
   document.getElementById('app').classList.remove('active');
-  document.getElementById('nav-admin').style.display='none';
+  document.getElementById('nav-admin').style.display = 'none';
   closeModal('modal-profile');
-  showScreen('portal-screen','back');
+  showScreen('portal-screen', 'back');
 }
-function openProfileSheet(){
-  if(!S.currentUser)return;
-  const u=S.currentUser;
-  document.getElementById('profile-info-card').innerHTML=`
+
+function openProfileSheet() {
+  if (!S.currentUser) return;
+  const u = S.currentUser;
+  document.getElementById('profile-info-card').innerHTML = `
     <div class="profile-av">${initials(u.name)}</div>
-    <div><div class="profile-name">${u.name}</div><div class="profile-role">${S.isAdmin?'Administrator':(u.department||'User')}</div></div>`;
+    <div>
+      <div class="profile-name">${u.name}</div>
+      <div class="profile-role">${S.isAdmin ? 'Administrator' : (u.department || 'User')}</div>
+    </div>`;
   openModal('modal-profile');
 }
 
 // ═══════════════════════════════════════════════════════════
 //  PANEL / RESOURCE / VIEW / NAV
 // ═══════════════════════════════════════════════════════════
-function switchPanel(panel){
-  const calEl=document.getElementById('panel-calendar');
-  const adminEl=document.getElementById('panel-admin');
-  calEl.style.display=panel==='calendar'?'flex':'none';
-  calEl.style.flexDirection='column';
-  adminEl.style.display=panel==='admin'?'flex':'none';
-  adminEl.style.flexDirection=panel==='admin'?'column':'none';
-  document.getElementById('nav-calendar').classList.toggle('active',panel==='calendar');
-  const na=document.getElementById('nav-admin');
-  if(na)na.classList.toggle('active',panel==='admin');
-  if(panel==='calendar')renderCalendar();else renderAdminTab();
+function switchPanel(panel) {
+  const calEl = document.getElementById('panel-calendar');
+  const adminEl = document.getElementById('panel-admin');
+  
+  calEl.style.display = panel === 'calendar' ? 'flex' : 'none';
+  calEl.style.flexDirection = 'column';
+  adminEl.style.display = panel === 'admin' ? 'flex' : 'none';
+  adminEl.style.flexDirection = panel === 'admin' ? 'column' : 'none';
+  
+  document.getElementById('nav-calendar').classList.toggle('active', panel === 'calendar');
+  const na = document.getElementById('nav-admin');
+  if (na) na.classList.toggle('active', panel === 'admin');
+  
+  if (panel === 'calendar') renderCalendar();
+  else renderAdminTab();
 }
-function switchResource(r){
-  S.resource=r;
-  document.getElementById('res-boardroom').className=`res-pill${r==='boardroom'?' active boardroom':''}`;
-  document.getElementById('res-car').className=`res-pill${r==='car'?' active car':''}`;
+
+function switchResource(r) {
+  S.resource = r;
+  document.getElementById('res-boardroom').className = `res-pill${r === 'boardroom' ? ' active boardroom' : ''}`;
+  document.getElementById('res-car').className = `res-pill${r === 'car' ? ' active car' : ''}`;
   renderCalendar();
 }
-function switchView(v){
-  S.view=v;
-  document.querySelectorAll('.view-pill').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
+
+function switchView(v) {
+  S.view = v;
+  document.querySelectorAll('.view-pill').forEach(b => 
+    b.classList.toggle('active', b.dataset.v === v)
+  );
   renderCalendar();
 }
-function navPrev(){
-  const d=new Date(S.date);
-  if(S.view==='day')d.setDate(d.getDate()-1);
-  else if(S.view==='week'){d.setDate(d.getDate()-7);S.weekSelectedDay=dateStr(d);}
-  else if(S.view==='month')d.setMonth(d.getMonth()-1);
-  else if(S.view==='year')d.setFullYear(d.getFullYear()-1);
-  S.date=d;renderCalendar();
+
+function navPrev() {
+  const d = new Date(S.date);
+  if (S.view === 'day') d.setDate(d.getDate() - 1);
+  else if (S.view === 'week') { d.setDate(d.getDate() - 7); S.weekSelectedDay = dateStr(d); }
+  else if (S.view === 'month') d.setMonth(d.getMonth() - 1);
+  else if (S.view === 'year') d.setFullYear(d.getFullYear() - 1);
+  S.date = d; renderCalendar();
 }
-function navNext(){
-  const d=new Date(S.date);
-  if(S.view==='day')d.setDate(d.getDate()+1);
-  else if(S.view==='week'){d.setDate(d.getDate()+7);S.weekSelectedDay=dateStr(d);}
-  else if(S.view==='month')d.setMonth(d.getMonth()+1);
-  else if(S.view==='year')d.setFullYear(d.getFullYear()+1);
-  S.date=d;renderCalendar();
+
+function navNext() {
+  const d = new Date(S.date);
+  if (S.view === 'day') d.setDate(d.getDate() + 1);
+  else if (S.view === 'week') { d.setDate(d.getDate() + 7); S.weekSelectedDay = dateStr(d); }
+  else if (S.view === 'month') d.setMonth(d.getMonth() + 1);
+  else if (S.view === 'year') d.setFullYear(d.getFullYear() + 1);
+  S.date = d; renderCalendar();
 }
-function goToday(){S.date=new Date();S.weekSelectedDay=dateStr(S.date);renderCalendar();}
+
+function goToday() { 
+  S.date = new Date(); 
+  S.weekSelectedDay = dateStr(S.date); 
+  renderCalendar(); 
+}
 
 // ═══════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════
-function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
-function fromMin(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
-function dateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function isSameDay(a,b){return dateStr(a)===dateStr(b);}
-function startOfWeek(d){const x=new Date(d);x.setDate(x.getDate()-x.getDay());x.setHours(0,0,0,0);return x;}
-function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
-const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function fromMin(m) { return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; }
+function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function isSameDay(a, b) { return dateStr(a) === dateStr(b); }
+function startOfWeek(d) { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); x.setHours(0,0,0,0); return x; }
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 // ═══════════════════════════════════════════════════════════
 //  CALENDAR RENDER ROUTER
@@ -1511,7 +1621,7 @@ function renderCalendar(){
 }
 
 // ═══════════════════════════════════════════════════════════
-//  DAY TIME GRID  ← full timeline with free + booked slots
+//  DAY TIME GRID
 // ═══════════════════════════════════════════════════════════
 function renderDayTimeGrid(wrap, bks, ds) {
   const dayBks = bks.filter(b => b.date === ds);
@@ -1519,16 +1629,14 @@ function renderDayTimeGrid(wrap, bks, ds) {
   const isToday = ds === todayStr;
   const dateObj = new Date(ds + 'T12:00:00');
 
-  // Compute hour-px from CSS var (live, respects screen size)
   const hourPx = parseFloat(
     getComputedStyle(document.documentElement)
       .getPropertyValue('--hour-px')
   ) || 72;
 
-  const totalHours = GRID_END - GRID_START; // 16 hours
+  const totalHours = GRID_END - GRID_START;
   const gridHeight = totalHours * hourPx;
 
-  // Current-time line position
   let nowLineHtml = '';
   if (isToday) {
     const now = new Date();
@@ -1542,7 +1650,6 @@ function renderDayTimeGrid(wrap, bks, ds) {
     }
   }
 
-  // Build booking blocks (absolutely positioned over the grid)
   const bkBlocks = dayBks.map(b => {
     const startMin = toMin(b.startTime);
     const endMin   = toMin(b.endTime);
@@ -1558,7 +1665,6 @@ function renderDayTimeGrid(wrap, bks, ds) {
     </div>`;
   }).join('');
 
-  // Build hour rows
   let rowsHtml = '';
   for (let h = GRID_START; h < GRID_END; h++) {
     const label = h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h-12}pm`;
@@ -1583,7 +1689,6 @@ function renderDayTimeGrid(wrap, bks, ds) {
       </div>
     </div>`;
 
-  // Auto-scroll to current time (or 8am) after render
   requestAnimationFrame(() => {
     const gridEl = wrap.querySelector('.day-time-grid');
     if (!gridEl) return;
@@ -1944,7 +2049,7 @@ function renderDeptPasswords2(){
       <div style="display:flex;gap:8px;align-items:center;">
         <input class="form-input" style="flex:1;font-size:var(--sz-sm);" type="text"
           id="${safeId}" value="${current}" placeholder="Set department password…">
-        <button class="btn-xs move" onclick="saveDeptPassword('${dept.replace(/'/g,"\'")}','${dept.replace(/[^a-zA-Z0-9]/g,'_')}')">Save</button>
+        <button class="btn-xs move" onclick="saveDeptPassword('${dept.replace(/'/g,"\\'")}','${dept.replace(/[^a-zA-Z0-9]/g,'_')}')">Save</button>
       </div>
     </div>`;
   }).join('');
@@ -1961,7 +2066,9 @@ async function saveDeptPassword(dept,safeKey){
   notify('Password saved for '+dept+' ✓');
 }
 
-
+// ═══════════════════════════════════════════════════════════
+//  USER CRUD
+// ═══════════════════════════════════════════════════════════
 function openAddUserModal(){document.getElementById('add-user-title').textContent='Add User';document.getElementById('edit-user-key').value='';document.getElementById('user-name').value='';document.getElementById('user-email').value='';document.getElementById('user-dept').value='';document.getElementById('user-role').value='individual';openModal('modal-add-user');}
 function editUser(key){const u=S.users.find(x=>x._key===key);if(!u)return;document.getElementById('add-user-title').textContent='Edit User';document.getElementById('edit-user-key').value=key;document.getElementById('user-name').value=u.name;document.getElementById('user-email').value=u.email||'';document.getElementById('user-dept').value=u.department||'';document.getElementById('user-role').value=u.role||'individual';openModal('modal-add-user');}
 async function saveUser(){
@@ -1972,6 +2079,10 @@ async function saveUser(){
   populateAttendeeDropdowns();closeModal('modal-add-user');notify('User saved ✓');
 }
 async function adminDeleteUser(key){if(!confirm('Delete this user?'))return;await db.ref('users/'+key).remove();notify('User deleted ✓');}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN CRUD
+// ═══════════════════════════════════════════════════════════
 function openAddAdminModal(){document.getElementById('add-admin-title').textContent='Add Admin';document.getElementById('edit-admin-key').value='';document.getElementById('admin-name-input').value='';document.getElementById('admin-username-input').value='';document.getElementById('admin-password-input').value='';openModal('modal-add-admin');}
 function editAdminEntry(key){const a=S.admins.find(x=>x._key===key);if(!a)return;document.getElementById('add-admin-title').textContent='Edit Admin';document.getElementById('edit-admin-key').value=key;document.getElementById('admin-name-input').value=a.name;document.getElementById('admin-username-input').value=a.username;document.getElementById('admin-password-input').value=a.password||'';openModal('modal-add-admin');}
 async function saveAdmin(){
