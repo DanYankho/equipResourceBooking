@@ -433,20 +433,22 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ════════════════════════════════════ -->
 <div id="admin-login-screen" class="screen modal-screen">
   <div class="modal-box">
-    <button class="modal-back" onclick="showScreen('portal-screen','back')">← Back</button>
+    <button class="modal-back" type="button" onclick="showScreen('portal-screen','back')">← Back</button>
     <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
     <h2>Admin Login</h2>
     <p class="subtitle">Enter your credentials to access the admin portal</p>
     <div class="error-msg" id="login-error">Invalid username or password.</div>
-    <div class="form-group">
-      <label class="form-label">Username</label>
-      <input class="form-input" id="admin-user" placeholder="Enter username" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input class="form-input" id="admin-pass" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()">
-    </div>
-    <button class="btn-book" style="width:100%;padding:13px;" onclick="doAdminLogin()" id="login-btn">Login to Admin Portal</button>
+    <form onsubmit="doAdminLogin();return false;" autocomplete="on">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="admin-user" name="username" placeholder="Enter username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="admin-pass" name="password" type="password" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="btn-book" type="submit" style="width:100%;padding:13px;" id="login-btn">Login to Admin Portal</button>
+    </form>
   </div>
 </div>
 
@@ -455,23 +457,25 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ════════════════════════════════════ -->
 <div id="user-login-screen" class="screen modal-screen">
   <div class="modal-box">
-    <button class="modal-back" onclick="showScreen('portal-screen','back')">← Back</button>
+    <button class="modal-back" type="button" onclick="showScreen('portal-screen','back')">← Back</button>
     <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
     <h2>User Login</h2>
     <p class="subtitle">Sign in with your email and department password</p>
     <div class="error-msg" id="user-login-error">Incorrect email or department password.</div>
-    <div class="form-group">
-      <label class="form-label">Email Address</label>
-      <input class="form-input" id="user-email-input" type="email" placeholder="yourname@company.com" autocomplete="email">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Department Password</label>
-      <input class="form-input" id="user-dept-pass-input" type="password" placeholder="Enter your department password" onkeydown="if(event.key==='Enter')doUserLogin()">
-    </div>
-    <p style="font-size:12px;color:var(--blue-grey);margin-bottom:20px;line-height:1.55;">
-      Your department password is shared with all members of your department. Contact your admin if you don't have it.
-    </p>
-    <button class="btn-book" style="width:100%;padding:13px;" onclick="doUserLogin()" id="user-login-btn">Sign In</button>
+    <form onsubmit="doUserLogin();return false;" autocomplete="on">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" id="user-email-input" name="email" type="email" placeholder="yourname@company.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department Password</label>
+        <input class="form-input" id="user-dept-pass-input" name="password" type="password" placeholder="Enter your department password" autocomplete="current-password">
+      </div>
+      <p style="font-size:12px;color:var(--blue-grey);margin-bottom:20px;line-height:1.55;">
+        Your department password is shared with all members of your department. Contact your admin if you don't have it.
+      </p>
+      <button class="btn-book" type="submit" style="width:100%;padding:13px;" id="user-login-btn">Sign In</button>
+    </form>
   </div>
 </div>
 
