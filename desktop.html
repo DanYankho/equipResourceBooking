@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <style>
 /* ═══════════════════════════════════════════════
    TOKENS & RESET
@@ -803,82 +804,164 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 // ═══════════════════════════════════════════════════════════════
 //  BOOT — load all data before showing portal
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+//  BOOT — anonymous auth first, then load data, then restore session
+// ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  setLoadingMsg('Connecting to database…');
+  setLoadingMsg('Connecting…');
 
-  ensureDefaultData()
-    .then(() => {
+  // Anonymous sign-in gives us a valid Firebase Auth token so security rules pass.
+  // The app-level password check (email + dept password vs DB) is the real gate.
+  firebase.auth().onAuthStateChanged(async (fbUser) => {
+    if (!fbUser) {
+      // Not signed in yet — sign in anonymously
+      try { await firebase.auth().signInAnonymously(); }
+      catch(e) { setLoadingMsg('⚠ Auth error: ' + e.message); }
+      return; // onAuthStateChanged will fire again with the anonymous user
+    }
+
+    // We have an anonymous Firebase user — load data
+    try {
       setLoadingMsg('Loading workspace data…');
-      let ready = {users:false, bookings:false, admins:false, deptPasswords:false};
-      const check = () => {
-        if (ready.users && ready.bookings && ready.admins && ready.deptPasswords) {
-          document.getElementById('sb-live').style.display = 'flex';
-          showScreen('portal-screen');
-        }
-      };
+      await loadDataAndSeed();
 
-      db.ref('users').on('value', snap => {
-        S.users = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-        if (!ready.users) { ready.users = true; check(); }
-        refreshIfNeeded('users');
-      });
-
-      db.ref('bookings').on('value', snap => {
-        S.bookings = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-        if (!ready.bookings) { ready.bookings = true; check(); }
-        refreshIfNeeded('bookings');
-      });
-
-      db.ref('admins').on('value', snap => {
-        S.admins = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-        if (!ready.admins) { ready.admins = true; check(); }
-        refreshIfNeeded('admins');
-      });
-
-      db.ref('deptPasswords').on('value', snap => {
-        S.deptPasswords = snap.val() || {};
-        if (!ready.deptPasswords) { ready.deptPasswords = true; check(); }
-      });
-    })
-    .catch(e => { setLoadingMsg('⚠ Connection error: ' + e.message); });
+      // Try to restore a saved session from localStorage
+      const saved = loadSavedSession();
+      if (saved) {
+        S.currentUser = saved.user;
+        S.isAdmin     = saved.isAdmin;
+        document.getElementById('sb-live').style.display = 'flex';
+        initApp();
+      } else {
+        document.getElementById('sb-live').style.display = 'flex';
+        showScreen('portal-screen');
+      }
+    } catch(e) {
+      setLoadingMsg('⚠ Load error: ' + e.message);
+    }
+  });
 });
 
 function setLoadingMsg(msg) { document.getElementById('loading-msg').textContent = msg; }
 
+// ─── Load all collections + seed on first run ────────────────
+function loadDataAndSeed() {
+  return new Promise((resolve, reject) => {
+    let ready = {users:false, bookings:false, admins:false, deptPasswords:false, meta:false};
+    let seeded = false;
+
+    const check = async () => {
+      if (!Object.values(ready).every(Boolean)) return;
+      if (!seeded) {
+        seeded = true;
+        await ensureDefaultData();
+      }
+      resolve();
+    };
+
+    db.ref('users').on('value', snap => {
+      S.users = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
+      if (!ready.users) { ready.users = true; check(); }
+      refreshIfNeeded('users');
+    });
+    db.ref('bookings').on('value', snap => {
+      S.bookings = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
+      if (!ready.bookings) { ready.bookings = true; check(); }
+      refreshIfNeeded('bookings');
+    });
+    db.ref('admins').on('value', snap => {
+      S.admins = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
+      if (!ready.admins) { ready.admins = true; check(); }
+      refreshIfNeeded('admins');
+    });
+    db.ref('deptPasswords').on('value', snap => {
+      S.deptPasswords = snap.val() || {};
+      if (!ready.deptPasswords) { ready.deptPasswords = true; check(); }
+    });
+    db.ref('meta').once('value', () => {
+      ready.meta = true; check();
+    });
+
+    setTimeout(() => reject(new Error('Database timed out — check your connection')), 15000);
+  });
+}
+
 function refreshIfNeeded(collection) {
   if (!S.currentUser) return;
-  if (collection === 'bookings' && document.getElementById('panel-calendar').style.display !== 'none') {
-    renderCalendar();
-  }
+  if (collection === 'bookings' && document.getElementById('panel-calendar').style.display !== 'none') renderCalendar();
   if (S.isAdmin) renderAdminTab();
 }
 
-// ─── Ensure default data ─────────────────────────────────────
+// ─── Seed default data on very first run ─────────────────────
+// Uses meta/initialized flag so it only runs once per database.
 async function ensureDefaultData() {
-  const snap = await db.ref('admins').once('value');
-  if (!snap.exists()) {
+  const snap = await db.ref('meta/initialized').once('value');
+  if (snap.val() === true) return; // Already seeded
+
+  setLoadingMsg('First run — setting up workspace…');
+
+  // Each node seeded individually so partial re-runs don't corrupt data
+  if (!(await db.ref('admins').once('value')).exists()) {
     await db.ref('admins').set({
       admin1: { username:'admin', password:'admin123', name:'System Administrator' }
     });
+  }
+  if (!(await db.ref('users').once('value')).exists()) {
     await db.ref('users').set({
-      user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',      role:'individual', email:'a.morgan@corp.com' },
-      user2: { id:'u2', name:'James Whitfield',   department:'Finance',        role:'individual', email:'j.whitfield@corp.com' },
-      user3: { id:'u3', name:'Sarah Chen',         department:'Marketing',      role:'individual', email:'s.chen@corp.com' },
-      user4: { id:'u4', name:'David Okafor',       department:'Operations',     role:'individual', email:'d.okafor@corp.com' },
-      user5: { id:'u5', name:'Priya Nair',         department:'Human Resources',role:'individual', email:'p.nair@corp.com' },
-      user6: { id:'u6', name:'Finance Dept',       department:'Finance',        role:'dept',       email:'finance@corp.com' },
-      user7: { id:'u7', name:'Marketing Dept',     department:'Marketing',      role:'dept',       email:'marketing@corp.com' },
-    });
-    await db.ref('bookings').set({});
-    // Seed default department passwords
-    await db.ref('deptPasswords').set({
-      'Executive':        'exec2024',
-      'Finance':          'finance2024',
-      'Marketing':        'marketing2024',
-      'Operations':       'ops2024',
-      'Human Resources':  'hr2024',
+      user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',       role:'individual', email:'a.morgan@corp.com' },
+      user2: { id:'u2', name:'James Whitfield',   department:'Finance',         role:'individual', email:'j.whitfield@corp.com' },
+      user3: { id:'u3', name:'Sarah Chen',        department:'Marketing',       role:'individual', email:'s.chen@corp.com' },
+      user4: { id:'u4', name:'David Okafor',      department:'Operations',      role:'individual', email:'d.okafor@corp.com' },
+      user5: { id:'u5', name:'Priya Nair',        department:'Human Resources', role:'individual', email:'p.nair@corp.com' },
+      user6: { id:'u6', name:'Finance Dept',      department:'Finance',         role:'dept',       email:'finance@corp.com' },
+      user7: { id:'u7', name:'Marketing Dept',    department:'Marketing',       role:'dept',       email:'marketing@corp.com' },
     });
   }
+  if (!(await db.ref('bookings').once('value')).exists()) {
+    await db.ref('bookings').set({});
+  }
+  if (!(await db.ref('deptPasswords').once('value')).exists()) {
+    await db.ref('deptPasswords').set({
+      'Executive':       'exec2024',
+      'Finance':         'finance2024',
+      'Marketing':       'marketing2024',
+      'Operations':      'ops2024',
+      'Human Resources': 'hr2024',
+    });
+  }
+
+  await db.ref('meta/initialized').set(true);
+}
+
+// ─── Session persistence via localStorage ────────────────────
+const SESSION_KEY = 'equipDesk_session';
+
+function saveSession(user, isAdmin) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ key: user._key, type: isAdmin ? 'admin' : 'user' }));
+  } catch(e) { /* localStorage unavailable — session won't persist */ }
+}
+
+function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
+function loadSavedSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const { key, type } = JSON.parse(raw);
+
+    if (type === 'admin') {
+      const admin = S.admins.find(a => a._key === key);
+      if (!admin) { clearSession(); return null; }
+      return { user: {...admin, type:'admin'}, isAdmin: true };
+    } else {
+      const user = S.users.find(u => u._key === key);
+      if (!user) { clearSession(); return null; }
+      return { user: {...user, type:'user'}, isAdmin: false };
+    }
+  } catch(e) { clearSession(); return null; }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -938,6 +1021,7 @@ function doAdminLogin() {
 
   S.currentUser = {...admin, type:'admin'};
   S.isAdmin = true;
+  saveSession(S.currentUser, true);
   initApp();
 }
 
@@ -982,6 +1066,7 @@ function doUserLogin() {
 
   S.currentUser = {...user, type:'user'};
   S.isAdmin = false;
+  saveSession(S.currentUser, false);
   initApp();
 }
 
@@ -1021,11 +1106,13 @@ function initApp() {
 }
 
 function doLogout() {
+  clearSession();
   S.currentUser = null;
   S.isAdmin = false;
   document.getElementById('app').classList.remove('active');
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('sb-avatar').classList.remove('admin-av');
+  // Keep anonymous Firebase session active so DB rules still pass for next login
   showScreen('portal-screen', 'back');
 }
 
