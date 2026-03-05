@@ -354,6 +354,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 
 /* ─── NOTIFICATIONS ─── */
 .notif{position:fixed;bottom:28px;right:28px;background:var(--navy);color:var(--white);padding:14px 22px;border-radius:12px;border-left:4px solid var(--gold);box-shadow:var(--shadow-md);font-size:13px;font-weight:600;z-index:9999;display:none;}
+.notif.error{border-left-color:var(--danger);}
 
 /* ─── FORM TIME DIAL ─── */
 .time-dials{display:flex;align-items:center;justify-content:center;gap:24px;background:var(--cream);padding:20px;border-radius:14px;border:1px solid var(--grey);}
@@ -377,6 +378,17 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 
 /* Dept password helper text */
 .helper-text{font-size:12px;color:var(--blue-grey);line-height:1.55;margin-bottom:20px;padding:12px 16px;background:rgba(168,147,90,.08);border-radius:9px;border-left:3px solid var(--gold);}
+
+/* Recurring preview */
+.rec-preview {
+  font-size: 13px;
+  color: var(--navy);
+  background: rgba(168,147,90,.15);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+  border-left: 3px solid var(--gold);
+}
 </style>
 </head>
 <body>
@@ -413,12 +425,12 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     <h1 class="portal-title">Welcome!</h1>
     <p class="portal-sub">Select your access level to continue</p>
     <div class="portal-cards">
-      <div class="portal-card" onclick="selectPortal('admin')">
+      <div class="portal-card" data-portal="admin">
         <div class="portal-card-icon admin">🔐</div>
         <h2>Admin Portal</h2>
         <p>Manage users, departments, and all bookings. Move, swap or cancel any reservation.</p>
       </div>
-      <div class="portal-card" onclick="selectPortal('user')">
+      <div class="portal-card" data-portal="user">
         <div class="portal-card-icon user">📅</div>
         <h2>User Portal</h2>
         <p>Book the board room or company car. View live schedules and manage your reservations.</p>
@@ -433,12 +445,12 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ════════════════════════════════════ -->
 <div id="admin-login-screen" class="screen modal-screen">
   <div class="modal-box">
-    <button class="modal-back" type="button" onclick="showScreen('portal-screen','back')">← Back</button>
+    <button class="modal-back" type="button" data-screen="portal-screen" data-direction="back">← Back</button>
     <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
     <h2>Admin Login</h2>
     <p class="subtitle">Enter your credentials to access the admin portal</p>
     <div class="error-msg" id="login-error">Invalid username or password.</div>
-    <form onsubmit="doAdminLogin();return false;" autocomplete="on">
+    <form id="admin-login-form" autocomplete="on">
       <div class="form-group">
         <label class="form-label">Username</label>
         <input class="form-input" id="admin-user" name="username" placeholder="Enter username" autocomplete="username">
@@ -453,16 +465,16 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 </div>
 
 <!-- ════════════════════════════════════
-     USER LOGIN  ← replaces old user-select
+     USER LOGIN
 ════════════════════════════════════ -->
 <div id="user-login-screen" class="screen modal-screen">
   <div class="modal-box">
-    <button class="modal-back" type="button" onclick="showScreen('portal-screen','back')">← Back</button>
+    <button class="modal-back" type="button" data-screen="portal-screen" data-direction="back">← Back</button>
     <div class="modal-logo"><div class="portal-logo" style="width:120px;height:120px;border-radius:28px;"><img src="Logo.svg" alt="Equip" style="width:88px;height:88px;object-fit:contain;"></div></div>
     <h2>User Login</h2>
     <p class="subtitle">Sign in with your email and department password</p>
     <div class="error-msg" id="user-login-error">Incorrect email or department password.</div>
-    <form onsubmit="doUserLogin();return false;" autocomplete="on">
+    <form id="user-login-form" autocomplete="on">
       <div class="form-group">
         <label class="form-label">Email Address</label>
         <input class="form-input" id="user-email-input" name="email" type="email" placeholder="yourname@company.com" autocomplete="email">
@@ -505,10 +517,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item active" id="nav-calendar" onclick="switchPanel('calendar')">
+      <button class="nav-item active" id="nav-calendar" data-panel="calendar">
         <span class="nav-icon">📅</span> Calendar
       </button>
-      <button class="nav-item" id="nav-admin" onclick="switchPanel('admin')" style="display:none;">
+      <button class="nav-item" id="nav-admin" data-panel="admin" style="display:none;">
         <span class="nav-icon">⚙️</span> Admin Panel
       </button>
     </nav>
@@ -521,7 +533,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 
     <div class="sidebar-bottom">
       <div class="sidebar-live" id="sb-live" style="display:none;"><div class="live-dot"></div> Live Sync</div>
-      <button class="btn-signout" onclick="doLogout()">← Sign Out</button>
+      <button class="btn-signout" id="btn-signout">← Sign Out</button>
     </div>
   </aside>
 
@@ -532,26 +544,26 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     <div id="panel-calendar">
       <div class="topbar">
         <div class="resource-tabs">
-          <button class="res-tab active" id="tab-boardroom" onclick="switchResource('boardroom')">
+          <button class="res-tab active" id="tab-boardroom" data-resource="boardroom">
             <span class="res-dot" style="background:#004551;"></span> Board Room
           </button>
-          <button class="res-tab" id="tab-car" onclick="switchResource('car')">
+          <button class="res-tab" id="tab-car" data-resource="car">
             <span class="res-dot" style="background:#7e2138;"></span> Company Car
           </button>
         </div>
         <div class="topbar-nav">
-          <button class="btn-today" onclick="goToday()">Today</button>
-          <button class="btn-nav" onclick="navPrev()">‹</button>
-          <button class="btn-nav" onclick="navNext()">›</button>
+          <button class="btn-today" id="btn-today">Today</button>
+          <button class="btn-nav" id="btn-prev">‹</button>
+          <button class="btn-nav" id="btn-next">›</button>
           <div class="topbar-title serif" id="cal-title">—</div>
         </div>
         <div class="view-tabs">
-          <button class="view-tab" onclick="switchView('day')">Day</button>
-          <button class="view-tab active" onclick="switchView('week')">Week</button>
-          <button class="view-tab" onclick="switchView('month')">Month</button>
-          <button class="view-tab" onclick="switchView('year')">Year</button>
+          <button class="view-tab" data-view="day">Day</button>
+          <button class="view-tab active" data-view="week">Week</button>
+          <button class="view-tab" data-view="month">Month</button>
+          <button class="view-tab" data-view="year">Year</button>
         </div>
-        <button class="btn-book" onclick="openBookModal(null,null)">＋ New Booking</button>
+        <button class="btn-book" id="btn-new-booking">＋ New Booking</button>
       </div>
       <div class="calendar-wrap" id="calendar-wrap"></div>
     </div>
@@ -561,10 +573,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <div class="admin-topbar">
         <h2>Administration</h2>
         <div class="admin-tabs">
-          <button class="admin-tab active" onclick="showAdminTab('bookings')">All Bookings</button>
-          <button class="admin-tab" onclick="showAdminTab('users')">Users</button>
-          <button class="admin-tab" onclick="showAdminTab('admins')">Admins</button>
-          <button class="admin-tab" onclick="showAdminTab('deptPasswords')">Dept Passwords</button>
+          <button class="admin-tab active" data-admin-tab="bookings">All Bookings</button>
+          <button class="admin-tab" data-admin-tab="users">Users</button>
+          <button class="admin-tab" data-admin-tab="admins">Admins</button>
+          <button class="admin-tab" data-admin-tab="deptPasswords">Dept Passwords</button>
         </div>
       </div>
       <div class="admin-body fade-in" id="admin-body"></div>
@@ -580,8 +592,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <div class="overlay" id="modal-book">
   <div class="modal fade-in">
     <div class="modal-hdr navy">
-      <div><h3>New Booking</h3><p>Reserve your workspace</p></div>
-      <button class="btn-close" onclick="closeModal('modal-book')">×</button>
+      <div><h3 id="booking-modal-title">New Booking</h3><p>Reserve your workspace</p></div>
+      <button class="btn-close" data-modal="modal-book">×</button>
     </div>
     <div class="modal-body">
       <div class="conflict-warn" id="bk-conflict">⚠️ This time slot conflicts with an existing booking.</div>
@@ -589,8 +601,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <div class="form-group">
         <label class="form-label">Resource</label>
         <div class="toggle-group">
-          <button class="toggle-btn active" id="bk-res-boardroom" onclick="setBkResource('boardroom')">🏢 Board Room</button>
-          <button class="toggle-btn" id="bk-res-car" onclick="setBkResource('car')">🚗 Company Car</button>
+          <button class="toggle-btn active" id="bk-res-boardroom" data-bk-resource="boardroom">🏢 Board Room</button>
+          <button class="toggle-btn" id="bk-res-car" data-bk-resource="car">🚗 Company Car</button>
         </div>
       </div>
       <div class="form-group">
@@ -600,13 +612,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <div class="form-group">
         <label class="form-label">Book As</label>
         <div class="toggle-group">
-          <button class="toggle-btn active" id="bk-as-self" onclick="setBkAs('self')">👤 Myself</button>
-          <button class="toggle-btn" id="bk-as-dept" onclick="setBkAs('dept')">🏢 My Department</button>
+          <button class="toggle-btn active" id="bk-as-self" data-bk-as="self">👤 Myself</button>
+          <button class="toggle-btn" id="bk-as-dept" data-bk-as="dept">🏢 My Department</button>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Date</label>
-        <input class="form-input" type="date" id="bk-date" onchange="checkConflict();updateRecPreview();">
+        <input class="form-input" type="date" id="bk-date">
       </div>
       <div class="form-group">
         <label class="form-label">Time</label>
@@ -615,8 +627,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
             <div class="dial-label">Start</div>
             <div class="dial-face" id="dial-start">09:00</div>
             <div class="dial-controls">
-              <button class="dial-btn" onclick="adjustTime('start',-30)">−</button>
-              <button class="dial-btn" onclick="adjustTime('start',30)">+</button>
+              <button class="dial-btn" data-time-dial="start" data-adjust="-30">−</button>
+              <button class="dial-btn" data-time-dial="start" data-adjust="30">+</button>
             </div>
           </div>
           <div class="dial-sep">→</div>
@@ -624,8 +636,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
             <div class="dial-label">End</div>
             <div class="dial-face" id="dial-end">10:00</div>
             <div class="dial-controls">
-              <button class="dial-btn" onclick="adjustTime('end',-30)">−</button>
-              <button class="dial-btn" onclick="adjustTime('end',30)">+</button>
+              <button class="dial-btn" data-time-dial="end" data-adjust="-30">−</button>
+              <button class="dial-btn" data-time-dial="end" data-adjust="30">+</button>
             </div>
           </div>
         </div>
@@ -636,27 +648,27 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
           <select class="form-select" id="att-user-sel" style="flex:1;">
             <option value="">Add a person…</option>
           </select>
-          <button class="btn-sm btn-edit" onclick="addAttendeeFromUser()">＋</button>
+          <button class="btn-sm btn-edit" id="add-att-user">＋</button>
           <select class="form-select" id="att-dept-sel" style="flex:1;">
             <option value="">Add a department…</option>
           </select>
-          <button class="btn-sm btn-edit" onclick="addAttendeeFromDept()">＋</button>
+          <button class="btn-sm btn-edit" id="add-att-dept">＋</button>
         </div>
         <div class="attendees-wrap" id="attendees-wrap"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Recurrence</label>
         <div class="recurrence-row">
-          <button class="rec-btn active" id="rec-once" onclick="setRecurrence('once')">Once</button>
-          <button class="rec-btn" id="rec-daily" onclick="setRecurrence('daily')">Daily</button>
-          <button class="rec-btn" id="rec-weekdays" onclick="setRecurrence('weekdays')">Weekdays</button>
-          <button class="rec-btn" id="rec-weekly" onclick="setRecurrence('weekly')">Weekly</button>
-          <button class="rec-btn" id="rec-monthly" onclick="setRecurrence('monthly')">Monthly</button>
+          <button class="rec-btn active" data-recurrence="once">Once</button>
+          <button class="rec-btn" data-recurrence="daily">Daily</button>
+          <button class="rec-btn" data-recurrence="weekdays">Weekdays</button>
+          <button class="rec-btn" data-recurrence="weekly">Weekly</button>
+          <button class="rec-btn" data-recurrence="monthly">Monthly</button>
         </div>
         <div id="rec-until-wrap" style="display:none;margin-top:12px;">
           <label class="form-label">Repeat Until</label>
-          <input class="form-input" type="date" id="rec-until" onchange="updateRecPreview()">
-          <div style="margin-top:6px;font-size:11px;color:var(--blue-grey);" id="rec-preview"></div>
+          <input class="form-input" type="date" id="rec-until">
+          <div style="margin-top:6px;" id="rec-preview"></div>
         </div>
       </div>
       <div class="form-group">
@@ -664,8 +676,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
         <textarea class="form-textarea" id="bk-notes" placeholder="Any additional notes…"></textarea>
       </div>
       <div class="modal-footer">
-        <button class="btn-prim" onclick="saveBooking()" id="bk-submit-btn">Confirm Booking</button>
-        <button class="btn-sec" onclick="closeModal('modal-book')">Cancel</button>
+        <button class="btn-prim" id="bk-submit-btn">Confirm Booking</button>
+        <button class="btn-sec" data-modal="modal-book">Cancel</button>
       </div>
     </div>
   </div>
@@ -675,7 +687,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <div class="overlay" id="modal-detail">
   <div class="modal modal-sm fade-in">
     <div id="detail-hdr" class="detail-res-hdr boardroom">
-      <button class="btn-close" style="position:absolute;top:16px;right:16px;" onclick="closeModal('modal-detail')">×</button>
+      <button class="btn-close" style="position:absolute;top:16px;right:16px;" data-modal="modal-detail">×</button>
       <div class="detail-kicker" id="detail-resource-label">Board Room</div>
       <div class="detail-title" id="detail-title">—</div>
     </div>
@@ -694,15 +706,15 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <!-- MOVE MODAL -->
 <div class="overlay" id="modal-move">
   <div class="modal modal-sm fade-in">
-    <div class="modal-hdr teal"><div><h3>Move Booking</h3><p>Change the date and time</p></div><button class="btn-close" onclick="closeModal('modal-move')">×</button></div>
+    <div class="modal-hdr teal"><div><h3>Move Booking</h3><p>Change the date and time</p></div><button class="btn-close" data-modal="modal-move">×</button></div>
     <div class="modal-body">
       <div class="info-card" id="move-booking-info"></div>
       <div class="form-group"><label class="form-label">New Date</label><input class="form-input" type="date" id="move-date"></div>
       <div class="form-group"><label class="form-label">New Start Time</label><input class="form-input" type="time" id="move-start" step="1800"></div>
       <div class="form-group"><label class="form-label">New End Time</label><input class="form-input" type="time" id="move-end" step="1800"></div>
       <div class="modal-footer">
-        <button class="btn-prim teal" onclick="confirmMove()">Move Booking</button>
-        <button class="btn-sec" onclick="closeModal('modal-move')">Cancel</button>
+        <button class="btn-prim teal" id="confirm-move">Move Booking</button>
+        <button class="btn-sec" data-modal="modal-move">Cancel</button>
       </div>
     </div>
   </div>
@@ -711,7 +723,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <!-- SWAP MODAL -->
 <div class="overlay" id="modal-swap">
   <div class="modal modal-sm fade-in">
-    <div class="modal-hdr plum"><div><h3>Swap Bookings</h3><p>Exchange time slots between two bookings</p></div><button class="btn-close" onclick="closeModal('modal-swap')">×</button></div>
+    <div class="modal-hdr plum"><div><h3>Swap Bookings</h3><p>Exchange time slots between two bookings</p></div><button class="btn-close" data-modal="modal-swap">×</button></div>
     <div class="modal-body">
       <div style="margin-bottom:16px;">
         <div class="ic-label" style="font-size:10px;color:var(--blue-grey);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Booking A</div>
@@ -722,8 +734,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
         <select class="form-select" id="swap-b-sel"></select>
       </div>
       <div class="modal-footer">
-        <button class="btn-prim plum" onclick="confirmSwap()">Swap Times</button>
-        <button class="btn-sec" onclick="closeModal('modal-swap')">Cancel</button>
+        <button class="btn-prim plum" id="confirm-swap">Swap Times</button>
+        <button class="btn-sec" data-modal="modal-swap">Cancel</button>
       </div>
     </div>
   </div>
@@ -732,7 +744,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <!-- ADD USER MODAL -->
 <div class="overlay" id="modal-add-user">
   <div class="modal modal-sm fade-in">
-    <div class="modal-hdr gold"><div><h3 id="add-user-title">Add New User</h3><p>Fill in the user's details</p></div><button class="btn-close dark" onclick="closeModal('modal-add-user')">×</button></div>
+    <div class="modal-hdr gold"><div><h3 id="add-user-title">Add New User</h3><p>Fill in the user's details</p></div><button class="btn-close dark" data-modal="modal-add-user">×</button></div>
     <div class="modal-body">
       <input type="hidden" id="edit-user-key">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="user-name" placeholder="e.g. Alexandra Morgan"></div>
@@ -746,8 +758,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
         </select>
       </div>
       <div class="modal-footer">
-        <button class="btn-prim" onclick="saveUser()">Save User</button>
-        <button class="btn-sec" onclick="closeModal('modal-add-user')">Cancel</button>
+        <button class="btn-prim" id="save-user">Save User</button>
+        <button class="btn-sec" data-modal="modal-add-user">Cancel</button>
       </div>
     </div>
   </div>
@@ -756,15 +768,32 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <!-- ADD ADMIN MODAL -->
 <div class="overlay" id="modal-add-admin">
   <div class="modal modal-sm fade-in">
-    <div class="modal-hdr navy"><div><h3 id="add-admin-title">Add Admin User</h3><p>Create administrator credentials</p></div><button class="btn-close" onclick="closeModal('modal-add-admin')">×</button></div>
+    <div class="modal-hdr navy"><div><h3 id="add-admin-title">Add Admin User</h3><p>Create administrator credentials</p></div><button class="btn-close" data-modal="modal-add-admin">×</button></div>
     <div class="modal-body">
       <input type="hidden" id="edit-admin-key">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="admin-name-input" placeholder="e.g. System Administrator"></div>
       <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="admin-username-input" placeholder="e.g. admin"></div>
       <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="admin-password-input" type="password" placeholder="Set a password"></div>
       <div class="modal-footer">
-        <button class="btn-prim" onclick="saveAdmin()">Save Admin</button>
-        <button class="btn-sec" onclick="closeModal('modal-add-admin')">Cancel</button>
+        <button class="btn-prim" id="save-admin">Save Admin</button>
+        <button class="btn-sec" data-modal="modal-add-admin">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="overlay" id="modal-confirm">
+  <div class="modal modal-sm fade-in">
+    <div class="modal-hdr gold">
+      <div><h3 id="confirm-title">Confirm Action</h3></div>
+      <button class="btn-close dark" data-modal="modal-confirm">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message" style="margin-bottom:24px;">Are you sure?</p>
+      <div class="modal-footer">
+        <button class="btn-prim" id="confirm-yes">Yes</button>
+        <button class="btn-sec" data-modal="modal-confirm">Cancel</button>
       </div>
     </div>
   </div>
@@ -789,51 +818,138 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ═══════════════════════════════════════════════════════════════
+//  SECURITY UTILITIES
+// ═══════════════════════════════════════════════════════════════
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function hashPassword(password) {
+  const msgBuffer = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function generateSessionToken() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map(b => b.toString(36).padStart(2, '0')).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
 let S = {
-  users:[],bookings:[],admins:[],deptPasswords:{},
-  currentUser:null,isAdmin:false,
-  resource:'boardroom',view:'week',
+  users: [], bookings: [], admins: [], deptPasswords: {},
+  currentUser: null, isAdmin: false,
+  resource: 'boardroom', view: 'week',
   date: new Date(),
-  adminTab:'bookings',
-  bkResource:'boardroom',bkAs:'self',
-  bkStartMin:540,bkEndMin:600,
-  bkAttendees:[],bkRecurrence:'once',
-  moveTarget:null, swapTarget:null
+  adminTab: 'bookings',
+  bkResource: 'boardroom', bkAs: 'self',
+  bkStartMin: 540, bkEndMin: 600,
+  bkAttendees: [], bkRecurrence: 'once',
+  moveTarget: null, swapTarget: null,
+  editingBooking: null
 };
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 
 // ═══════════════════════════════════════════════════════════════
-//  BOOT — load all data before showing portal
+//  BUTTON STATE MANAGER
 // ═══════════════════════════════════════════════════════════════
+class ButtonState {
+  constructor(btn) {
+    this.btn = btn;
+    this.originalText = btn.textContent;
+  }
+  
+  loading(text = 'Saving...') {
+    this.btn.disabled = true;
+    this.btn.textContent = text;
+  }
+  
+  restore() {
+    this.btn.disabled = false;
+    this.btn.textContent = this.originalText;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
-//  BOOT — anonymous auth first, then load data, then restore session
+//  NOTIFICATION
+// ═══════════════════════════════════════════════════════════════
+let notifTimer;
+function notify(msg, type = 'success') {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = `notif ${type}`;
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'notifIn .35s cubic-bezier(.22,.68,0,1.2) forwards';
+  el.style.display = 'block';
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => {
+    el.style.animation = 'notifOut .3s ease forwards';
+    setTimeout(() => { el.style.display = 'none'; }, 300);
+  }, 3200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CONFIRMATION MODAL
+// ═══════════════════════════════════════════════════════════════
+function showConfirm(title, message, onConfirm) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = message;
+  
+  const yesBtn = document.getElementById('confirm-yes');
+  yesBtn.onclick = null;
+  yesBtn.onclick = () => {
+    onConfirm();
+    closeModal('modal-confirm');
+  };
+  
+  openModal('modal-confirm');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BOOT SEQUENCE
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
 
-  // Anonymous sign-in gives us a valid Firebase Auth token so security rules pass.
-  // The app-level password check (email + dept password vs DB) is the real gate.
   firebase.auth().onAuthStateChanged(async (fbUser) => {
     if (!fbUser) {
-      // Not signed in yet — sign in anonymously
-      try { await firebase.auth().signInAnonymously(); }
-      catch(e) { setLoadingMsg('⚠ Auth error: ' + e.message); }
-      return; // onAuthStateChanged will fire again with the anonymous user
+      try { 
+        await firebase.auth().signInAnonymously(); 
+      } catch(e) { 
+        setLoadingMsg('⚠ Auth error: ' + e.message); 
+      }
+      return;
     }
 
-    // We have an anonymous Firebase user — load data
     try {
       setLoadingMsg('Loading workspace data…');
-      await loadDataAndSeed();
+      
+      const sessionSnap = await db.ref(`activeSessions/${fbUser.uid}`).once('value');
+      const session = sessionSnap.val();
+      
+      if (session && session.isAdmin) {
+        await loadUserData();
+        await loadAdminData();
+      } else {
+        await loadUserData();
+        S.admins = [];
+      }
 
-      // Try to restore a saved session from localStorage
-      const saved = loadSavedSession();
+      const saved = await loadSavedSession();
       if (saved) {
         S.currentUser = saved.user;
-        S.isAdmin     = saved.isAdmin;
+        S.isAdmin = saved.isAdmin;
         document.getElementById('sb-live').style.display = 'flex';
         initApp();
       } else {
@@ -848,45 +964,38 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function setLoadingMsg(msg) { document.getElementById('loading-msg').textContent = msg; }
 
-// ─── Load all collections + seed on first run ────────────────
-function loadDataAndSeed() {
+function loadUserData() {
   return new Promise((resolve, reject) => {
-    let ready = {users:false, bookings:false, admins:false, deptPasswords:false, meta:false};
-    let seeded = false;
-
-    const check = async () => {
-      if (!Object.values(ready).every(Boolean)) return;
-      if (!seeded) {
-        seeded = true;
-        await ensureDefaultData();
-      }
-      resolve();
-    };
-
+    let ready = {users: false, bookings: false, deptPasswords: false};
+    
     db.ref('users').on('value', snap => {
       S.users = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-      if (!ready.users) { ready.users = true; check(); }
-      refreshIfNeeded('users');
+      ready.users = true;
+      if (Object.values(ready).every(Boolean)) resolve();
     });
+    
     db.ref('bookings').on('value', snap => {
       S.bookings = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-      if (!ready.bookings) { ready.bookings = true; check(); }
-      refreshIfNeeded('bookings');
+      ready.bookings = true;
+      if (Object.values(ready).every(Boolean)) resolve();
     });
-    db.ref('admins').on('value', snap => {
-      S.admins = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-      if (!ready.admins) { ready.admins = true; check(); }
-      refreshIfNeeded('admins');
-    });
+    
     db.ref('deptPasswords').on('value', snap => {
       S.deptPasswords = snap.val() || {};
-      if (!ready.deptPasswords) { ready.deptPasswords = true; check(); }
+      ready.deptPasswords = true;
+      if (Object.values(ready).every(Boolean)) resolve();
     });
-    db.ref('meta').once('value', () => {
-      ready.meta = true; check();
-    });
+    
+    setTimeout(() => reject(new Error('Database timed out')), 15000);
+  });
+}
 
-    setTimeout(() => reject(new Error('Database timed out — check your connection')), 15000);
+function loadAdminData() {
+  return new Promise((resolve) => {
+    db.ref('admins').on('value', snap => {
+      S.admins = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
+      resolve();
+    });
   });
 }
 
@@ -896,76 +1005,102 @@ function refreshIfNeeded(collection) {
   if (S.isAdmin) renderAdminTab();
 }
 
-// ─── Seed default data on very first run ─────────────────────
-// Uses meta/initialized flag so it only runs once per database.
+// ═══════════════════════════════════════════════════════════════
+//  SEED DEFAULT DATA
+// ═══════════════════════════════════════════════════════════════
 async function ensureDefaultData() {
   const snap = await db.ref('meta/initialized').once('value');
-  if (snap.val() === true) return; // Already seeded
+  if (snap.val() === true) return;
 
   setLoadingMsg('First run — setting up workspace…');
 
-  // Each node seeded individually so partial re-runs don't corrupt data
   if (!(await db.ref('admins').once('value')).exists()) {
+    const hashedPassword = await hashPassword('admin123');
     await db.ref('admins').set({
-      admin1: { username:'admin', password:'admin123', name:'System Administrator' }
+      admin1: { username: 'admin', password: hashedPassword, name: 'System Administrator' }
     });
   }
+  
   if (!(await db.ref('users').once('value')).exists()) {
     await db.ref('users').set({
-      user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',       role:'individual', email:'a.morgan@corp.com' },
-      user2: { id:'u2', name:'James Whitfield',   department:'Finance',         role:'individual', email:'j.whitfield@corp.com' },
-      user3: { id:'u3', name:'Sarah Chen',        department:'Marketing',       role:'individual', email:'s.chen@corp.com' },
-      user4: { id:'u4', name:'David Okafor',      department:'Operations',      role:'individual', email:'d.okafor@corp.com' },
-      user5: { id:'u5', name:'Priya Nair',        department:'Human Resources', role:'individual', email:'p.nair@corp.com' },
-      user6: { id:'u6', name:'Finance Dept',      department:'Finance',         role:'dept',       email:'finance@corp.com' },
-      user7: { id:'u7', name:'Marketing Dept',    department:'Marketing',       role:'dept',       email:'marketing@corp.com' },
+      user1: { id: 'u1', name: 'Alexandra Morgan', department: 'Executive', role: 'individual', email: 'a.morgan@corp.com' },
+      user2: { id: 'u2', name: 'James Whitfield', department: 'Finance', role: 'individual', email: 'j.whitfield@corp.com' },
+      user3: { id: 'u3', name: 'Sarah Chen', department: 'Marketing', role: 'individual', email: 's.chen@corp.com' },
+      user4: { id: 'u4', name: 'David Okafor', department: 'Operations', role: 'individual', email: 'd.okafor@corp.com' },
+      user5: { id: 'u5', name: 'Priya Nair', department: 'Human Resources', role: 'individual', email: 'p.nair@corp.com' },
+      user6: { id: 'u6', name: 'Finance Dept', department: 'Finance', role: 'dept', email: 'finance@corp.com' },
+      user7: { id: 'u7', name: 'Marketing Dept', department: 'Marketing', role: 'dept', email: 'marketing@corp.com' },
     });
   }
+  
   if (!(await db.ref('bookings').once('value')).exists()) {
     await db.ref('bookings').set({});
   }
+  
   if (!(await db.ref('deptPasswords').once('value')).exists()) {
+    const hashedExec = await hashPassword('exec2024');
+    const hashedFin = await hashPassword('finance2024');
+    const hashedMkt = await hashPassword('marketing2024');
+    const hashedOps = await hashPassword('ops2024');
+    const hashedHr = await hashPassword('hr2024');
+    
     await db.ref('deptPasswords').set({
-      'Executive':       'exec2024',
-      'Finance':         'finance2024',
-      'Marketing':       'marketing2024',
-      'Operations':      'ops2024',
-      'Human Resources': 'hr2024',
+      'Executive': hashedExec,
+      'Finance': hashedFin,
+      'Marketing': hashedMkt,
+      'Operations': hashedOps,
+      'Human Resources': hashedHr,
     });
   }
 
   await db.ref('meta/initialized').set(true);
 }
 
-// ─── Session persistence via localStorage ────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  SESSION MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
 const SESSION_KEY = 'equipDesk_session';
 
 function saveSession(user, isAdmin) {
   try {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ key: user._key, type: isAdmin ? 'admin' : 'user' }));
-  } catch(e) { /* localStorage unavailable — session won't persist */ }
+  } catch(e) {}
 }
 
 function clearSession() {
   try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
 }
 
-function loadSavedSession() {
+async function loadSavedSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const { key, type } = JSON.parse(raw);
 
-    if (type === 'admin') {
-      const admin = S.admins.find(a => a._key === key);
-      if (!admin) { clearSession(); return null; }
-      return { user: {...admin, type:'admin'}, isAdmin: true };
-    } else {
-      const user = S.users.find(u => u._key === key);
-      if (!user) { clearSession(); return null; }
-      return { user: {...user, type:'user'}, isAdmin: false };
-    }
-  } catch(e) { clearSession(); return null; }
+    return new Promise((resolve) => {
+      const checkData = () => {
+        if (type === 'admin') {
+          if (S.admins.length > 0) {
+            const admin = S.admins.find(a => a._key === key);
+            resolve(admin ? { user: {...admin, type:'admin'}, isAdmin: true } : null);
+          } else {
+            setTimeout(checkData, 100);
+          }
+        } else {
+          if (S.users.length > 0) {
+            const user = S.users.find(u => u._key === key);
+            resolve(user ? { user: {...user, type:'user'}, isAdmin: false } : null);
+          } else {
+            setTimeout(checkData, 100);
+          }
+        }
+      };
+      checkData();
+    });
+  } catch(e) { 
+    clearSession(); 
+    return null; 
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1001,7 +1136,6 @@ function selectPortal(type) {
     document.getElementById('login-error').classList.remove('visible');
     showScreen('admin-login-screen');
   } else {
-    // User portal → email + dept password login
     document.getElementById('user-email-input').value = '';
     document.getElementById('user-dept-pass-input').value = '';
     document.getElementById('user-login-error').classList.remove('visible');
@@ -1009,9 +1143,6 @@ function selectPortal(type) {
   }
 }
 
-// ─── Credential Management API — triggers browser "Save password?" prompt ───
-// Explicitly tells the browser to offer saving after a successful SPA login.
-// Works in Chrome & Edge; silently skipped on unsupported browsers (Safari/Firefox).
 function storeCredential(id, password, name) {
   if (!window.PasswordCredential) return;
   try {
@@ -1023,16 +1154,29 @@ function storeCredential(id, password, name) {
 // ═══════════════════════════════════════════════════════════════
 //  ADMIN LOGIN
 // ═══════════════════════════════════════════════════════════════
-function doAdminLogin() {
+async function doAdminLogin(e) {
+  e.preventDefault();
+  
   const u = document.getElementById('admin-user').value.trim();
   const p = document.getElementById('admin-pass').value.trim();
-
-  const admin = S.admins.find(a => a.username === u && a.password === p);
+  const errEl = document.getElementById('login-error');
+  
+  const hashedPassword = await hashPassword(p);
+  const admin = S.admins.find(a => a.username === u && a.password === hashedPassword);
+  
   if (!admin) {
-    document.getElementById('login-error').classList.add('visible');
+    errEl.classList.add('visible');
     shakeBox('admin-login-screen');
     return;
   }
+
+  const fbUser = firebase.auth().currentUser;
+  await db.ref(`activeSessions/${fbUser.uid}`).set({
+    isAdmin: true,
+    username: u,
+    loginTime: Date.now(),
+    sessionToken: generateSessionToken()
+  });
 
   storeCredential(u, p, admin.name || 'Admin');
   S.currentUser = {...admin, type:'admin'};
@@ -1042,9 +1186,11 @@ function doAdminLogin() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LOGIN  ← email + department shared password
+//  USER LOGIN
 // ═══════════════════════════════════════════════════════════════
-function doUserLogin() {
+async function doUserLogin(e) {
+  e.preventDefault();
+  
   const email   = document.getElementById('user-email-input').value.trim().toLowerCase();
   const pass    = document.getElementById('user-dept-pass-input').value.trim();
   const errEl   = document.getElementById('user-login-error');
@@ -1065,13 +1211,15 @@ function doUserLogin() {
   }
 
   const dept = user.department || '';
-  const correctPass = S.deptPasswords[dept];
-  if (!correctPass) {
+  const correctPassHash = S.deptPasswords[dept];
+  if (!correctPassHash) {
     errEl.textContent = 'Your department does not have a password set yet. Contact your admin.';
     errEl.classList.add('visible');
     return;
   }
-  if (pass !== correctPass) {
+  
+  const inputHash = await hashPassword(pass);
+  if (inputHash !== correctPassHash) {
     errEl.textContent = 'Incorrect department password. Please try again.';
     errEl.classList.add('visible');
     shakeBox('user-login-screen');
@@ -1085,12 +1233,11 @@ function doUserLogin() {
   initApp();
 }
 
-// Shake the modal box on failed login
 function shakeBox(screenId) {
   const box = document.querySelector('#' + screenId + ' .modal-box');
   if (!box) return;
   box.classList.remove('shake');
-  void box.offsetWidth; // reflow to restart animation
+  void box.offsetWidth;
   box.classList.add('shake');
   setTimeout(() => box.classList.remove('shake'), 400);
 }
@@ -1127,7 +1274,6 @@ function doLogout() {
   document.getElementById('app').classList.remove('active');
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('sb-avatar').classList.remove('admin-av');
-  // Keep anonymous Firebase session active so DB rules still pass for next login
   showScreen('portal-screen', 'back');
 }
 
@@ -1180,6 +1326,7 @@ function navPrev() {
   else if (S.view === 'year')  d.setFullYear(d.getFullYear()-1);
   S.date = d; renderCalendar();
 }
+
 function navNext() {
   const d = new Date(S.date);
   if (S.view === 'day')        d.setDate(d.getDate()+1);
@@ -1188,7 +1335,14 @@ function navNext() {
   else if (S.view === 'year')  d.setFullYear(d.getFullYear()+1);
   S.date = d; renderCalendar();
 }
-function goToday() { S.date = new Date(); renderCalendar(); }
+
+function goToday() { 
+  S.date = new Date(); 
+  document.querySelectorAll('.view-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', ['day','week','month','year'][i] === S.view);
+  });
+  renderCalendar(); 
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  CALENDAR RENDERING
@@ -1201,6 +1355,9 @@ const PX_PER_HOUR = 64;
 function renderCalendar() {
   const wrap = document.getElementById('calendar-wrap');
   const bks = S.bookings.filter(b => b.resource === S.resource);
+  
+  wrap.innerHTML = '';
+  
   switch(S.view) {
     case 'day':   renderDayView(wrap, bks);   break;
     case 'week':  renderWeekView(wrap, bks);  break;
@@ -1220,55 +1377,128 @@ function bksByDay(bks, dateS) { return bks.filter(b => b.date === dateS); }
 function bkTopPx(startTime) { return (toMin(startTime) - HOUR_START*60) * (PX_PER_HOUR/60); }
 function bkHeightPx(startTime, endTime) { return Math.max((toMin(endTime)-toMin(startTime)) * (PX_PER_HOUR/60), 22); }
 
-function renderTimeColumn() {
-  let h = '<div style="flex-shrink:0;width:52px;">';
-  for (let hr = HOUR_START; hr <= HOUR_END; hr++) {
-    const label = hr === 12 ? '12pm' : hr < 12 ? `${hr}am` : `${hr-12}pm`;
-    h += `<div style="height:${PX_PER_HOUR}px;display:flex;align-items:flex-start;justify-content:flex-end;padding:4px 8px 0 0;font-size:10px;color:var(--blue-grey);border-right:1px solid var(--grey);font-weight:500;">${label}</div>`;
-  }
-  h += '</div>';
-  return h;
+function renderEmptyState(container, message) {
+  const emptyDiv = document.createElement('div');
+  emptyDiv.className = 'empty-state';
+  emptyDiv.innerHTML = `
+    <div class="es-icon">📅</div>
+    <p>${escapeHTML(message)}</p>
+  `;
+  container.appendChild(emptyDiv);
 }
 
 function renderDayCol(dateS, bks, clickable) {
   const today = dateStr(new Date());
   const dayBks = bksByDay(bks, dateS);
-  let h = `<div style="flex:1;position:relative;min-width:80px;" class="${dateS===today?'today-col':''}">`;
+  const col = document.createElement('div');
+  col.style.flex = '1';
+  col.style.position = 'relative';
+  col.style.minWidth = '80px';
+  if (dateS === today) col.classList.add('today-col');
+  
   for (let hr = HOUR_START; hr <= HOUR_END; hr++) {
-    h += `<div style="height:${PX_PER_HOUR}px;border-bottom:1px solid var(--lt-beige);border-right:1px solid var(--lt-beige);" ${clickable?`onclick="openBookModal('${dateS}','${String(hr).padStart(2,'0')}:00')"`:''}></div>`;
+    const hourDiv = document.createElement('div');
+    hourDiv.style.height = `${PX_PER_HOUR}px`;
+    hourDiv.style.borderBottom = '1px solid var(--lt-beige)';
+    hourDiv.style.borderRight = '1px solid var(--lt-beige)';
+    if (clickable) {
+      hourDiv.onclick = () => openBookModal(dateS, `${String(hr).padStart(2,'0')}:00`);
+    }
+    col.appendChild(hourDiv);
   }
+  
   dayBks.forEach(b => {
-    const top = bkTopPx(b.startTime);
+    const chip = document.createElement('div');
+    chip.className = `bk-chip ${b.resource}`;
+    chip.style.top = `${bkTopPx(b.startTime)}px`;
+    chip.style.height = `${bkHeightPx(b.startTime, b.endTime)}px`;
+    chip.onclick = (e) => {
+      e.stopPropagation();
+      openDetail(b._key);
+    };
+    
+    const title = document.createElement('div');
+    title.className = 'bk-title';
+    title.textContent = b.purpose || 'Untitled';
+    chip.appendChild(title);
+    
     const ht = bkHeightPx(b.startTime, b.endTime);
-    h += `<div class="bk-chip ${b.resource}" style="top:${top}px;height:${ht}px;" onclick="event.stopPropagation();openDetail('${b._key}')">
-      <div class="bk-title">${b.purpose}</div>
-      ${ht>34?`<div class="bk-meta">${b.startTime}–${b.endTime} · ${b.user||''}</div>`:''}
-    </div>`;
+    if (ht > 34) {
+      const meta = document.createElement('div');
+      meta.className = 'bk-meta';
+      meta.textContent = `${b.startTime}–${b.endTime} · ${b.user || ''}`;
+      chip.appendChild(meta);
+    }
+    
+    col.appendChild(chip);
   });
-  h += '</div>';
-  return h;
+  
+  return col;
+}
+
+function renderTimeColumn() {
+  const timeCol = document.createElement('div');
+  timeCol.style.flexShrink = '0';
+  timeCol.style.width = '52px';
+  
+  for (let hr = HOUR_START; hr <= HOUR_END; hr++) {
+    const label = hr === 12 ? '12pm' : hr < 12 ? `${hr}am` : `${hr-12}pm`;
+    const hourDiv = document.createElement('div');
+    hourDiv.style.height = `${PX_PER_HOUR}px`;
+    hourDiv.style.display = 'flex';
+    hourDiv.style.alignItems = 'flex-start';
+    hourDiv.style.justifyContent = 'flex-end';
+    hourDiv.style.padding = '4px 8px 0 0';
+    hourDiv.style.fontSize = '10px';
+    hourDiv.style.color = 'var(--blue-grey)';
+    hourDiv.style.borderRight = '1px solid var(--grey)';
+    hourDiv.style.fontWeight = '500';
+    hourDiv.textContent = label;
+    timeCol.appendChild(hourDiv);
+  }
+  
+  return timeCol;
 }
 
 function renderDayView(wrap, bks) {
   const d = S.date;
   document.getElementById('cal-title').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   const ds = dateStr(d);
-  const today = dateStr(new Date());
-  wrap.innerHTML = `
-    <div class="time-grid fade-in">
-      <div class="tg-header" style="grid-template-columns:52px 1fr;">
-        <div class="th-time"></div>
-        <div class="th-day ${ds===today?'th-day-today':''}">
-          <div>${DAYS_SHORT[d.getDay()]}</div>
-          <div class="th-day-num">${d.getDate()}</div>
-          ${ds===today?'<div class="th-today-dot"></div>':''}
-        </div>
-      </div>
-      <div style="display:flex;overflow-y:auto;max-height:calc(100vh - 200px);">
-        ${renderTimeColumn()}
-        ${renderDayCol(ds,bks,true)}
-      </div>
-    </div>`;
+  
+  const grid = document.createElement('div');
+  grid.className = 'time-grid fade-in';
+  
+  const header = document.createElement('div');
+  header.className = 'tg-header';
+  header.style.gridTemplateColumns = '52px 1fr';
+  
+  const timeHeader = document.createElement('div');
+  timeHeader.className = 'th-time';
+  header.appendChild(timeHeader);
+  
+  const dayHeader = document.createElement('div');
+  dayHeader.className = `th-day ${ds === dateStr(new Date()) ? 'th-day-today' : ''}`;
+  dayHeader.innerHTML = `<div>${DAYS_SHORT[d.getDay()]}</div><div class="th-day-num">${d.getDate()}</div>${ds === dateStr(new Date()) ? '<div class="th-today-dot"></div>' : ''}`;
+  header.appendChild(dayHeader);
+  
+  grid.appendChild(header);
+  
+  const body = document.createElement('div');
+  body.style.display = 'flex';
+  body.style.overflowY = 'auto';
+  body.style.maxHeight = 'calc(100vh - 200px)';
+  
+  body.appendChild(renderTimeColumn());
+  
+  const dayCol = renderDayCol(ds, bks, true);
+  body.appendChild(dayCol);
+  
+  if (bksByDay(bks, ds).length === 0) {
+    renderEmptyState(dayCol, 'No bookings for this day');
+  }
+  
+  grid.appendChild(body);
+  wrap.appendChild(grid);
 }
 
 function renderWeekView(wrap, bks) {
@@ -1281,26 +1511,51 @@ function renderWeekView(wrap, bks) {
   const days = Array.from({length:7},(_,i)=>addDays(ws,i));
   const cols = '52px ' + days.map(()=>'1fr').join(' ');
 
-  let hdrHtml = `<div class="th-time" style="border-right:1px solid rgba(255,255,255,.08);"></div>`;
+  const grid = document.createElement('div');
+  grid.className = 'time-grid fade-in';
+
+  const header = document.createElement('div');
+  header.className = 'tg-header';
+  header.style.gridTemplateColumns = cols;
+
+  const timeHeader = document.createElement('div');
+  timeHeader.className = 'th-time';
+  timeHeader.style.borderRight = '1px solid rgba(255,255,255,.08)';
+  header.appendChild(timeHeader);
+
   days.forEach(d => {
     const ds = dateStr(d);
-    const isT = ds===today;
-    hdrHtml += `<div class="th-day ${isT?'th-day-today':''}" style="border-right:1px solid rgba(255,255,255,.08);">
-      <div>${DAYS_SHORT[d.getDay()]}</div>
-      <div class="th-day-num">${d.getDate()}</div>
-      ${isT?'<div class="th-today-dot"></div>':''}
-    </div>`;
+    const isT = ds === today;
+    const dayHeader = document.createElement('div');
+    dayHeader.className = `th-day ${isT ? 'th-day-today' : ''}`;
+    dayHeader.style.borderRight = '1px solid rgba(255,255,255,.08)';
+    dayHeader.innerHTML = `<div>${DAYS_SHORT[d.getDay()]}</div><div class="th-day-num">${d.getDate()}</div>${isT ? '<div class="th-today-dot"></div>' : ''}`;
+    header.appendChild(dayHeader);
   });
 
-  let bodyHtml = `<div style="display:flex;overflow-y:auto;max-height:calc(100vh - 200px);">
-    ${renderTimeColumn()}
-    ${days.map(d => renderDayCol(dateStr(d), bks, true)).join('')}
-  </div>`;
+  grid.appendChild(header);
 
-  wrap.innerHTML = `<div class="time-grid fade-in">
-    <div class="tg-header" style="grid-template-columns:${cols};">${hdrHtml}</div>
-    ${bodyHtml}
-  </div>`;
+  const body = document.createElement('div');
+  body.style.display = 'flex';
+  body.style.overflowY = 'auto';
+  body.style.maxHeight = 'calc(100vh - 200px)';
+
+  body.appendChild(renderTimeColumn());
+
+  let hasAnyBookings = false;
+  days.forEach(d => {
+    const ds = dateStr(d);
+    const dayBks = bksByDay(bks, ds);
+    if (dayBks.length > 0) hasAnyBookings = true;
+    body.appendChild(renderDayCol(ds, bks, true));
+  });
+
+  if (!hasAnyBookings) {
+    renderEmptyState(body, 'No bookings this week');
+  }
+
+  grid.appendChild(body);
+  wrap.appendChild(grid);
 }
 
 function renderMonthView(wrap, bks) {
@@ -1309,33 +1564,78 @@ function renderMonthView(wrap, bks) {
   const today = dateStr(new Date());
   const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
   const startPad = firstDay.getDay();
-  const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
 
   const cells = [];
-  for(let i=0;i<startPad;i++) cells.push({day:null,ds:null});
-  for(let i=1;i<=daysInMonth;i++){
-    const cd = new Date(d.getFullYear(),d.getMonth(),i);
-    cells.push({day:i, ds:dateStr(cd)});
+  for (let i = 0; i < startPad; i++) cells.push({ day: null, ds: null });
+  for (let i = 1; i <= daysInMonth; i++) {
+    const cd = new Date(d.getFullYear(), d.getMonth(), i);
+    cells.push({ day: i, ds: dateStr(cd) });
   }
-  while(cells.length%7!==0) cells.push({day:null,ds:null});
+  while (cells.length % 7 !== 0) cells.push({ day: null, ds: null });
 
-  const bodyHtml = cells.map(c => {
-    if(!c.day) return `<div class="month-cell other-month"></div>`;
-    const isT = c.ds===today;
-    const dayBks = bksByDay(bks, c.ds);
-    const chips = dayBks.slice(0,3).map(b =>
-      `<div class="mc-chip ${b.resource}" onclick="event.stopPropagation();openDetail('${b._key}')">${b.purpose}</div>`).join('');
-    const more = dayBks.length > 3 ? `<div class="mc-more">+${dayBks.length-3} more</div>` : '';
-    return `<div class="month-cell ${isT?'today':''}" onclick="S.date=new Date('${c.ds}T12:00:00');switchView('day');">
-      <div class="mc-num ${isT?'today-num':''}">${c.day}</div>
-      ${chips}${more}
-    </div>`;
-  }).join('');
+  const grid = document.createElement('div');
+  grid.className = 'month-grid fade-in';
 
-  wrap.innerHTML = `<div class="month-grid fade-in">
-    <div class="month-header-row">${DAYS_SHORT.map(d=>`<div class="mhc">${d}</div>`).join('')}</div>
-    <div class="month-body">${bodyHtml}</div>
-  </div>`;
+  const header = document.createElement('div');
+  header.className = 'month-header-row';
+  DAYS_SHORT.forEach(day => {
+    const div = document.createElement('div');
+    div.className = 'mhc';
+    div.textContent = day;
+    header.appendChild(div);
+  });
+  grid.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'month-body';
+
+  cells.forEach(c => {
+    const cell = document.createElement('div');
+    cell.className = 'month-cell';
+    
+    if (!c.day) {
+      cell.classList.add('other-month');
+    } else {
+      const isT = c.ds === today;
+      if (isT) cell.classList.add('today');
+      
+      cell.dataset.date = c.ds;
+      cell.onclick = () => {
+        S.date = new Date(c.ds + 'T12:00:00');
+        switchView('day');
+      };
+      
+      const numDiv = document.createElement('div');
+      numDiv.className = `mc-num ${isT ? 'today-num' : ''}`;
+      numDiv.textContent = c.day;
+      cell.appendChild(numDiv);
+      
+      const dayBks = bksByDay(bks, c.ds);
+      dayBks.slice(0, 3).forEach(b => {
+        const chip = document.createElement('div');
+        chip.className = `mc-chip ${b.resource}`;
+        chip.textContent = b.purpose || 'Untitled';
+        chip.onclick = (e) => {
+          e.stopPropagation();
+          openDetail(b._key);
+        };
+        cell.appendChild(chip);
+      });
+      
+      if (dayBks.length > 3) {
+        const more = document.createElement('div');
+        more.className = 'mc-more';
+        more.textContent = `+${dayBks.length - 3} more`;
+        cell.appendChild(more);
+      }
+    }
+    
+    body.appendChild(cell);
+  });
+
+  grid.appendChild(body);
+  wrap.appendChild(grid);
 }
 
 function renderYearView(wrap, bks) {
@@ -1343,137 +1643,218 @@ function renderYearView(wrap, bks) {
   document.getElementById('cal-title').textContent = yr;
   const today = new Date();
 
-  const cards = MONTHS_FULL.map((mn, mi) => {
+  const grid = document.createElement('div');
+  grid.className = 'year-grid fade-in';
+
+  MONTHS_FULL.forEach((mn, mi) => {
     const first = new Date(yr, mi, 1);
-    const dim = new Date(yr, mi+1, 0).getDate();
+    const dim = new Date(yr, mi + 1, 0).getDate();
     const pad = first.getDay();
     const bksInMonth = bks.filter(b => {
-      const bd = new Date(b.date+'T12:00:00');
-      return bd.getFullYear()===yr && bd.getMonth()===mi;
+      const bd = new Date(b.date + 'T12:00:00');
+      return bd.getFullYear() === yr && bd.getMonth() === mi;
     });
+    
     const cells = [];
-    for(let i=0;i<pad;i++) cells.push('');
-    for(let d=1;d<=dim;d++) cells.push(d);
+    for (let i = 0; i < pad; i++) cells.push('');
+    for (let d = 1; d <= dim; d++) cells.push(d);
+    
     const daysHtml = cells.map(d => {
-      if(!d) return '<div class="mini-day"></div>';
-      const ds = `${yr}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const hasB = bksInMonth.some(b=>b.date===ds);
-      const isT  = isSameDay(new Date(ds+'T12:00:00'), today);
-      return `<div class="mini-day ${isT?'today-mini':hasB?'has-bk':''}">${d}</div>`;
+      if (!d) return '<div class="mini-day"></div>';
+      const ds = `${yr}-${String(mi + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const hasB = bksInMonth.some(b => b.date === ds);
+      const isT = isSameDay(new Date(ds + 'T12:00:00'), today);
+      return `<div class="mini-day ${isT ? 'today-mini' : hasB ? 'has-bk' : ''}">${d}</div>`;
     }).join('');
-    return `<div class="mini-cal" onclick="S.date=new Date(${yr},${mi},1);switchView('month');">
+    
+    const card = document.createElement('div');
+    card.className = 'mini-cal';
+    card.title = `Click to view ${mn}`;
+    card.onclick = () => {
+      S.date = new Date(yr, mi, 1);
+      switchView('month');
+    };
+    
+    card.innerHTML = `
       <div class="mini-cal-hdr">
         ${mn} ${yr}
-        ${bksInMonth.length?`<span class="bk-count">${bksInMonth.length}</span>`:''}
+        ${bksInMonth.length ? `<span class="bk-count">${bksInMonth.length}</span>` : ''}
       </div>
       <div class="mini-cal-body">
-        <div class="mini-days-hdr">${'SMTWTFS'.split('').map(x=>`<span>${x}</span>`).join('')}</div>
+        <div class="mini-days-hdr">${'SMTWTFS'.split('').map(x => `<span>${x}</span>`).join('')}</div>
         <div class="mini-days-body">${daysHtml}</div>
+        <div style="text-align:center;font-size:9px;margin-top:4px;color:var(--gold);">▼ click to view</div>
       </div>
-    </div>`;
-  }).join('');
+    `;
+    
+    grid.appendChild(card);
+  });
 
-  wrap.innerHTML = `<div class="year-grid fade-in">${cards}</div>`;
+  wrap.appendChild(grid);
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  BOOKING MODAL
 // ═══════════════════════════════════════════════════════════════
-function openBookModal(prefillDate, prefillTime) {
-  S.bkResource = S.resource;
-  S.bkAs = 'self';
-  S.bkAttendees = [];
-  S.bkRecurrence = 'once';
-  S.bkStartMin = prefillTime ? toMin(prefillTime) : 540;
-  S.bkEndMin   = S.bkStartMin + 60;
-  setBkResource(S.bkResource);
-  setBkAs('self');
-  setRecurrence('once');
-  document.getElementById('bk-purpose').value = '';
-  document.getElementById('bk-notes').value   = '';
-  document.getElementById('bk-date').value    = prefillDate || dateStr(S.date);
+function openBookModal(prefillDate, prefillTime, editBookingKey = null) {
+  S.editingBooking = editBookingKey;
+  
+  if (editBookingKey) {
+    const b = S.bookings.find(x => x._key === editBookingKey);
+    if (b) {
+      document.getElementById('booking-modal-title').textContent = 'Edit Booking';
+      S.bkResource = b.resource;
+      S.bkAs = b.bookedAs || 'self';
+      S.bkAttendees = b.attendees ? b.attendees.split(',').map(s => s.trim()).filter(Boolean) : [];
+      S.bkRecurrence = 'once';
+      S.bkStartMin = toMin(b.startTime);
+      S.bkEndMin = toMin(b.endTime);
+      
+      document.getElementById('bk-purpose').value = b.purpose || '';
+      document.getElementById('bk-notes').value = b.notes || '';
+      document.getElementById('bk-date').value = b.date;
+      
+      setBkResource(S.bkResource);
+      setBkAs(S.bkAs);
+      setRecurrence('once');
+      renderAttendeeTags();
+      updateDials();
+      
+      document.getElementById('bk-submit-btn').textContent = 'Update Booking';
+    }
+  } else {
+    document.getElementById('booking-modal-title').textContent = 'New Booking';
+    S.bkResource = S.resource;
+    S.bkAs = 'self';
+    S.bkAttendees = [];
+    S.bkRecurrence = 'once';
+    S.bkStartMin = prefillTime ? toMin(prefillTime) : 540;
+    S.bkEndMin = S.bkStartMin + 60;
+    
+    document.getElementById('bk-purpose').value = '';
+    document.getElementById('bk-notes').value = '';
+    document.getElementById('bk-date').value = prefillDate || dateStr(S.date);
+    document.getElementById('bk-submit-btn').textContent = 'Confirm Booking';
+    
+    setBkResource(S.bkResource);
+    setBkAs('self');
+    setRecurrence('once');
+    renderAttendeeTags();
+    updateDials();
+  }
+  
   document.getElementById('bk-conflict').classList.remove('visible');
   document.getElementById('bk-error').classList.remove('visible');
   document.getElementById('rec-until').value = '';
   document.getElementById('rec-until-wrap').style.display = 'none';
-  renderAttendeeTags();
-  updateDials();
+  
   openModal('modal-book');
 }
 
 function setBkResource(r) {
   S.bkResource = r;
-  document.getElementById('bk-res-boardroom').classList.toggle('active', r==='boardroom');
-  document.getElementById('bk-res-car').classList.toggle('active', r==='car');
+  document.getElementById('bk-res-boardroom').classList.toggle('active', r === 'boardroom');
+  document.getElementById('bk-res-car').classList.toggle('active', r === 'car');
   checkConflict();
 }
+
 function setBkAs(a) {
   S.bkAs = a;
-  document.getElementById('bk-as-self').classList.toggle('active', a==='self');
-  document.getElementById('bk-as-dept').classList.toggle('active', a==='dept');
+  document.getElementById('bk-as-self').classList.toggle('active', a === 'self');
+  document.getElementById('bk-as-dept').classList.toggle('active', a === 'dept');
 }
+
 function adjustTime(which, delta) {
-  if (which==='start') {
-    S.bkStartMin = Math.max(HOUR_START*60, Math.min(HOUR_END*60-30, S.bkStartMin+delta));
+  if (which === 'start') {
+    S.bkStartMin = Math.max(HOUR_START * 60, Math.min(HOUR_END * 60 - 30, S.bkStartMin + delta));
     if (S.bkEndMin <= S.bkStartMin) S.bkEndMin = S.bkStartMin + 30;
   } else {
-    S.bkEndMin = Math.max(S.bkStartMin+30, Math.min(HOUR_END*60, S.bkEndMin+delta));
+    S.bkEndMin = Math.max(S.bkStartMin + 30, Math.min(HOUR_END * 60, S.bkEndMin + delta));
   }
   updateDials();
   checkConflict();
 }
+
 function updateDials() {
   document.getElementById('dial-start').textContent = fromMin(S.bkStartMin);
-  document.getElementById('dial-end').textContent   = fromMin(S.bkEndMin);
+  document.getElementById('dial-end').textContent = fromMin(S.bkEndMin);
 }
+
 function setRecurrence(r) {
   S.bkRecurrence = r;
-  ['once','daily','weekdays','weekly','monthly'].forEach(v => {
-    document.getElementById('rec-'+v).classList.toggle('active',v===r);
+  ['once', 'daily', 'weekdays', 'weekly', 'monthly'].forEach(v => {
+    document.getElementById('rec-' + v).classList.toggle('active', v === r);
   });
   const wrap = document.getElementById('rec-until-wrap');
-  wrap.style.display = r==='once' ? 'none' : 'block';
+  wrap.style.display = r === 'once' ? 'none' : 'block';
   if (r !== 'once') {
     const untilInput = document.getElementById('rec-until');
     if (!untilInput.value) {
-      const def = new Date(); def.setMonth(def.getMonth()+3);
+      const def = new Date();
+      def.setMonth(def.getMonth() + 3);
       untilInput.value = dateStr(def);
     }
     updateRecPreview();
   }
 }
+
 function populateAttendeeDropdowns() {
   const uSel = document.getElementById('att-user-sel');
   const dSel = document.getElementById('att-dept-sel');
+  
   uSel.innerHTML = '<option value="">Add a person…</option>' +
-    S.users.map(u => `<option value="${u.name}">${u.name} (${u.department})</option>`).join('');
-  const depts = [...new Set(S.users.map(u=>u.department))].sort();
+    S.users.map(u => `<option value="${escapeHTML(u.name)}">${escapeHTML(u.name)} (${escapeHTML(u.department || '')})</option>`).join('');
+  
+  const depts = [...new Set(S.users.map(u => u.department))].filter(Boolean).sort();
   dSel.innerHTML = '<option value="">Add a department…</option>' +
-    depts.map(d => `<option value="${d}">${d}</option>`).join('');
+    depts.map(d => `<option value="${escapeHTML(d)}">${escapeHTML(d)}</option>`).join('');
 }
+
 function addAttendeeFromUser() {
   const v = document.getElementById('att-user-sel').value;
-  if (v && !S.bkAttendees.includes(v)) { S.bkAttendees.push(v); renderAttendeeTags(); }
+  if (v && !S.bkAttendees.includes(v)) { 
+    S.bkAttendees.push(v); 
+    renderAttendeeTags(); 
+  }
   document.getElementById('att-user-sel').value = '';
 }
+
 function addAttendeeFromDept() {
   const dept = document.getElementById('att-dept-sel').value;
   if (!dept) return;
-  S.users.filter(u=>u.department===dept).forEach(u => {
+  S.users.filter(u => u.department === dept).forEach(u => {
     if (!S.bkAttendees.includes(u.name)) S.bkAttendees.push(u.name);
   });
   renderAttendeeTags();
   document.getElementById('att-dept-sel').value = '';
 }
+
 function removeAttendee(name) {
-  S.bkAttendees = S.bkAttendees.filter(a=>a!==name);
+  S.bkAttendees = S.bkAttendees.filter(a => a !== name);
   renderAttendeeTags();
 }
+
 function renderAttendeeTags() {
-  document.getElementById('attendees-wrap').innerHTML = S.bkAttendees.map(a =>
-    `<div class="att-tag">${a}<button onclick="removeAttendee('${a.replace(/'/g,"\\'")}')">×</button></div>`
-  ).join('');
+  const wrap = document.getElementById('attendees-wrap');
+  wrap.innerHTML = '';
+  
+  S.bkAttendees.forEach(a => {
+    const tag = document.createElement('div');
+    tag.className = 'att-tag';
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = a;
+    tag.appendChild(nameSpan);
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '×';
+    removeBtn.onclick = () => removeAttendee(a);
+    tag.appendChild(removeBtn);
+    
+    wrap.appendChild(tag);
+  });
 }
+
 function checkConflict() {
   const date = document.getElementById('bk-date').value;
   if (!date) return;
@@ -1485,65 +1866,135 @@ function checkConflict() {
   );
   document.getElementById('bk-conflict').classList.toggle('visible', conflict);
 }
+
 function buildRecurrenceDates(baseDate, type, untilDate) {
   if (type === 'once' || !untilDate || untilDate < baseDate) return [baseDate];
   const dates = [];
-  let cur = new Date(baseDate+'T12:00:00');
-  const until = new Date(untilDate+'T12:00:00');
+  let cur = new Date(baseDate + 'T12:00:00');
+  const until = new Date(untilDate + 'T12:00:00');
   const MAX = 365;
   while (cur <= until && dates.length < MAX) {
     if (type !== 'weekdays' || (cur.getDay() !== 0 && cur.getDay() !== 6)) {
       dates.push(dateStr(cur));
     }
-    if      (type === 'daily' || type === 'weekdays') cur = addDays(cur, 1);
-    else if (type === 'weekly')   cur = addDays(cur, 7);
-    else if (type === 'monthly')  { const x = new Date(cur); x.setMonth(x.getMonth()+1); cur = x; }
+    if (type === 'daily' || type === 'weekdays') cur = addDays(cur, 1);
+    else if (type === 'weekly') cur = addDays(cur, 7);
+    else if (type === 'monthly') { const x = new Date(cur); x.setMonth(x.getMonth() + 1); cur = x; }
     else break;
   }
   return dates.length > 0 ? dates : [baseDate];
 }
+
 function updateRecPreview() {
   const dateVal = document.getElementById('bk-date').value;
-  const until   = document.getElementById('rec-until').value;
+  const until = document.getElementById('rec-until').value;
   const preview = document.getElementById('rec-preview');
   if (!preview) return;
-  if (!dateVal || !until || S.bkRecurrence === 'once') { preview.textContent = ''; return; }
+  
+  if (!dateVal || !until || S.bkRecurrence === 'once') { 
+    preview.textContent = ''; 
+    preview.className = '';
+    return; 
+  }
+  
   const dates = buildRecurrenceDates(dateVal, S.bkRecurrence, until);
   preview.textContent = `${dates.length} booking${dates.length !== 1 ? 's' : ''} will be created`;
+  preview.className = 'rec-preview';
 }
+
 async function saveBooking() {
-  const purpose = document.getElementById('bk-purpose').value.trim();
-  const date    = document.getElementById('bk-date').value;
-  if (!purpose) { showBkError('Please enter a title or purpose.'); return; }
-  if (!date)    { showBkError('Please select a date.'); return; }
-  const startT = fromMin(S.bkStartMin);
-  const endT   = fromMin(S.bkEndMin);
-  const conflict = S.bookings.some(b =>
-    b.resource === S.bkResource && b.date === date &&
-    toMin(b.startTime) < toMin(endT) && toMin(b.endTime) > toMin(startT)
-  );
-  if (conflict) { showBkError('Time slot conflicts with an existing booking. Please choose another time.'); return; }
   const btn = document.getElementById('bk-submit-btn');
-  btn.textContent = 'Saving…'; btn.disabled = true;
+  const btnState = new ButtonState(btn);
+  
+  const purpose = document.getElementById('bk-purpose').value.trim();
+  const date = document.getElementById('bk-date').value;
+  
+  if (!purpose) { 
+    notify('Please enter a title or purpose.', 'error'); 
+    return; 
+  }
+  if (!date) { 
+    notify('Please select a date.', 'error'); 
+    return; 
+  }
+  
+  const startT = fromMin(S.bkStartMin);
+  const endT = fromMin(S.bkEndMin);
   const untilDate = document.getElementById('rec-until').value;
   const dates = buildRecurrenceDates(date, S.bkRecurrence, untilDate);
+  
+  if (S.editingBooking) {
+    const updates = {
+      purpose: purpose,
+      resource: S.bkResource,
+      bookedAs: S.bkAs,
+      startTime: startT,
+      endTime: endT,
+      attendees: S.bkAttendees.join(', '),
+      notes: document.getElementById('bk-notes').value.trim(),
+      editedAt: new Date().toISOString(),
+      editedBy: S.currentUser.name
+    };
+    
+    btnState.loading('Updating...');
+    
+    try {
+      await db.ref('bookings/' + S.editingBooking).update(updates);
+      closeModal('modal-book');
+      notify('Booking updated ✓');
+    } catch(e) { 
+      notify('Failed to update: ' + e.message, 'error'); 
+    } finally { 
+      btnState.restore(); 
+    }
+    return;
+  }
+  
+  const conflicts = [];
+  for (const d of dates) {
+    const hasConflict = S.bookings.some(b =>
+      b.resource === S.bkResource && b.date === d &&
+      toMin(b.startTime) < toMin(endT) && toMin(b.endTime) > toMin(startT)
+    );
+    if (hasConflict) conflicts.push(d);
+  }
+  
+  if (conflicts.length > 0) {
+    const conflictDates = conflicts.map(d => new Date(d).toLocaleDateString()).join(', ');
+    notify(`Conflict on: ${conflictDates}. Please adjust time or date.`, 'error');
+    return;
+  }
+  
+  btnState.loading('Saving...');
+  
   const groupId = dates.length > 1 ? uid() : null;
   try {
     for (const d of dates) {
       await db.ref('bookings').push({
-        resource: S.bkResource, date: d, startTime: startT, endTime: endT,
-        user: S.currentUser.name, userId: S.currentUser.id||S.currentUser._key||'',
-        department: S.currentUser.department||'', bookedAs: S.bkAs, purpose,
+        resource: S.bkResource,
+        date: d,
+        startTime: startT,
+        endTime: endT,
+        user: S.currentUser.name,
+        userId: S.currentUser.id || S.currentUser._key || '',
+        department: S.currentUser.department || '',
+        bookedAs: S.bkAs,
+        purpose: purpose,
         attendees: S.bkAttendees.join(', '),
         notes: document.getElementById('bk-notes').value.trim(),
-        groupId, createdAt: new Date().toISOString()
+        groupId,
+        createdAt: new Date().toISOString()
       });
     }
     closeModal('modal-book');
     notify(dates.length > 1 ? `${dates.length} recurring bookings saved ✓` : 'Booking confirmed ✓');
-  } catch(e) { showBkError('Failed to save: ' + e.message); }
-  finally { btn.textContent = 'Confirm Booking'; btn.disabled = false; }
+  } catch(e) { 
+    notify('Failed to save: ' + e.message, 'error'); 
+  } finally { 
+    btnState.restore(); 
+  }
 }
+
 function showBkError(msg) {
   const el = document.getElementById('bk-error');
   el.textContent = msg;
@@ -1556,58 +2007,147 @@ function showBkError(msg) {
 function openDetail(key) {
   const b = S.bookings.find(x => x._key === key);
   if (!b) return;
-  const canManage = S.isAdmin || b.userId === (S.currentUser.id||S.currentUser._key) || b.user === S.currentUser.name;
+  
+  const canManage = S.isAdmin || b.userId === (S.currentUser.id || S.currentUser._key) || b.user === S.currentUser.name;
+  
   document.getElementById('detail-hdr').className = `detail-res-hdr ${b.resource}`;
   document.getElementById('detail-resource-label').textContent = b.resource === 'boardroom' ? 'Board Room' : 'Company Car';
-  document.getElementById('detail-title').textContent = b.purpose;
-  const dateObj = new Date(b.date+'T12:00:00');
+  document.getElementById('detail-title').textContent = b.purpose || 'Untitled';
+  
+  const dateObj = new Date(b.date + 'T12:00:00');
   document.getElementById('detail-info-grid').innerHTML = `
-    <div class="info-card"><div class="ic-label">Date</div><div class="ic-val">${dateObj.toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric'})}</div></div>
-    <div class="info-card"><div class="ic-label">Time</div><div class="ic-val">${b.startTime} – ${b.endTime}</div></div>
-    <div class="info-card"><div class="ic-label">Booked By</div><div class="ic-val">${b.user||'—'}</div></div>
-    <div class="info-card"><div class="ic-label">Booked As</div><div class="ic-val">${b.bookedAs==='dept'?'Department':'Individual'}</div></div>`;
+    <div class="info-card"><div class="ic-label">Date</div><div class="ic-val">${escapeHTML(dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' }))}</div></div>
+    <div class="info-card"><div class="ic-label">Time</div><div class="ic-val">${escapeHTML(b.startTime)} – ${escapeHTML(b.endTime)}</div></div>
+    <div class="info-card"><div class="ic-label">Booked By</div><div class="ic-val">${escapeHTML(b.user || '—')}</div></div>
+    <div class="info-card"><div class="ic-label">Booked As</div><div class="ic-val">${b.bookedAs === 'dept' ? 'Department' : 'Individual'}</div></div>`;
+  
   const attWrap = document.getElementById('detail-attendees-wrap');
   if (b.attendees) {
     attWrap.style.display = 'block';
-    document.getElementById('detail-attendees').innerHTML = b.attendees.split(',').filter(Boolean).map(a =>
-      `<div class="att-tag">${a.trim()}</div>`).join('');
-  } else { attWrap.style.display = 'none'; }
+    const attEl = document.getElementById('detail-attendees');
+    attEl.innerHTML = '';
+    b.attendees.split(',').filter(Boolean).forEach(a => {
+      const tag = document.createElement('div');
+      tag.className = 'att-tag';
+      tag.textContent = a.trim();
+      attEl.appendChild(tag);
+    });
+  } else {
+    attWrap.style.display = 'none';
+  }
+  
   const notesEl = document.getElementById('detail-notes');
-  if (b.notes) { notesEl.style.display='block'; notesEl.textContent = b.notes; }
-  else { notesEl.style.display='none'; }
+  if (b.notes) {
+    notesEl.style.display = 'block';
+    notesEl.textContent = b.notes;
+  } else {
+    notesEl.style.display = 'none';
+  }
+  
   const actEl = document.getElementById('detail-actions');
   if (canManage) {
     const hasGroup = b.groupId && S.bookings.filter(x => x.groupId === b.groupId).length > 1;
     const seriesCount = hasGroup ? S.bookings.filter(x => x.groupId === b.groupId).length : 0;
-    actEl.innerHTML = `
-      ${S.isAdmin ? `<button class="btn-prim teal" onclick="openMoveModal('${key}');closeModal('modal-detail');">Move</button>` : ''}
-      ${S.isAdmin ? `<button class="btn-prim plum" onclick="openSwapModal('${key}');closeModal('modal-detail');">Swap</button>` : ''}
-      <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
-        <button class="btn-sec" style="background:rgba(192,57,43,.08);border-color:rgba(192,57,43,.25);color:var(--danger);" onclick="deleteBooking('${key}', false)">Remove This Booking</button>
-        ${hasGroup ? `<button class="btn-sec" style="background:rgba(192,57,43,.15);border-color:var(--danger);color:var(--danger);font-weight:700;" onclick="deleteBooking('${key}', true)">Remove All ${seriesCount} in Series</button>` : ''}
-      </div>`;
-  } else { actEl.innerHTML = ''; }
+    
+    actEl.innerHTML = '';
+    
+    if (S.isAdmin) {
+      const moveBtn = document.createElement('button');
+      moveBtn.className = 'btn-prim teal';
+      moveBtn.textContent = 'Move';
+      moveBtn.onclick = () => {
+        openMoveModal(key);
+        closeModal('modal-detail');
+      };
+      actEl.appendChild(moveBtn);
+      
+      const swapBtn = document.createElement('button');
+      swapBtn.className = 'btn-prim plum';
+      swapBtn.textContent = 'Swap';
+      swapBtn.onclick = () => {
+        openSwapModal(key);
+        closeModal('modal-detail');
+      };
+      actEl.appendChild(swapBtn);
+    }
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-prim';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => {
+      openBookModal(b.date, b.startTime, key);
+      closeModal('modal-detail');
+    };
+    actEl.appendChild(editBtn);
+    
+    const deleteDiv = document.createElement('div');
+    deleteDiv.style.display = 'flex';
+    deleteDiv.style.flexDirection = 'column';
+    deleteDiv.style.gap = '8px';
+    deleteDiv.style.flex = '1';
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-sec';
+    deleteBtn.style.background = 'rgba(192,57,43,.08)';
+    deleteBtn.style.borderColor = 'rgba(192,57,43,.25)';
+    deleteBtn.style.color = 'var(--danger)';
+    deleteBtn.textContent = 'Remove This Booking';
+    deleteBtn.onclick = () => deleteBooking(key, false);
+    deleteDiv.appendChild(deleteBtn);
+    
+    if (hasGroup) {
+      const seriesBtn = document.createElement('button');
+      seriesBtn.className = 'btn-sec';
+      seriesBtn.style.background = 'rgba(192,57,43,.15)';
+      seriesBtn.style.borderColor = 'var(--danger)';
+      seriesBtn.style.color = 'var(--danger)';
+      seriesBtn.style.fontWeight = '700';
+      seriesBtn.textContent = `Remove All ${seriesCount} in Series`;
+      seriesBtn.onclick = () => deleteBooking(key, true);
+      deleteDiv.appendChild(seriesBtn);
+    }
+    
+    actEl.appendChild(deleteDiv);
+  } else {
+    actEl.innerHTML = '';
+  }
+  
   openModal('modal-detail');
 }
 
 async function deleteBooking(key, deleteSeries) {
   const b = S.bookings.find(x => x._key === key);
   if (!b) return;
+  
   if (deleteSeries && b.groupId) {
     const seriesKeys = S.bookings.filter(x => x.groupId === b.groupId).map(x => x._key);
-    if (!confirm(`Remove all ${seriesKeys.length} bookings in this series?`)) return;
-    try {
-      await Promise.all(seriesKeys.map(k => db.ref('bookings/'+k).remove()));
-      closeModal('modal-detail');
-      notify(`${seriesKeys.length} bookings removed ✓`);
-    } catch(e) { alert('Failed: '+e.message); }
+    showConfirm(
+      'Delete Series',
+      `Remove all ${seriesKeys.length} bookings in this series?`,
+      async () => {
+        try {
+          await Promise.all(seriesKeys.map(k => db.ref('bookings/' + k).remove()));
+          closeModal('modal-detail');
+          notify(`${seriesKeys.length} bookings removed ✓`);
+        } catch(e) { 
+          notify('Failed: ' + e.message, 'error'); 
+        }
+      }
+    );
   } else {
-    if (!confirm('Remove this booking?')) return;
-    try {
-      await db.ref('bookings/'+key).remove();
-      closeModal('modal-detail');
-      notify('Booking removed ✓');
-    } catch(e) { alert('Failed: '+e.message); }
+    showConfirm(
+      'Delete Booking',
+      'Remove this booking?',
+      async () => {
+        try {
+          await db.ref('bookings/' + key).remove();
+          closeModal('modal-detail');
+          notify('Booking removed ✓');
+        } catch(e) { 
+          notify('Failed: ' + e.message, 'error'); 
+        }
+      }
+    );
   }
 }
 
@@ -1615,53 +2155,143 @@ async function deleteBooking(key, deleteSeries) {
 //  MOVE / SWAP
 // ═══════════════════════════════════════════════════════════════
 function openMoveModal(key) {
-  const b = S.bookings.find(x=>x._key===key);
+  const b = S.bookings.find(x => x._key === key);
   if (!b) return;
   S.moveTarget = key;
   document.getElementById('move-booking-info').innerHTML = `
     <div class="ic-label">Moving:</div>
-    <div class="ic-val">${b.purpose} — ${b.date} ${b.startTime}–${b.endTime}</div>`;
-  document.getElementById('move-date').value  = b.date;
+    <div class="ic-val">${escapeHTML(b.purpose || 'Untitled')} — ${escapeHTML(b.date)} ${escapeHTML(b.startTime)}–${escapeHTML(b.endTime)}</div>`;
+  document.getElementById('move-date').value = b.date;
   document.getElementById('move-start').value = b.startTime;
-  document.getElementById('move-end').value   = b.endTime;
+  document.getElementById('move-end').value = b.endTime;
   openModal('modal-move');
 }
+
 async function confirmMove() {
-  const newDate  = document.getElementById('move-date').value;
+  const btn = document.getElementById('confirm-move');
+  const btnState = new ButtonState(btn);
+  
+  const newDate = document.getElementById('move-date').value;
   const newStart = document.getElementById('move-start').value;
-  const newEnd   = document.getElementById('move-end').value;
-  if (!newDate||!newStart||!newEnd) return;
-  if (toMin(newEnd)<=toMin(newStart)) { alert('End time must be after start time.'); return; }
+  const newEnd = document.getElementById('move-end').value;
+  
+  if (!newDate || !newStart || !newEnd) return;
+  if (toMin(newEnd) <= toMin(newStart)) { 
+    notify('End time must be after start time.', 'error'); 
+    return; 
+  }
+  
+  const b = S.bookings.find(x => x._key === S.moveTarget);
+  if (!b) return;
+  
+  const conflict = S.bookings.some(booking => 
+    booking._key !== S.moveTarget && 
+    booking.resource === b.resource && 
+    booking.date === newDate &&
+    toMin(booking.startTime) < toMin(newEnd) && 
+    toMin(booking.endTime) > toMin(newStart)
+  );
+  
+  if (conflict) {
+    const shouldContinue = await new Promise(resolve => {
+      showConfirm(
+        'Conflict Detected',
+        'This time slot conflicts with another booking. Move anyway?',
+        () => resolve(true)
+      );
+    });
+    if (!shouldContinue) return;
+  }
+  
+  btnState.loading('Moving...');
+  
   try {
-    await db.ref('bookings/'+S.moveTarget).update({date:newDate,startTime:newStart,endTime:newEnd});
+    await db.ref('bookings/' + S.moveTarget).update({
+      date: newDate,
+      startTime: newStart,
+      endTime: newEnd,
+      movedAt: new Date().toISOString(),
+      movedBy: S.currentUser.name
+    });
     closeModal('modal-move');
     notify('Booking moved ✓');
-  } catch(e) { alert('Failed: '+e.message); }
+  } catch(e) { 
+    notify('Failed: ' + e.message, 'error'); 
+  } finally {
+    btnState.restore();
+  }
 }
+
 function openSwapModal(key) {
-  const b = S.bookings.find(x=>x._key===key);
+  const b = S.bookings.find(x => x._key === key);
   if (!b) return;
   S.swapTarget = key;
   document.getElementById('swap-a-info').innerHTML = `
-    <div class="ic-val">${b.purpose} — ${b.date} ${b.startTime}–${b.endTime}</div>`;
-  const others = S.bookings.filter(x=>x._key!==key && x.resource===b.resource);
-  document.getElementById('swap-b-sel').innerHTML =
-    '<option value="">Select a booking…</option>' +
-    others.map(x=>`<option value="${x._key}">${x.purpose} — ${x.date} ${x.startTime}–${x.endTime}</option>`).join('');
+    <div class="ic-val">${escapeHTML(b.purpose || 'Untitled')} — ${escapeHTML(b.date)} ${escapeHTML(b.startTime)}–${escapeHTML(b.endTime)}</div>`;
+  
+  const others = S.bookings.filter(x => x._key !== key && x.resource === b.resource);
+  
+  let options = '<option value="">Select a booking to swap with…</option>';
+  if (others.length === 0) {
+    options = '<option value="" disabled>No other bookings available</option>';
+  } else {
+    options += others.map(x => 
+      `<option value="${escapeHTML(x._key)}">${escapeHTML(x.purpose || 'Untitled')} — ${escapeHTML(x.date)} ${escapeHTML(x.startTime)}–${escapeHTML(x.endTime)}</option>`
+    ).join('');
+  }
+  
+  document.getElementById('swap-b-sel').innerHTML = options;
   openModal('modal-swap');
 }
+
 async function confirmSwap() {
+  const btn = document.getElementById('confirm-swap');
+  const btnState = new ButtonState(btn);
+  
   const bKey = document.getElementById('swap-b-sel').value;
-  if (!bKey) { alert('Please select a booking to swap with.'); return; }
-  const a = S.bookings.find(x=>x._key===S.swapTarget);
-  const b = S.bookings.find(x=>x._key===bKey);
-  if (!a||!b) return;
+  if (!bKey) { 
+    notify('Please select a booking to swap with.', 'error'); 
+    return; 
+  }
+  
+  const a = S.bookings.find(x => x._key === S.swapTarget);
+  const b = S.bookings.find(x => x._key === bKey);
+  if (!a || !b) return;
+  
+  const shouldSwap = await new Promise(resolve => {
+    showConfirm(
+      'Confirm Swap',
+      `Swap "${a.purpose || 'Untitled'}" with "${b.purpose || 'Untitled'}"?`,
+      () => resolve(true)
+    );
+  });
+  
+  if (!shouldSwap) return;
+  
+  btnState.loading('Swapping...');
+  
   try {
-    await db.ref('bookings/'+S.swapTarget).update({date:b.date,startTime:b.startTime,endTime:b.endTime});
-    await db.ref('bookings/'+bKey).update({date:a.date,startTime:a.startTime,endTime:a.endTime});
+    await db.ref('bookings/' + S.swapTarget).update({
+      date: b.date,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      swappedAt: new Date().toISOString(),
+      swappedBy: S.currentUser.name
+    });
+    await db.ref('bookings/' + bKey).update({
+      date: a.date,
+      startTime: a.startTime,
+      endTime: a.endTime,
+      swappedAt: new Date().toISOString(),
+      swappedBy: S.currentUser.name
+    });
     closeModal('modal-swap');
     notify('Bookings swapped ✓');
-  } catch(e) { alert('Failed: '+e.message); }
+  } catch(e) { 
+    notify('Failed: ' + e.message, 'error'); 
+  } finally {
+    btnState.restore();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1669,8 +2299,8 @@ async function confirmSwap() {
 // ═══════════════════════════════════════════════════════════════
 function showAdminTab(tab) {
   S.adminTab = tab;
-  document.querySelectorAll('.admin-tab').forEach((t,i) => {
-    t.classList.toggle('active', ['bookings','users','admins','deptPasswords'][i]===tab);
+  document.querySelectorAll('.admin-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['bookings', 'users', 'admins', 'deptPasswords'][i] === tab);
   });
   renderAdminTab();
 }
@@ -1678,132 +2308,227 @@ function showAdminTab(tab) {
 function renderAdminTab() {
   const el = document.getElementById('admin-body');
   if (!el) return;
-  if      (S.adminTab === 'bookings')      el.innerHTML = renderAdminBookings();
-  else if (S.adminTab === 'users')         el.innerHTML = renderAdminUsers();
-  else if (S.adminTab === 'admins')        el.innerHTML = renderAdminAdmins();
-  else if (S.adminTab === 'deptPasswords') el.innerHTML = renderDeptPasswords();
+  
+  el.innerHTML = '';
+  
+  if (S.adminTab === 'bookings') renderAdminBookings(el);
+  else if (S.adminTab === 'users') renderAdminUsers(el);
+  else if (S.adminTab === 'admins') renderAdminAdmins(el);
+  else if (S.adminTab === 'deptPasswords') renderDeptPasswords(el);
 }
 
-function renderAdminBookings() {
-  const sorted = [...S.bookings].sort((a,b)=>a.date>b.date?-1:1);
-  const rows = sorted.map(b => {
-    const hasSeries = b.groupId && S.bookings.filter(x=>x.groupId===b.groupId).length > 1;
-    return `<tr>
-      <td><span class="badge ${b.resource==='boardroom'?'badge-teal':'badge-plum'}">${b.resource==='boardroom'?'Board Room':'Car'}</span></td>
-      <td>${b.date}</td>
-      <td>${b.startTime} – ${b.endTime}</td>
-      <td><strong>${b.purpose}</strong>${hasSeries?` <span style="font-size:10px;color:var(--gold);background:rgba(168,147,90,.15);padding:1px 6px;border-radius:10px;">Series</span>`:''}</td>
-      <td>${b.user||'—'}</td>
+function renderAdminBookings(el) {
+  const sorted = [...S.bookings].sort((a, b) => a.date > b.date ? -1 : 1);
+  
+  const header = document.createElement('div');
+  header.className = 'section-hdr';
+  header.innerHTML = `<h3>All Bookings (${S.bookings.length})</h3>
+    <button class="btn-book" id="admin-new-booking">＋ New Booking</button>`;
+  el.appendChild(header);
+  
+  document.getElementById('admin-new-booking').onclick = () => openBookModal(null, null);
+  
+  const table = document.createElement('div');
+  table.className = 'data-table';
+  
+  let html = '<table><thead><tr><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Booked By</th><th>Actions</th></tr></thead><tbody>';
+  
+  if (sorted.length === 0) {
+    html += '<tr><td colspan="6" style="text-align:center;color:var(--blue-grey);padding:40px;">No bookings yet</td></tr>';
+  } else {
+    sorted.forEach(b => {
+      const hasSeries = b.groupId && S.bookings.filter(x => x.groupId === b.groupId).length > 1;
+      html += `<tr>
+        <td><span class="badge ${b.resource === 'boardroom' ? 'badge-teal' : 'badge-plum'}">${b.resource === 'boardroom' ? 'Board Room' : 'Car'}</span></td>
+        <td>${escapeHTML(b.date)}</td>
+        <td>${escapeHTML(b.startTime)} – ${escapeHTML(b.endTime)}</td>
+        <td><strong>${escapeHTML(b.purpose || 'Untitled')}</strong>${hasSeries ? ` <span style="font-size:10px;color:var(--gold);background:rgba(168,147,90,.15);padding:1px 6px;border-radius:10px;">Series</span>` : ''}</td>
+        <td>${escapeHTML(b.user || '—')}</td>
+        <td><div class="action-btns">
+          <button class="btn-sm btn-move" data-booking-key="${escapeHTML(b._key)}">Move</button>
+          <button class="btn-sm btn-swap" data-booking-key="${escapeHTML(b._key)}">Swap</button>
+          <button class="btn-sm btn-del" data-booking-key="${escapeHTML(b._key)}">Del</button>
+          ${hasSeries ? `<button class="btn-sm" style="background:var(--dk-plum);color:white;" data-booking-key="${escapeHTML(b._key)}" data-series="true">Del Series</button>` : ''}
+        </div></td>
+      </tr>`;
+    });
+  }
+  
+  html += '</tbody></table>';
+  table.innerHTML = html;
+  el.appendChild(table);
+  
+  // Attach event listeners
+  table.querySelectorAll('[data-booking-key]').forEach(btn => {
+    const key = btn.dataset.bookingKey;
+    if (btn.classList.contains('btn-move')) {
+      btn.onclick = () => openMoveModal(key);
+    } else if (btn.classList.contains('btn-swap')) {
+      btn.onclick = () => openSwapModal(key);
+    } else if (btn.classList.contains('btn-del')) {
+      btn.onclick = () => deleteBooking(key, false);
+    } else if (btn.dataset.series) {
+      btn.onclick = () => deleteBooking(key, true);
+    }
+  });
+}
+
+function renderAdminUsers(el) {
+  const header = document.createElement('div');
+  header.className = 'section-hdr';
+  header.innerHTML = `<h3>Users (${S.users.length})</h3>
+    <button class="btn-book" id="admin-add-user">＋ Add User</button>`;
+  el.appendChild(header);
+  
+  document.getElementById('admin-add-user').onclick = openAddUserModal;
+  
+  const table = document.createElement('div');
+  table.className = 'data-table';
+  
+  let html = '<table><thead><tr><th>Name</th><th>Department</th><th>Type</th><th>Email</th><th>Actions</th></tr></thead><tbody>';
+  
+  S.users.forEach(u => {
+    html += `<tr>
+      <td>${escapeHTML(u.name)}</td>
+      <td>${escapeHTML(u.department || '—')}</td>
+      <td><span class="badge ${u.role === 'dept' ? 'badge-teal' : 'badge-gold'}">${u.role === 'dept' ? 'Department' : 'Individual'}</span></td>
+      <td>${escapeHTML(u.email || '—')}</td>
       <td><div class="action-btns">
-        <button class="btn-sm btn-move" onclick="openMoveModal('${b._key}')">Move</button>
-        <button class="btn-sm btn-swap" onclick="openSwapModal('${b._key}')">Swap</button>
-        <button class="btn-sm btn-del" onclick="deleteBooking('${b._key}',false)">Del</button>
-        ${hasSeries?`<button class="btn-sm" style="background:var(--dk-plum);color:white;" onclick="deleteBooking('${b._key}',true)">Del Series</button>`:''}
+        <button class="btn-sm btn-edit" data-user-key="${escapeHTML(u._key)}">Edit</button>
+        <button class="btn-sm btn-del" data-user-key="${escapeHTML(u._key)}">Delete</button>
       </div></td>
     </tr>`;
-  }).join('');
-  return `
-    <div class="section-hdr">
-      <h3>All Bookings (${S.bookings.length})</h3>
-      <button class="btn-book" onclick="openBookModal(null,null)">＋ New Booking</button>
-    </div>
-    <div class="data-table">
-      <table><thead><tr><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Booked By</th><th>Actions</th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="6" style="text-align:center;color:var(--blue-grey);padding:40px;">No bookings yet</td></tr>'}</tbody>
-      </table>
-    </div>`;
+  });
+  
+  html += '</tbody></table>';
+  table.innerHTML = html;
+  el.appendChild(table);
+  
+  table.querySelectorAll('[data-user-key]').forEach(btn => {
+    const key = btn.dataset.userKey;
+    if (btn.classList.contains('btn-edit')) {
+      btn.onclick = () => editUser(key);
+    } else if (btn.classList.contains('btn-del')) {
+      btn.onclick = () => adminDeleteUser(key, btn);
+    }
+  });
 }
 
-function renderAdminUsers() {
-  const rows = S.users.map(u => `
-    <tr>
-      <td>${u.name}</td>
-      <td>${u.department||'—'}</td>
-      <td><span class="badge ${u.role==='dept'?'badge-teal':'badge-gold'}">${u.role==='dept'?'Department':'Individual'}</span></td>
-      <td>${u.email||'—'}</td>
-      <td><div class="action-btns">
-        <button class="btn-sm btn-edit" onclick="editUser('${u._key}')">Edit</button>
-        <button class="btn-sm btn-del" onclick="adminDeleteUser('${u._key}')">Delete</button>
-      </div></td>
-    </tr>`).join('');
-  return `
-    <div class="section-hdr">
-      <h3>Users (${S.users.length})</h3>
-      <button class="btn-book" onclick="openAddUserModal()">＋ Add User</button>
-    </div>
-    <div class="data-table">
-      <table><thead><tr><th>Name</th><th>Department</th><th>Type</th><th>Email</th><th>Actions</th></tr></thead>
-      <tbody>${rows}</tbody></table>
-    </div>`;
-}
-
-function renderAdminAdmins() {
-  const rows = S.admins.map(a => `
-    <tr>
-      <td><strong>${a.name}</strong></td>
-      <td>${a.username}</td>
-      <td><div class="action-btns">
-        <button class="btn-sm btn-edit" onclick="editAdminEntry('${a._key}')">Edit</button>
-        <button class="btn-sm btn-del" onclick="adminDeleteAdmin('${a._key}')">Delete</button>
-      </div></td>
-    </tr>`).join('');
-  return `
-    <div class="section-hdr">
-      <h3>Admin Accounts (${S.admins.length})</h3>
-      <button class="btn-book" onclick="openAddAdminModal()">＋ Add Admin</button>
-    </div>
-    <div class="data-table">
-      <table><thead><tr><th>Name</th><th>Username</th><th>Actions</th></tr></thead>
-      <tbody>${rows}</tbody></table>
-    </div>`;
-}
-
-// ─── Department Passwords admin tab ──────────────────────────
-function renderDeptPasswords() {
-  const depts = [...new Set(S.users.map(u => u.department))].filter(Boolean).sort();
-  if (!depts.length) {
-    return `<div class="section-hdr"><h3>Department Passwords</h3></div>
-      <div class="empty-state"><div class="es-icon">🏢</div><p>No departments found — add users first.</p></div>`;
+function renderAdminAdmins(el) {
+  if (!S.isAdmin) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🔒</div><p>Admin access required</p></div>';
+    return;
   }
-  const cards = depts.map(dept => {
+  
+  const header = document.createElement('div');
+  header.className = 'section-hdr';
+  header.innerHTML = `<h3>Admin Accounts (${S.admins.length})</h3>
+    <button class="btn-book" id="admin-add-admin">＋ Add Admin</button>`;
+  el.appendChild(header);
+  
+  document.getElementById('admin-add-admin').onclick = openAddAdminModal;
+  
+  const table = document.createElement('div');
+  table.className = 'data-table';
+  
+  let html = '<table><thead><tr><th>Name</th><th>Username</th><th>Actions</th></tr></thead><tbody>';
+  
+  S.admins.forEach(a => {
+    html += `<tr>
+      <td><strong>${escapeHTML(a.name)}</strong></td>
+      <td>${escapeHTML(a.username)}</td>
+      <td><div class="action-btns">
+        <button class="btn-sm btn-edit" data-admin-key="${escapeHTML(a._key)}">Edit</button>
+        <button class="btn-sm btn-del" data-admin-key="${escapeHTML(a._key)}">Delete</button>
+      </div></td>
+    </tr>`;
+  });
+  
+  html += '</tbody></table>';
+  table.innerHTML = html;
+  el.appendChild(table);
+  
+  table.querySelectorAll('[data-admin-key]').forEach(btn => {
+    const key = btn.dataset.adminKey;
+    if (btn.classList.contains('btn-edit')) {
+      btn.onclick = () => editAdminEntry(key);
+    } else if (btn.classList.contains('btn-del')) {
+      btn.onclick = () => adminDeleteAdmin(key, btn);
+    }
+  });
+}
+
+function renderDeptPasswords(el) {
+  const depts = [...new Set(S.users.map(u => u.department))].filter(Boolean).sort();
+  
+  if (!depts.length) {
+    el.innerHTML = `<div class="section-hdr"><h3>Department Passwords</h3></div>
+      <div class="empty-state"><div class="es-icon">🏢</div><p>No departments found — add users first.</p></div>`;
+    return;
+  }
+  
+  const header = document.createElement('div');
+  header.className = 'section-hdr';
+  header.innerHTML = `<h3>Department Passwords (${depts.length})</h3>`;
+  el.appendChild(header);
+  
+  const helper = document.createElement('div');
+  helper.className = 'helper-text';
+  helper.textContent = 'Each department shares a single password. Users log in with their individual email address plus this shared department password. Set or update each department\'s password below — members will need to use the new password immediately.';
+  el.appendChild(helper);
+  
+  depts.forEach(dept => {
     const current = S.deptPasswords[dept] || '';
     const memberCount = S.users.filter(u => u.department === dept).length;
-    const safeId = 'deptpass-' + dept.replace(/[^a-zA-Z0-9]/g,'_');
-    return `<div class="dept-pass-card">
-      <div class="dept-pass-av">${dept.slice(0,2).toUpperCase()}</div>
+    const safeId = 'deptpass-' + dept.replace(/[^a-zA-Z0-9]/g, '_');
+    
+    const card = document.createElement('div');
+    card.className = 'dept-pass-card';
+    
+    card.innerHTML = `
+      <div class="dept-pass-av">${escapeHTML(dept.slice(0, 2).toUpperCase())}</div>
       <div class="dept-pass-info">
-        <div class="dept-pass-name">${dept}</div>
-        <div class="dept-pass-members">${memberCount} member${memberCount!==1?'s':''} · shared login password</div>
+        <div class="dept-pass-name">${escapeHTML(dept)}</div>
+        <div class="dept-pass-members">${memberCount} member${memberCount !== 1 ? 's' : ''} · shared login password</div>
       </div>
       <div class="dept-pass-fields">
-        <input class="form-input" type="text" id="${safeId}"
-          value="${current}" placeholder="Set department password…">
-        <button class="btn-sm btn-edit" style="white-space:nowrap;"
-          onclick="saveDeptPassword('${dept.replace(/'/g,"\\'")}','${dept.replace(/[^a-zA-Z0-9]/g,'_')}')">Save</button>
+        <input class="form-input" type="text" id="${safeId}" value="${escapeHTML(current)}" placeholder="Set department password…">
+        <button class="btn-sm btn-edit" style="white-space:nowrap;" data-dept="${escapeHTML(dept)}" data-safe="${safeId}">Save</button>
       </div>
-    </div>`;
-  }).join('');
-
-  return `
-    <div class="section-hdr"><h3>Department Passwords (${depts.length})</h3></div>
-    <div class="helper-text">
-      Each department shares a single password. Users log in with their individual email address plus this shared department password.
-      Set or update each department's password below — members will need to use the new password immediately.
-    </div>
-    ${cards}`;
+    `;
+    
+    el.appendChild(card);
+  });
+  
+  el.querySelectorAll('[data-dept]').forEach(btn => {
+    const dept = btn.dataset.dept;
+    const safeId = btn.dataset.safe;
+    btn.onclick = () => saveDeptPassword(dept, safeId);
+  });
 }
 
 async function saveDeptPassword(dept, safeKey) {
   const input = document.getElementById('deptpass-' + safeKey);
   const val = input ? input.value.trim() : '';
-  if (!val) { notify('Password cannot be empty.'); return; }
+  
+  if (!val) { 
+    notify('Password cannot be empty.', 'error'); 
+    return; 
+  }
+  
+  const hashed = await hashPassword(val);
+  
   try {
-    await db.ref('deptPasswords/' + dept).set(val);
+    await db.ref('deptPasswords/' + dept).set(hashed);
     notify('Password saved for ' + dept + ' ✓');
-  } catch(e) { alert('Failed: ' + e.message); }
+  } catch(e) { 
+    notify('Failed: ' + e.message, 'error'); 
+  }
 }
 
-// ─── Admin CRUD ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  ADMIN CRUD
+// ═══════════════════════════════════════════════════════════════
 function openAddUserModal() {
   document.getElementById('add-user-title').textContent = 'Add New User';
   document.getElementById('edit-user-key').value = '';
@@ -1813,36 +2538,76 @@ function openAddUserModal() {
   document.getElementById('user-role').value = 'individual';
   openModal('modal-add-user');
 }
+
 function editUser(key) {
-  const u = S.users.find(x=>x._key===key);
+  const u = S.users.find(x => x._key === key);
   if (!u) return;
+  
   document.getElementById('add-user-title').textContent = 'Edit User';
   document.getElementById('edit-user-key').value = key;
-  document.getElementById('user-name').value  = u.name;
-  document.getElementById('user-email').value = u.email||'';
-  document.getElementById('user-dept').value  = u.department||'';
-  document.getElementById('user-role').value  = u.role||'individual';
+  document.getElementById('user-name').value = u.name || '';
+  document.getElementById('user-email').value = u.email || '';
+  document.getElementById('user-dept').value = u.department || '';
+  document.getElementById('user-role').value = u.role || 'individual';
   openModal('modal-add-user');
 }
+
 async function saveUser() {
-  const key   = document.getElementById('edit-user-key').value;
-  const name  = document.getElementById('user-name').value.trim();
+  const btn = document.getElementById('save-user');
+  const btnState = new ButtonState(btn);
+  
+  const key = document.getElementById('edit-user-key').value;
+  const name = document.getElementById('user-name').value.trim();
   const email = document.getElementById('user-email').value.trim();
-  const dept  = document.getElementById('user-dept').value.trim();
-  const role  = document.getElementById('user-role').value;
-  if (!name) { alert('Name is required.'); return; }
-  const data = { name, email, department:dept, role };
-  if (key) { await db.ref('users/'+key).update(data); }
-  else { data.id = uid(); await db.ref('users').push(data); }
-  populateAttendeeDropdowns();
-  closeModal('modal-add-user');
-  notify('User saved ✓');
+  const dept = document.getElementById('user-dept').value.trim();
+  const role = document.getElementById('user-role').value;
+  
+  if (!name) { 
+    notify('Name is required.', 'error'); 
+    return; 
+  }
+  
+  btnState.loading();
+  
+  try {
+    const data = { name, email, department: dept, role };
+    if (key) {
+      await db.ref('users/' + key).update(data);
+    } else {
+      data.id = uid();
+      await db.ref('users').push(data);
+    }
+    populateAttendeeDropdowns();
+    closeModal('modal-add-user');
+    notify('User saved ✓');
+  } catch(e) { 
+    notify('Failed: ' + e.message, 'error'); 
+  } finally { 
+    btnState.restore(); 
+  }
 }
-async function adminDeleteUser(key) {
-  if (!confirm('Delete this user?')) return;
-  await db.ref('users/'+key).remove();
-  notify('User deleted ✓');
+
+async function adminDeleteUser(key, btnElement) {
+  const btn = new ButtonState(btnElement);
+  
+  showConfirm(
+    'Delete User',
+    'Delete this user?',
+    async () => {
+      btn.loading('Deleting...');
+      try {
+        await db.ref('users/' + key).remove();
+        populateAttendeeDropdowns();
+        notify('User deleted ✓');
+      } catch(e) { 
+        notify('Failed: ' + e.message, 'error'); 
+      } finally {
+        btn.restore();
+      }
+    }
+  );
 }
+
 function openAddAdminModal() {
   document.getElementById('add-admin-title').textContent = 'Add Admin User';
   document.getElementById('edit-admin-key').value = '';
@@ -1851,33 +2616,76 @@ function openAddAdminModal() {
   document.getElementById('admin-password-input').value = '';
   openModal('modal-add-admin');
 }
+
 function editAdminEntry(key) {
-  const a = S.admins.find(x=>x._key===key);
+  const a = S.admins.find(x => x._key === key);
   if (!a) return;
+  
   document.getElementById('add-admin-title').textContent = 'Edit Admin';
   document.getElementById('edit-admin-key').value = key;
-  document.getElementById('admin-name-input').value = a.name;
-  document.getElementById('admin-username-input').value = a.username;
-  document.getElementById('admin-password-input').value = a.password||'';
+  document.getElementById('admin-name-input').value = a.name || '';
+  document.getElementById('admin-username-input').value = a.username || '';
+  document.getElementById('admin-password-input').value = a.password || '';
   openModal('modal-add-admin');
 }
+
 async function saveAdmin() {
-  const key  = document.getElementById('edit-admin-key').value;
+  const btn = document.getElementById('save-admin');
+  const btnState = new ButtonState(btn);
+  
+  const key = document.getElementById('edit-admin-key').value;
   const name = document.getElementById('admin-name-input').value.trim();
-  const uname= document.getElementById('admin-username-input').value.trim();
+  const uname = document.getElementById('admin-username-input').value.trim();
   const pass = document.getElementById('admin-password-input').value.trim();
-  if (!name||!uname||!pass) { alert('All fields required.'); return; }
-  const data = {name, username:uname, password:pass};
-  if (key) { await db.ref('admins/'+key).update(data); }
-  else { await db.ref('admins').push(data); }
-  closeModal('modal-add-admin');
-  notify('Admin saved ✓');
+  
+  if (!name || !uname || !pass) { 
+    notify('All fields required.', 'error'); 
+    return; 
+  }
+  
+  const hashedPassword = await hashPassword(pass);
+  const data = { name, username: uname, password: hashedPassword };
+  
+  btnState.loading();
+  
+  try {
+    if (key) {
+      await db.ref('admins/' + key).update(data);
+    } else {
+      await db.ref('admins').push(data);
+    }
+    closeModal('modal-add-admin');
+    notify('Admin saved ✓');
+  } catch(e) { 
+    notify('Failed: ' + e.message, 'error'); 
+  } finally { 
+    btnState.restore(); 
+  }
 }
-async function adminDeleteAdmin(key) {
-  if (S.admins.length <= 1) { alert('Cannot delete the last admin account.'); return; }
-  if (!confirm('Delete this admin?')) return;
-  await db.ref('admins/'+key).remove();
-  notify('Admin deleted ✓');
+
+async function adminDeleteAdmin(key, btnElement) {
+  if (S.admins.length <= 1) { 
+    notify('Cannot delete the last admin account.', 'error'); 
+    return; 
+  }
+  
+  const btn = new ButtonState(btnElement);
+  
+  showConfirm(
+    'Delete Admin',
+    'Delete this admin?',
+    async () => {
+      btn.loading('Deleting...');
+      try {
+        await db.ref('admins/' + key).remove();
+        notify('Admin deleted ✓');
+      } catch(e) { 
+        notify('Failed: ' + e.message, 'error'); 
+      } finally {
+        btn.restore();
+      }
+    }
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1889,47 +2697,122 @@ function openModal(id) {
   el.style.display = 'flex';
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
 }
+
 function closeModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.remove('open');
   setTimeout(() => { if (!el.classList.contains('open')) el.style.display = 'none'; }, 380);
 }
-document.addEventListener('keydown', e => {
-  if (e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o => closeModal(o.id));
-});
-document.addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  btn.classList.add('btn-ripple');
-  btn.classList.remove('rippling');
-  requestAnimationFrame(() => btn.classList.add('rippling'));
-  setTimeout(() => btn.classList.remove('rippling','btn-ripple'), 550);
-});
-
-// ═══════════════════════════════════════════════════════════════
-//  NOTIFICATION
-// ═══════════════════════════════════════════════════════════════
-let notifTimer;
-function notify(msg) {
-  const el = document.getElementById('notif');
-  el.textContent = msg;
-  el.style.animation = 'none';
-  el.offsetHeight;
-  el.style.animation = 'notifIn .35s cubic-bezier(.22,.68,0,1.2) forwards';
-  el.style.display = 'block';
-  clearTimeout(notifTimer);
-  notifTimer = setTimeout(() => {
-    el.style.animation = 'notifOut .3s ease forwards';
-    setTimeout(() => { el.style.display='none'; }, 300);
-  }, 3200);
-}
 
 // ═══════════════════════════════════════════════════════════════
 //  UTILITIES
 // ═══════════════════════════════════════════════════════════════
-function initials(name) { return (name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase(); }
-function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function initials(name) { return (name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// ═══════════════════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Portal cards
+  document.querySelectorAll('[data-portal]').forEach(card => {
+    card.addEventListener('click', () => selectPortal(card.dataset.portal));
+  });
+  
+  // Back buttons
+  document.querySelectorAll('[data-screen]').forEach(btn => {
+    btn.addEventListener('click', () => showScreen(btn.dataset.screen, btn.dataset.direction));
+  });
+  
+  // Login forms
+  document.getElementById('admin-login-form').addEventListener('submit', doAdminLogin);
+  document.getElementById('user-login-form').addEventListener('submit', doUserLogin);
+  
+  // Sign out
+  document.getElementById('btn-signout').addEventListener('click', doLogout);
+  
+  // Navigation
+  document.querySelectorAll('[data-panel]').forEach(btn => {
+    btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+  });
+  
+  document.querySelectorAll('[data-resource]').forEach(btn => {
+    btn.addEventListener('click', () => switchResource(btn.dataset.resource));
+  });
+  
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+  
+  document.getElementById('btn-prev').addEventListener('click', navPrev);
+  document.getElementById('btn-next').addEventListener('click', navNext);
+  document.getElementById('btn-today').addEventListener('click', goToday);
+  
+  // Admin tabs
+  document.querySelectorAll('[data-admin-tab]').forEach(btn => {
+    btn.addEventListener('click', () => showAdminTab(btn.dataset.adminTab));
+  });
+  
+  // New booking button
+  document.getElementById('btn-new-booking').addEventListener('click', () => openBookModal(null, null));
+  
+  // Booking modal controls
+  document.getElementById('bk-res-boardroom').addEventListener('click', () => setBkResource('boardroom'));
+  document.getElementById('bk-res-car').addEventListener('click', () => setBkResource('car'));
+  document.getElementById('bk-as-self').addEventListener('click', () => setBkAs('self'));
+  document.getElementById('bk-as-dept').addEventListener('click', () => setBkAs('dept'));
+  
+  document.querySelectorAll('[data-time-dial]').forEach(btn => {
+    btn.addEventListener('click', () => adjustTime(btn.dataset.timeDial, parseInt(btn.dataset.adjust)));
+  });
+  
+  document.querySelectorAll('[data-recurrence]').forEach(btn => {
+    btn.addEventListener('click', () => setRecurrence(btn.dataset.recurrence));
+  });
+  
+  document.getElementById('add-att-user').addEventListener('click', addAttendeeFromUser);
+  document.getElementById('add-att-dept').addEventListener('click', addAttendeeFromDept);
+  
+  document.getElementById('bk-date').addEventListener('change', () => {
+    checkConflict();
+    updateRecPreview();
+  });
+  
+  document.getElementById('rec-until').addEventListener('change', updateRecPreview);
+  
+  document.getElementById('bk-submit-btn').addEventListener('click', saveBooking);
+  
+  // Move/swap confirm buttons
+  document.getElementById('confirm-move').addEventListener('click', confirmMove);
+  document.getElementById('confirm-swap').addEventListener('click', confirmSwap);
+  
+  // User/Admin save buttons
+  document.getElementById('save-user').addEventListener('click', saveUser);
+  document.getElementById('save-admin').addEventListener('click', saveAdmin);
+  
+  // Close modal buttons
+  document.querySelectorAll('[data-modal]').forEach(btn => {
+    btn.addEventListener('click', () => closeModal(btn.dataset.modal));
+  });
+  
+  // Keyboard escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.overlay.open').forEach(o => closeModal(o.id));
+    }
+  });
+  
+  // Ripple effect
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    btn.classList.add('btn-ripple');
+    btn.classList.remove('rippling');
+    requestAnimationFrame(() => btn.classList.add('rippling'));
+    setTimeout(() => btn.classList.remove('rippling', 'btn-ripple'), 550);
+  });
+});
 </script>
 </body>
 </html>
