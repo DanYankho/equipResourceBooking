@@ -16,7 +16,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <style>
 /* ═══════════════════════════════════════════════
-   TOKENS & RESET (same as before)
+   TOKENS & RESET
 ═══════════════════════════════════════════════ */
 :root {
   --navy:        #0d2136;
@@ -42,7 +42,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'Libre Franklin',sans-serif;color:var(--navy);background:var(--cream);}
-h1,h2,h3,h4,h5,.serif{font-family:'Georgia',serif;font-weight:normal;}
+h1,h2,h3,h4,.serif{font-family:'Georgia',serif;font-weight:normal;}
 button{cursor:pointer;font-family:'Libre Franklin',sans-serif;transition:all .18s ease;}
 button:active{transform:scale(.97);}
 input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);}
@@ -50,7 +50,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 ::-webkit-scrollbar-track{background:var(--lt-beige);}
 ::-webkit-scrollbar-thumb{background:var(--soft-gold);border-radius:4px;}
 
-/* ─── SCREEN MANAGEMENT + ANIMATIONS (same as before) ─── */
+/* ─── SCREEN MANAGEMENT + ANIMATIONS ─── */
 .screen{display:none;position:fixed;inset:0;z-index:100;}
 .screen.active{display:flex;}
 
@@ -100,7 +100,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 }
 .shake { animation: shake .35s ease; }
 
-/* ─── PORTAL SELECTION (same as before) ─── */
+/* ─── PORTAL SELECTION ─── */
 #portal-screen{background:linear-gradient(145deg,var(--navy) 0%,var(--dk-teal) 60%,var(--dk-plum) 100%);align-items:center;justify-content:center;flex-direction:column;overflow-y:auto;}
 .portal-deco{position:absolute;border-radius:50%;border:1px solid rgba(168,147,90,.1);}
 .portal-deco-1{width:600px;height:600px;top:-200px;right:-200px;}
@@ -136,11 +136,11 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .modal-box h2{text-align:center;color:var(--navy);font-size:26px;margin-bottom:6px;}
 .modal-box .subtitle{text-align:center;color:var(--blue-grey);font-size:13px;margin-bottom:32px;}
 
-/* ─── MAIN APP (same as before) ─── */
+/* ─── MAIN APP ─── */
 #app{display:none;flex-direction:row;height:100vh;}
 #app.active{display:flex;}
 
-/* ─── SIDEBAR (same as before) ─── */
+/* ─── SIDEBAR ─── */
 .sidebar{width:240px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid rgba(168,147,90,.18);}
 .sidebar-logo{padding:24px 18px 20px;border-bottom:1px solid rgba(168,147,90,.14);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
 .sidebar-logo-icon{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 8px 28px rgba(168,147,90,.35);}
@@ -170,10 +170,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .btn-signout{width:100%;padding:9px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--blue-grey);font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px;}
 .btn-signout:hover{background:rgba(255,255,255,.06);color:var(--soft-gold);border-color:rgba(168,147,90,.3);}
 
-/* ─── MAIN CONTENT (same as before) ─── */
+/* ─── MAIN CONTENT ─── */
 .main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
-/* ─── TOP BAR (same as before) ─── */
+/* ─── TOP BAR ─── */
 .topbar{padding:14px 28px;background:var(--white);border-bottom:1px solid var(--grey);display:flex;align-items:center;gap:16px;flex-shrink:0;flex-wrap:wrap;}
 .resource-tabs{display:flex;gap:4px;background:var(--cream);border-radius:10px;padding:4px;}
 .res-tab{padding:8px 18px;border-radius:7px;border:none;background:transparent;color:var(--blue-grey);font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;}
@@ -191,10 +191,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .btn-book{padding:9px 20px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));border:none;border-radius:9px;color:var(--navy);font-size:13px;font-weight:700;flex-shrink:0;}
 .btn-book:hover{filter:brightness(1.06);}
 
-/* ─── CALENDAR AREA (same as before) ─── */
+/* ─── CALENDAR AREA ─── */
 .calendar-wrap{flex:1;overflow:auto;padding:20px 28px;}
 
-/* ─── DAY / WEEK VIEWS (same as before) ─── */
+/* ─── DAY / WEEK VIEWS ─── */
 .time-grid{display:grid;border-radius:16px;overflow:hidden;border:1px solid var(--grey);background:var(--white);}
 .tg-header{display:grid;background:var(--navy);border-bottom:2px solid var(--gold);font-size:11px;color:var(--soft-gold);letter-spacing:1.5px;text-transform:uppercase;}
 .tg-header .th-time{padding:12px 10px;border-right:1px solid rgba(255,255,255,.08);}
@@ -215,12 +215,12 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .bk-title{color:var(--white);font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bk-meta{color:rgba(255,255,255,.75);font-size:10px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* ─── MONTH VIEW (same as before) ─── */
+/* ─── MONTH VIEW ─── */
 .month-grid{border-radius:16px;overflow:hidden;border:1px solid var(--grey);background:var(--white);}
 .month-header-row{display:grid;grid-template-columns:repeat(7,1fr);background:var(--navy);border-bottom:2px solid var(--gold);}
 .month-header-row .mhc{padding:12px 8px;text-align:center;color:var(--soft-gold);font-size:11px;letter-spacing:2px;text-transform:uppercase;}
 .month-body{display:grid;grid-template-columns:repeat(7,1fr);}
-.month-cell{min-height:110px;border-right:1px solid var(--lt-beige);border-bottom:1px solid var(--lt-beige);padding:8px 6px;cursor:pointer;transition:background .15s;}
+.month-cell{min-height:110px;border-right:1px solid var(--lt-beige);border-bottom:1px solid var(--lt-beige);padding:8px 6px;cursor:pointer;transition:background .2s ease;}
 .month-cell:hover{background:var(--cream);}
 .month-cell.other-month{background:var(--cream);opacity:.55;}
 .month-cell.today{background:rgba(168,147,90,.07);}
@@ -231,7 +231,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .mc-chip.car{background:rgba(126,33,56,.15);color:var(--plum);}
 .mc-more{font-size:10px;color:var(--blue-grey);padding-left:4px;}
 
-/* ─── YEAR VIEW (same as before) ─── */
+/* ─── YEAR VIEW ─── */
 .year-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
 .mini-cal{background:var(--white);border-radius:12px;border:1px solid var(--grey);overflow:hidden;cursor:pointer;transition:all .2s;}
 .mini-cal:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow-md);}
@@ -245,7 +245,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .mini-day.has-bk{background:rgba(0,69,81,.15);color:var(--teal);font-weight:700;}
 .mini-day.today-mini{background:var(--gold);color:var(--white);font-weight:700;}
 
-/* ─── ADMIN PANEL (same as before) ─── */
+/* ─── ADMIN PANEL ─── */
 .admin-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;}
 .admin-topbar{padding:16px 28px 0;background:var(--white);border-bottom:1px solid var(--grey);flex-shrink:0;}
 .admin-topbar h2{font-family:'Georgia',serif;color:var(--navy);font-size:22px;margin-bottom:14px;}
@@ -255,7 +255,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .admin-tab:hover{color:var(--navy);}
 .admin-body{flex:1;overflow:auto;padding:24px 28px;}
 
-/* ─── ADMIN TABLES (same as before) ─── */
+/* ─── ADMIN TABLES ─── */
 .section-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .section-hdr h3{font-family:'Georgia',serif;color:var(--navy);font-size:19px;}
 .data-table{background:var(--white);border-radius:14px;overflow:hidden;border:1px solid var(--grey);box-shadow:var(--shadow-sm);}
@@ -275,7 +275,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .btn-swap{background:var(--plum);color:var(--white);}
 .btn-del{background:var(--danger);color:var(--white);}
 
-/* ─── Dept Password cards (updated) ─── */
+/* ─── Dept Password cards ─── */
 .dept-pass-card{background:var(--white);border-radius:12px;border:1px solid var(--grey);padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow-sm);}
 .dept-pass-av{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));color:var(--navy);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .dept-pass-info{flex:1;}
@@ -285,7 +285,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .dept-pass-fields .form-input{flex:1;margin:0;}
 .dept-pass-hash{font-family:monospace;font-size:11px;color:var(--blue-grey);background:var(--cream);padding:4px 8px;border-radius:4px;}
 
-/* ─── MODALS (same as before) ─── */
+/* ─── MODALS ─── */
 .overlay{position:fixed;inset:0;background:rgba(13,33,54,.6);backdrop-filter:blur(5px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
 .overlay.open{display:flex;}
 .modal{background:var(--white);border-radius:22px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--gold);}
@@ -337,7 +337,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .modal-footer .btn-prim.plum{background:linear-gradient(135deg,var(--plum),var(--dk-plum));color:var(--white);}
 .modal-footer .btn-sec{flex:1;padding:11px;background:var(--lt-beige);border:1px solid var(--grey);border-radius:9px;color:var(--blue-grey);font-size:13px;}
 
-/* ─── BOOKING DETAIL (same as before) ─── */
+/* ─── BOOKING DETAIL ─── */
 .detail-res-hdr{border-radius:14px 14px 0 0;padding:24px;position:relative;overflow:hidden;}
 .detail-res-hdr::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);}
 .detail-res-hdr.boardroom{background:linear-gradient(135deg,var(--teal),#006375);}
@@ -345,11 +345,11 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .detail-kicker{color:rgba(255,255,255,.65);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
 .detail-title{color:var(--white);font-family:'Georgia',serif;font-size:22px;line-height:1.2;}
 
-/* ─── NOTIFICATIONS (same as before) ─── */
+/* ─── NOTIFICATIONS ─── */
 .notif{position:fixed;bottom:28px;right:28px;background:var(--navy);color:var(--white);padding:14px 22px;border-radius:12px;border-left:4px solid var(--gold);box-shadow:var(--shadow-md);font-size:13px;font-weight:600;z-index:9999;display:none;}
 .notif.error{border-left-color:var(--danger);}
 
-/* ─── FORM TIME DIAL (same as before) ─── */
+/* ─── FORM TIME DIAL ─── */
 .time-dials{display:flex;align-items:center;justify-content:center;gap:24px;background:var(--cream);padding:20px;border-radius:14px;border:1px solid var(--grey);}
 .dial{text-align:center;}
 .dial-label{font-size:10px;color:var(--blue-grey);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
@@ -359,7 +359,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .dial-btn:hover{border-color:var(--gold);background:var(--gold);color:var(--navy);}
 .dial-sep{font-size:24px;font-weight:700;color:var(--navy);margin-top:-16px;}
 
-/* ─── MISC (same as before) ─── */
+/* ─── MISC ─── */
 .empty-state{text-align:center;padding:60px 20px;color:var(--blue-grey);}
 .empty-state .es-icon{font-size:40px;margin-bottom:12px;}
 .empty-state p{font-size:14px;}
@@ -372,8 +372,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .helper-text{font-size:12px;color:var(--blue-grey);line-height:1.55;margin-bottom:20px;padding:12px 16px;background:rgba(168,147,90,.08);border-radius:9px;border-left:3px solid var(--gold);}
 .rec-preview{font-size:13px;color:var(--navy);background:rgba(168,147,90,.15);padding:8px 12px;border-radius:6px;margin-top:8px;border-left:3px solid var(--gold);}
 
-/* ─── MOBILE RESPONSIVE (new) ─── */
-@media (max-width: 768px) {
+/* ─── MOBILE RESPONSIVE ─── */
+@media (max-width: 600px) {
   #app.active {
     flex-direction: column;
   }
@@ -406,23 +406,30 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   }
   
   .sidebar-user {
-    display: none;
+    padding: 10px;
   }
   
   .sidebar-nav {
     display: flex;
     padding: 8px;
+    flex-wrap: wrap;
   }
   
   .nav-item {
     flex: 1;
     margin-bottom: 0;
     justify-content: center;
+    min-width: 80px;
   }
   
-  .sidebar-resources,
+  .sidebar-resources {
+    display: block;
+    margin: 8px;
+  }
+  
   .sidebar-bottom {
-    display: none;
+    display: block;
+    padding: 8px;
   }
   
   .topbar {
@@ -472,6 +479,29 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   .dept-pass-fields {
     width: 100%;
   }
+  
+  .year-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .year-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-box {
+    padding: 20px;
+  }
+  
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-btns {
+    flex-wrap: wrap;
+  }
 }
 </style>
 </head>
@@ -487,6 +517,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   </div>
   <div class="spinner"></div>
   <div class="loading-text" id="loading-msg">Connecting to database…</div>
+  <button id="retry-auth" style="display:none; margin-top:20px; padding:10px 20px; background:var(--gold); border:none; border-radius:8px; color:var(--navy); font-weight:bold;">Retry Connection</button>
 </div>
 
 <!-- ════════════════════════════════════
@@ -858,7 +889,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <input type="hidden" id="edit-admin-key">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="admin-name-input" placeholder="e.g. System Administrator"></div>
       <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="admin-username-input" placeholder="e.g. admin"></div>
-      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="admin-password-input" type="password" placeholder="Set a password"></div>
+      <div class="form-group">
+        <label class="form-label" id="admin-password-label">Password</label>
+        <input class="form-input" id="admin-password-input" type="password" placeholder="Set a password">
+      </div>
       <div class="modal-footer">
         <button class="btn-prim" id="save-admin">Save Admin</button>
         <button class="btn-sec" data-modal="modal-add-admin">Cancel</button>
@@ -915,11 +949,8 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
-async function hashPassword(password) {
-  const msgBuffer = new TextEncoder().encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function generateSessionToken() {
@@ -927,10 +958,50 @@ function generateSessionToken() {
     .map(b => b.toString(36).padStart(2, '0')).join('');
 }
 
-// Email validation
-function isValidEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+// PBKDF2 hash — produces "v2:saltBase64:hashBase64"
+// Pass existingSaltB64 when verifying so the same salt is reused.
+async function hashPassword(password, existingSaltB64 = null) {
+  const enc  = new TextEncoder();
+  const salt = existingSaltB64
+    ? Uint8Array.from(atob(existingSaltB64), c => c.charCodeAt(0))
+    : crypto.getRandomValues(new Uint8Array(16));
+
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 },
+    keyMaterial, 256
+  );
+
+  const hashB64 = btoa(String.fromCharCode(...new Uint8Array(bits)));
+  const saltB64 = btoa(String.fromCharCode(...salt));
+  return `v2:${saltB64}:${hashB64}`;
+}
+
+// Legacy SHA-256 — only used for migrating old hashes.
+async function legacySHA256(password) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Verify password against any stored format.
+// Returns { matched: bool, needsUpgrade: bool }
+async function verifyPassword(password, storedHash) {
+  if (!storedHash) return { matched: false, needsUpgrade: false };
+
+  if (storedHash.startsWith('v2:')) {
+    // PBKDF2 — extract salt and re-derive
+    const parts = storedHash.split(':');
+    if (parts.length !== 3) return { matched: false, needsUpgrade: false };
+    const [, saltB64] = parts;
+    const candidate   = await hashPassword(password, saltB64);
+    return { matched: candidate === storedHash, needsUpgrade: false };
+  } else {
+    // Legacy SHA-256 — verify then flag for upgrade
+    const sha = await legacySHA256(password);
+    return { matched: sha === storedHash, needsUpgrade: true };
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -992,7 +1063,7 @@ function notify(msg, type = 'success') {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  CONFIRMATION MODAL (FIXED)
+//  CONFIRMATION MODAL
 // ═══════════════════════════════════════════════════════════════
 function showConfirm(title, message, onConfirm, onCancel = null) {
   document.getElementById('confirm-title').textContent = title;
@@ -1023,17 +1094,27 @@ function showConfirm(title, message, onConfirm, onCancel = null) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BOOT SEQUENCE (FIXED)
+//  BOOT SEQUENCE
 // ═══════════════════════════════════════════════════════════════
+let authRetryCount = 0;
+const MAX_AUTH_RETRIES = 3;
+
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
+  
+  const retryBtn = document.getElementById('retry-auth');
+  retryBtn.onclick = () => {
+    retryBtn.style.display = 'none';
+    setLoadingMsg('Connecting…');
+    firebase.auth().signInAnonymously().catch(handleAuthError);
+  };
 
   firebase.auth().onAuthStateChanged(async (fbUser) => {
     if (!fbUser) {
       try { 
         await firebase.auth().signInAnonymously(); 
       } catch(e) { 
-        setLoadingMsg('⚠ Auth error: ' + e.message); 
+        handleAuthError(e);
       }
       return;
     }
@@ -1041,9 +1122,9 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
       setLoadingMsg('Loading workspace data…');
       
-      // ALWAYS load all data first - FIX #1
+      // ALWAYS load all data first
       await loadUserData();
-      await loadAdminData(); // Always load admin data, even for non-admins
+      await loadAdminData();
       
       // Check session expiry
       const saved = await loadSavedSession();
@@ -1059,9 +1140,23 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     } catch(e) {
       setLoadingMsg('⚠ Load error: ' + e.message);
+      retryBtn.style.display = 'block';
     }
   });
 });
+
+function handleAuthError(e) {
+  setLoadingMsg('⚠ Auth error: ' + e.message);
+  authRetryCount++;
+  if (authRetryCount < MAX_AUTH_RETRIES) {
+    setTimeout(() => {
+      setLoadingMsg('Retrying connection...');
+      firebase.auth().signInAnonymously().catch(handleAuthError);
+    }, 2000);
+  } else {
+    document.getElementById('retry-auth').style.display = 'block';
+  }
+}
 
 function setLoadingMsg(msg) { document.getElementById('loading-msg').textContent = msg; }
 
@@ -1077,6 +1172,7 @@ function isSessionExpired() {
   }
 }
 
+let resolved = false;
 function loadUserData() {
   return new Promise((resolve, reject) => {
     let ready = {users: false, bookings: false, deptPasswords: false};
@@ -1084,29 +1180,29 @@ function loadUserData() {
     db.ref('users').on('value', snap => {
       S.users = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
       ready.users = true;
-      if (Object.values(ready).every(Boolean)) {
-        // Trigger UI refresh after data loads
-        refreshUI();
-        resolve();
-      }
+      checkReady();
     });
     
     db.ref('bookings').on('value', snap => {
       S.bookings = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
       ready.bookings = true;
-      if (Object.values(ready).every(Boolean)) {
-        refreshUI();
-        resolve();
-      }
+      checkReady();
     });
     
     db.ref('deptPasswords').on('value', snap => {
       S.deptPasswords = snap.val() || {};
       ready.deptPasswords = true;
+      checkReady();
+      if (resolved) refreshUI();
+    });
+    
+    function checkReady() {
       if (Object.values(ready).every(Boolean)) {
+        resolved = true;
+        refreshUI();
         resolve();
       }
-    });
+    }
     
     setTimeout(() => reject(new Error('Database timed out')), 15000);
   });
@@ -1121,28 +1217,32 @@ function loadAdminData() {
   });
 }
 
-// Refresh UI after data updates - FIX for live sync
+// Refresh UI after data updates
 function refreshUI() {
   if (!S.currentUser) return;
-  
-  // Always refresh calendar if visible
+
   if (document.getElementById('panel-calendar').style.display !== 'none') {
     renderCalendar();
   }
-  
-  // Always refresh admin panel if visible and user is admin
+
   if (S.isAdmin && document.getElementById('panel-admin').style.display !== 'none') {
     renderAdminTab();
   }
-  
-  // Refresh attendee dropdowns if booking modal is open
+
+  // Only repopulate attendee dropdowns if the modal is open AND
+  // the user hasn't actively selected something in either dropdown yet.
+  // This prevents a live Firebase update from clearing a mid-selection.
   if (document.getElementById('modal-book').classList.contains('open')) {
-    populateAttendeeDropdowns();
+    const userSel = document.getElementById('att-user-sel');
+    const deptSel = document.getElementById('att-dept-sel');
+    if (!userSel.value && !deptSel.value) {
+      populateAttendeeDropdowns();
+    }
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  SEED DEFAULT DATA (FIXED - NOW CALLED)
+//  SEED DEFAULT DATA
 // ═══════════════════════════════════════════════════════════════
 async function ensureDefaultData() {
   const snap = await db.ref('meta/initialized').once('value');
@@ -1153,66 +1253,67 @@ async function ensureDefaultData() {
 
   setLoadingMsg('First run — setting up workspace…');
 
-  // Check and seed admins
-  const adminsSnap = await db.ref('admins').once('value');
-  if (!adminsSnap.exists()) {
-    console.log('Seeding admins...');
-    const hashedPassword = await hashPassword('admin123');
-    await db.ref('admins').set({
-      admin1: { username: 'admin', password: hashedPassword, name: 'System Administrator' }
-    });
-  }
-  
-  // Check and seed users
-  const usersSnap = await db.ref('users').once('value');
-  if (!usersSnap.exists()) {
-    console.log('Seeding users...');
-    await db.ref('users').set({
-      user1: { id: 'u1', name: 'Alexandra Morgan', department: 'Executive', role: 'individual', email: 'a.morgan@corp.com' },
-      user2: { id: 'u2', name: 'James Whitfield', department: 'Finance', role: 'individual', email: 'j.whitfield@corp.com' },
-      user3: { id: 'u3', name: 'Sarah Chen', department: 'Marketing', role: 'individual', email: 's.chen@corp.com' },
-      user4: { id: 'u4', name: 'David Okafor', department: 'Operations', role: 'individual', email: 'd.okafor@corp.com' },
-      user5: { id: 'u5', name: 'Priya Nair', department: 'Human Resources', role: 'individual', email: 'p.nair@corp.com' },
-      user6: { id: 'u6', name: 'Finance Dept', department: 'Finance', role: 'dept', email: 'finance@corp.com' },
-      user7: { id: 'u7', name: 'Marketing Dept', department: 'Marketing', role: 'dept', email: 'marketing@corp.com' },
-    });
-  }
-  
-  // Check and seed bookings
-  const bookingsSnap = await db.ref('bookings').once('value');
-  if (!bookingsSnap.exists()) {
-    console.log('Seeding bookings...');
-    await db.ref('bookings').set({});
-  }
-  
-  // Check and seed department passwords
-  const deptPassSnap = await db.ref('deptPasswords').once('value');
-  if (!deptPassSnap.exists()) {
-    console.log('Seeding department passwords...');
-    const hashedExec = await hashPassword('exec2024');
-    const hashedFin = await hashPassword('finance2024');
-    const hashedMkt = await hashPassword('marketing2024');
-    const hashedOps = await hashPassword('ops2024');
-    const hashedHr = await hashPassword('hr2024');
+  try {
+    // Check and seed admins
+    const adminsSnap = await db.ref('admins').once('value');
+    if (!adminsSnap.exists()) {
+      console.log('Seeding admins...');
+      const hashedPassword = await hashPassword('admin123');
+      await db.ref('admins').set({
+        admin1: { username: 'admin', password: hashedPassword, name: 'System Administrator' }
+      });
+    }
     
-    await db.ref('deptPasswords').set({
-      'Executive': hashedExec,
-      'Finance': hashedFin,
-      'Marketing': hashedMkt,
-      'Operations': hashedOps,
-      'Human Resources': hashedHr,
-    });
-  }
+    // Check and seed users
+    const usersSnap = await db.ref('users').once('value');
+    if (!usersSnap.exists()) {
+      console.log('Seeding users...');
+      await db.ref('users').set({
+        user1: { id: 'u1', name: 'Alexandra Morgan', department: 'Executive', role: 'individual', email: 'a.morgan@corp.com' },
+        user2: { id: 'u2', name: 'James Whitfield', department: 'Finance', role: 'individual', email: 'j.whitfield@corp.com' },
+        user3: { id: 'u3', name: 'Sarah Chen', department: 'Marketing', role: 'individual', email: 's.chen@corp.com' },
+        user4: { id: 'u4', name: 'David Okafor', department: 'Operations', role: 'individual', email: 'd.okafor@corp.com' },
+        user5: { id: 'u5', name: 'Priya Nair', department: 'Human Resources', role: 'individual', email: 'p.nair@corp.com' },
+        user6: { id: 'u6', name: 'Finance Dept', department: 'Finance', role: 'dept', email: 'finance@corp.com' },
+        user7: { id: 'u7', name: 'Marketing Dept', department: 'Marketing', role: 'dept', email: 'marketing@corp.com' },
+      });
+    }
+    
+    // Check and seed bookings
+    const bookingsSnap = await db.ref('bookings').once('value');
+    if (!bookingsSnap.exists()) {
+      console.log('Seeding bookings...');
+      await db.ref('bookings').set({});
+    }
+    
+    // Check and seed department passwords
+    const deptPassSnap = await db.ref('deptPasswords').once('value');
+    if (!deptPassSnap.exists()) {
+      console.log('Seeding department passwords...');
+      const hashedExec = await hashPassword('exec2024');
+      const hashedFin = await hashPassword('finance2024');
+      const hashedMkt = await hashPassword('marketing2024');
+      const hashedOps = await hashPassword('ops2024');
+      const hashedHr = await hashPassword('hr2024');
+      
+      await db.ref('deptPasswords').set({
+        'Executive': hashedExec,
+        'Finance': hashedFin,
+        'Marketing': hashedMkt,
+        'Operations': hashedOps,
+        'Human Resources': hashedHr,
+      });
+    }
 
-  await db.ref('meta/initialized').set(true);
-  console.log('Database seeded successfully');
+    await db.ref('meta/initialized').set(true);
+    console.log('Database seeded successfully');
+  } catch(e) {
+    console.warn('Seeding failed (may already be seeded):', e.message);
+  }
 }
 
-// Call ensureDefaultData after loading
-// This is triggered in the boot sequence below
-
 // ═══════════════════════════════════════════════════════════════
-//  SESSION MANAGEMENT (FIXED)
+//  SESSION MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
 const SESSION_KEY = 'equipDesk_session';
 
@@ -1299,53 +1400,83 @@ function storeCredential(id, password, name) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN LOGIN (FIXED - now works with loaded data)
+//  ADMIN LOGIN
 // ═══════════════════════════════════════════════════════════════
 async function doAdminLogin(e) {
   e.preventDefault();
-  
-  const u = document.getElementById('admin-user').value.trim();
-  const p = document.getElementById('admin-pass').value.trim();
+
+  const u     = document.getElementById('admin-user').value.trim();
+  const p     = document.getElementById('admin-pass').value.trim();
   const errEl = document.getElementById('login-error');
-  
-  // Ensure admins are loaded
+  errEl.classList.remove('visible');
+
   if (S.admins.length === 0) {
-    await loadAdminData();
+    try { await loadAdminData(); }
+    catch(err) {
+      errEl.textContent = 'Could not reach admin database. Check your connection.';
+      errEl.classList.add('visible');
+      return;
+    }
   }
-  
-  const hashedPassword = await hashPassword(p);
-  const admin = S.admins.find(a => a.username === u && a.password === hashedPassword);
-  
-  if (!admin) {
+
+  // Find matching admin, trying each password format
+  let matchedAdmin = null;
+  let needsUpgrade = false;
+
+  for (const admin of S.admins) {
+    if (admin.username !== u) continue;
+    const result = await verifyPassword(p, admin.password);
+    if (result.matched) {
+      matchedAdmin = admin;
+      needsUpgrade = result.needsUpgrade;
+      break;
+    }
+  }
+
+  if (!matchedAdmin) {
+    errEl.textContent = 'Invalid username or password.';
     errEl.classList.add('visible');
     shakeBox('admin-login-screen');
     return;
   }
 
+  // Auto-upgrade legacy SHA-256 hash to PBKDF2 silently
+  if (needsUpgrade) {
+    try {
+      const newHash = await hashPassword(p);
+      await db.ref('admins/' + matchedAdmin._key).update({ password: newHash });
+      matchedAdmin.password = newHash;
+      S.admins = S.admins.map(a => a._key === matchedAdmin._key ? { ...a, password: newHash } : a);
+    } catch(err) {
+      // Non-fatal — old hash still works for now
+      console.warn('Hash upgrade failed:', err.message);
+    }
+  }
+
   const fbUser = firebase.auth().currentUser;
   await db.ref(`activeSessions/${fbUser.uid}`).set({
-    isAdmin: true,
-    username: u,
-    loginTime: Date.now(),
+    isAdmin:      true,
+    username:     u,
+    loginTime:    Date.now(),
     sessionToken: generateSessionToken()
   });
 
-  storeCredential(u, p, admin.name || 'Admin');
-  S.currentUser = {...admin, type:'admin'};
-  S.isAdmin = true;
+  storeCredential(u, p, matchedAdmin.name || 'Admin');
+  S.currentUser = { ...matchedAdmin, type: 'admin' };
+  S.isAdmin     = true;
   saveSession(S.currentUser, true);
   initApp();
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LOGIN (FIXED - email validation)
+//  USER LOGIN
 // ═══════════════════════════════════════════════════════════════
 async function doUserLogin(e) {
   e.preventDefault();
-  
-  const email   = document.getElementById('user-email-input').value.trim().toLowerCase();
-  const pass    = document.getElementById('user-dept-pass-input').value.trim();
-  const errEl   = document.getElementById('user-login-error');
+
+  const email  = document.getElementById('user-email-input').value.trim().toLowerCase();
+  const pass   = document.getElementById('user-dept-pass-input').value.trim();
+  const errEl  = document.getElementById('user-login-error');
   errEl.classList.remove('visible');
 
   if (!email || !pass) {
@@ -1353,7 +1484,7 @@ async function doUserLogin(e) {
     errEl.classList.add('visible');
     return;
   }
-  
+
   if (!isValidEmail(email)) {
     errEl.textContent = 'Please enter a valid email address.';
     errEl.classList.add('visible');
@@ -1368,25 +1499,38 @@ async function doUserLogin(e) {
     return;
   }
 
-  const dept = user.department || '';
+  const dept            = user.department || '';
   const correctPassHash = S.deptPasswords[dept];
+
   if (!correctPassHash) {
-    errEl.textContent = 'Your department does not have a password set yet. Contact your admin.';
+    errEl.textContent = 'Your department does not have a password set. Contact your admin.';
     errEl.classList.add('visible');
     return;
   }
-  
-  const inputHash = await hashPassword(pass);
-  if (inputHash !== correctPassHash) {
+
+  const { matched, needsUpgrade } = await verifyPassword(pass, correctPassHash);
+
+  if (!matched) {
     errEl.textContent = 'Incorrect department password. Please try again.';
     errEl.classList.add('visible');
     shakeBox('user-login-screen');
     return;
   }
 
+  // Auto-upgrade legacy SHA-256 hash to PBKDF2 silently
+  if (needsUpgrade) {
+    try {
+      const newHash = await hashPassword(pass);
+      await db.ref('deptPasswords/' + dept).set(newHash);
+      S.deptPasswords[dept] = newHash;
+    } catch(err) {
+      console.warn('Dept hash upgrade failed:', err.message);
+    }
+  }
+
   storeCredential(email, pass, user.name);
-  S.currentUser = {...user, type:'user'};
-  S.isAdmin = false;
+  S.currentUser = { ...user, type: 'user' };
+  S.isAdmin     = false;
   saveSession(S.currentUser, false);
   initApp();
 }
@@ -1426,13 +1570,23 @@ function initApp() {
 }
 
 function doLogout() {
+  // Clear local state immediately
   clearSession();
   S.currentUser = null;
   S.isAdmin = false;
+  
+  // Redirect immediately
   document.getElementById('app').classList.remove('active');
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('sb-avatar').classList.remove('admin-av');
   showScreen('portal-screen', 'back');
+  
+  // Clean up server-side in background
+  const fbUser = firebase.auth().currentUser;
+  if (fbUser) {
+    db.ref(`activeSessions/${fbUser.uid}`).remove()
+      .catch(e => console.warn('Session cleanup failed:', e.message));
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1459,7 +1613,7 @@ function switchPanel(panel) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  RESOURCE / VIEW / NAV (same as before)
+//  RESOURCE / VIEW / NAV
 // ═══════════════════════════════════════════════════════════════
 function switchResource(r) {
   S.resource = r;
@@ -1503,7 +1657,7 @@ function goToday() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  CALENDAR RENDERING (same as before)
+//  CALENDAR RENDERING
 // ═══════════════════════════════════════════════════════════════
 const DAYS_SHORT  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1858,7 +2012,7 @@ function renderYearView(wrap, bks) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BOOKING MODAL (FIXED)
+//  BOOKING MODAL
 // ═══════════════════════════════════════════════════════════════
 function openBookModal(prefillDate, prefillTime, editBookingKey = null) {
   S.editingBooking = editBookingKey;
@@ -2029,6 +2183,7 @@ function checkConflict() {
   const et = fromMin(S.bkEndMin);
   const conflict = S.bookings.some(b =>
     b.resource === S.bkResource && b.date === date &&
+    b._key !== S.editingBooking && // Exclude current booking when editing
     toMin(b.startTime) < toMin(et) && toMin(b.endTime) > toMin(st)
   );
   document.getElementById('bk-conflict').classList.toggle('visible', conflict);
@@ -2138,7 +2293,7 @@ async function saveBooking() {
   
   btnState.loading('Saving...');
   
-  const groupId = dates.length > 1 ? uid() : null;
+  const groupId = dates.length > 1 ? crypto.randomUUID() : null;
   try {
     for (const d of dates) {
       await db.ref('bookings').push({
@@ -2325,7 +2480,7 @@ async function deleteBooking(key, deleteSeries) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  MOVE / SWAP (FIXED)
+//  MOVE / SWAP
 // ═══════════════════════════════════════════════════════════════
 function openMoveModal(key) {
   const b = S.bookings.find(x => x._key === key);
@@ -2478,7 +2633,7 @@ async function confirmSwap() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN PANEL (FIXED - dept password display)
+//  ADMIN PANEL
 // ═══════════════════════════════════════════════════════════════
 function showAdminTab(tab) {
   S.adminTab = tab;
@@ -2676,7 +2831,7 @@ function renderDeptPasswords(el) {
       </div>
       <div class="dept-pass-fields">
         <input class="form-input" type="password" id="${safeId}" placeholder="Enter new password..." value="">
-        <div class="dept-pass-hash">Current hash: ${current ? current.substring(0, 8) + '...' : 'not set'}</div>
+        <div class="dept-pass-hash">Current hash: ${current ? (current.startsWith('v2:') ? 'PBKDF2' : current.substring(0, 8) + '...') : 'not set'}</div>
         <button class="btn-sm btn-edit" style="white-space:nowrap;" data-dept="${escapeHTML(dept)}" data-safe="${safeId}">Save</button>
       </div>
     `;
@@ -2692,7 +2847,6 @@ function renderDeptPasswords(el) {
 }
 
 async function saveDeptPassword(dept, safeKey) {
-  // FIXED: Don't double-prefix the ID
   const input = document.getElementById(safeKey);
   const val = input ? input.value.trim() : '';
   
@@ -2714,7 +2868,7 @@ async function saveDeptPassword(dept, safeKey) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN CRUD (same as before)
+//  ADMIN CRUD
 // ═══════════════════════════════════════════════════════════════
 function openAddUserModal() {
   document.getElementById('add-user-title').textContent = 'Add New User';
@@ -2803,56 +2957,63 @@ async function adminDeleteUser(key, btnElement) {
 
 function openAddAdminModal() {
   document.getElementById('add-admin-title').textContent = 'Add Admin User';
-  document.getElementById('edit-admin-key').value = '';
-  document.getElementById('admin-name-input').value = '';
-  document.getElementById('admin-username-input').value = '';
-  document.getElementById('admin-password-input').value = '';
+  document.getElementById('admin-password-label').textContent = 'Password';
+  document.getElementById('admin-password-input').placeholder = 'Set a password';
+  ['edit-admin-key','admin-name-input','admin-username-input','admin-password-input']
+    .forEach(id => document.getElementById(id).value = '');
   openModal('modal-add-admin');
 }
 
 function editAdminEntry(key) {
   const a = S.admins.find(x => x._key === key);
   if (!a) return;
-  
   document.getElementById('add-admin-title').textContent = 'Edit Admin';
-  document.getElementById('edit-admin-key').value = key;
-  document.getElementById('admin-name-input').value = a.name || '';
-  document.getElementById('admin-username-input').value = a.username || '';
-  document.getElementById('admin-password-input').value = a.password || '';
+  document.getElementById('admin-password-label').textContent = 'New Password (leave blank to keep current)';
+  document.getElementById('admin-password-input').placeholder = 'Leave blank to keep current password';
+  document.getElementById('edit-admin-key').value           = key;
+  document.getElementById('admin-name-input').value         = a.name     || '';
+  document.getElementById('admin-username-input').value     = a.username || '';
+  document.getElementById('admin-password-input').value     = '';
   openModal('modal-add-admin');
 }
 
 async function saveAdmin() {
-  const btn = document.getElementById('save-admin');
+  const btn      = document.getElementById('save-admin');
   const btnState = new ButtonState(btn);
-  
-  const key = document.getElementById('edit-admin-key').value;
-  const name = document.getElementById('admin-name-input').value.trim();
+
+  const key   = document.getElementById('edit-admin-key').value;
+  const name  = document.getElementById('admin-name-input').value.trim();
   const uname = document.getElementById('admin-username-input').value.trim();
-  const pass = document.getElementById('admin-password-input').value.trim();
-  
-  if (!name || !uname || !pass) { 
-    notify('All fields required.', 'error'); 
-    return; 
+  const pass  = document.getElementById('admin-password-input').value.trim();
+
+  if (!name || !uname) {
+    notify('Name and username are required.', 'error');
+    return;
   }
-  
-  const hashedPassword = await hashPassword(pass);
-  const data = { name, username: uname, password: hashedPassword };
-  
+
+  // Password required only when creating a new admin
+  if (!key && !pass) {
+    notify('Password is required for new admins.', 'error');
+    return;
+  }
+
+  const data = { name, username: uname };
+
+  // Only hash and update password if a new one was provided
+  if (pass) {
+    data.password = await hashPassword(pass);
+  }
+
   btnState.loading();
-  
   try {
-    if (key) {
-      await db.ref('admins/' + key).update(data);
-    } else {
-      await db.ref('admins').push(data);
-    }
+    if (key) await db.ref('admins/' + key).update(data);
+    else     await db.ref('admins').push(data);
     closeModal('modal-add-admin');
     notify('Admin saved ✓');
-  } catch(e) { 
-    notify('Failed: ' + e.message, 'error'); 
-  } finally { 
-    btnState.restore(); 
+  } catch(e) {
+    notify('Failed: ' + e.message, 'error');
+  } finally {
+    btnState.restore();
   }
 }
 
@@ -2906,7 +3067,7 @@ function initials(name) { return (name || '?').split(' ').map(n => n[0]).join(''
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
 // ═══════════════════════════════════════════════════════════════
-//  EVENT LISTENERS (same as before)
+//  EVENT LISTENERS
 // ═══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   // Call ensureDefaultData after Firebase is ready
