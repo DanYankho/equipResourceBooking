@@ -1392,6 +1392,15 @@ function initApp() {
 
 // FIX 6c: Clears server-side session immediately, then cleans up async
 async function doLogout() {
+  // Remove the server-side session FIRST and wait for it to complete.
+  // This must be blocking — if we redirect before the remove finishes,
+  // a fast re-login attempt finds isAdmin:true still in activeSessions
+  // and the next write is denied by the Firebase rules.
+  try {
+    const fbUser = firebase.auth().currentUser;
+    if (fbUser) await db.ref(`activeSessions/${fbUser.uid}`).remove();
+  } catch(e) { console.warn('Session cleanup failed:', e.message); }
+
   clearSession();
   S.currentUser = null;
   S.isAdmin     = false;
@@ -1400,12 +1409,6 @@ async function doLogout() {
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('sb-avatar').classList.remove('admin-av');
   showScreen('portal-screen', 'back');
-
-  // Non-blocking server-side cleanup
-  try {
-    const fbUser = firebase.auth().currentUser;
-    if (fbUser) await db.ref(`activeSessions/${fbUser.uid}`).remove();
-  } catch(e) { console.warn('Session cleanup failed:', e.message); }
 }
 
 // ═══════════════════════════════════════════════════════════════
