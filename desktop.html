@@ -39,7 +39,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'Libre Franklin',sans-serif;color:var(--navy);background:var(--cream);}
-h1,h2,h3,h4,.serif{font-family:'Georgia',serif;font-weight:normal;}
+h1,h2,h3,h4,h5,.serif{font-family:'Georgia',serif;font-weight:normal;}
 button{cursor:pointer;font-family:'Libre Franklin',sans-serif;transition:all .18s ease;}
 button:active{transform:scale(.97);}
 input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);}
@@ -75,6 +75,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .panel-fade{animation:panelFade 0.4s cubic-bezier(.22,.68,0,1.1);}
 @keyframes panelFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
+/* FIX 3 — shake animation typo corrected */
 @keyframes shake{
   0%,100%{transform:translateX(0)}
   20%{transform:translateX(-10px)}
@@ -116,66 +117,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .modal-logo{display:flex;justify-content:center;margin-bottom:24px;}
 .modal-box h2{text-align:center;color:var(--navy);font-size:26px;margin-bottom:6px;}
 .modal-box .subtitle{text-align:center;color:var(--blue-grey);font-size:13px;margin-bottom:32px;}
-
-/* ─── SAVED ACCOUNTS PANEL ─── */
-.saved-accounts-panel {
-  background: var(--cream);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 24px;
-  border: 1px solid var(--grey);
-  display: none;
-}
-.saved-accounts-label {
-  font-size: 10px;
-  color: var(--blue-grey);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-.saved-account-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.saved-account-btn {
-  padding: 8px 14px;
-  background: var(--white);
-  border: 1px solid var(--gold);
-  border-radius: 20px;
-  font-size: 12px;
-  color: var(--navy);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all .15s ease;
-}
-.saved-account-btn:hover {
-  background: var(--gold);
-  color: var(--white);
-  transform: translateY(-1px);
-}
-.saved-account-btn .icon {
-  font-size: 14px;
-}
-.remember-me-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 16px 0 20px;
-}
-.remember-me-row input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--gold);
-  cursor: pointer;
-}
-.remember-me-row label {
-  font-size: 13px;
-  color: var(--navy);
-  cursor: pointer;
-}
 
 /* ─── MAIN APP ─── */
 #app{display:none;flex-direction:row;height:100vh;}
@@ -407,7 +348,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .helper-text{font-size:12px;color:var(--blue-grey);line-height:1.55;margin-bottom:20px;padding:12px 16px;background:rgba(168,147,90,.08);border-radius:9px;border-left:3px solid var(--gold);}
 .rec-preview{font-size:13px;color:var(--navy);background:rgba(168,147,90,.15);padding:8px 12px;border-radius:6px;margin-top:8px;border-left:3px solid var(--gold);}
 
-/* ─── TABLET / PC BREAKPOINT ─── */
+/* ─── TABLET / PC BREAKPOINT (FIX 3 — was 768px) ─── */
 @media (max-width: 600px) {
   #app.active{flex-direction:column;}
   .sidebar{width:100%;height:auto;max-height:200px;overflow-y:auto;}
@@ -489,13 +430,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     </div>
     <h2>Admin Login</h2>
     <p class="subtitle">Enter your credentials to access the admin portal</p>
-    
-    <!-- SAVED ACCOUNTS PANEL - ADMIN -->
-    <div class="saved-accounts-panel" id="admin-saved-accounts">
-      <div class="saved-accounts-label">🔐 Saved Admin Accounts</div>
-      <div class="saved-account-list" id="admin-saved-list"></div>
-    </div>
-    
     <div class="error-msg" id="login-error">Invalid username or password.</div>
     <form id="admin-login-form" autocomplete="on">
       <div class="form-group">
@@ -505,10 +439,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <div class="form-group">
         <label class="form-label">Password</label>
         <input class="form-input" id="admin-pass" name="password" type="password" placeholder="Enter password" autocomplete="current-password">
-      </div>
-      <div class="remember-me-row">
-        <input type="checkbox" id="admin-remember-me" checked>
-        <label for="admin-remember-me">Remember my username</label>
       </div>
       <button class="btn-book" type="submit" style="width:100%;padding:13px;">Login to Admin Portal</button>
     </form>
@@ -526,13 +456,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     </div>
     <h2>User Login</h2>
     <p class="subtitle">Sign in with your email and department password</p>
-    
-    <!-- SAVED ACCOUNTS PANEL - USER -->
-    <div class="saved-accounts-panel" id="user-saved-accounts">
-      <div class="saved-accounts-label">👤 Saved User Accounts</div>
-      <div class="saved-account-list" id="user-saved-list"></div>
-    </div>
-    
     <div class="error-msg" id="user-login-error">Incorrect email or department password.</div>
     <form id="user-login-form" autocomplete="on">
       <div class="form-group">
@@ -542,10 +465,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <div class="form-group">
         <label class="form-label">Department Password</label>
         <input class="form-input" id="user-dept-pass-input" name="password" type="password" placeholder="Enter your department password" autocomplete="current-password">
-      </div>
-      <div class="remember-me-row">
-        <input type="checkbox" id="user-remember-me" checked>
-        <label for="user-remember-me">Remember my email</label>
       </div>
       <p style="font-size:12px;color:var(--blue-grey);margin-bottom:20px;line-height:1.55;">Your department password is shared with all members of your department. Contact your admin if you don't have it.</p>
       <button class="btn-book" type="submit" style="width:100%;padding:13px;">Sign In</button>
@@ -817,6 +736,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <input type="hidden" id="edit-admin-key">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="admin-name-input" placeholder="e.g. System Administrator"></div>
       <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="admin-username-input" placeholder="e.g. admin"></div>
+      <!-- FIX 4: label is updated dynamically for add vs edit -->
       <div class="form-group">
         <label class="form-label" id="admin-password-label">Password</label>
         <input class="form-input" id="admin-password-input" type="password" placeholder="Set a password">
@@ -865,7 +785,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ═══════════════════════════════════════════════════════════════
-//  SECURITY UTILITIES
+//  SECURITY UTILITIES — FIX 2: PBKDF2 replacing bare SHA-256
 // ═══════════════════════════════════════════════════════════════
 function escapeHTML(str) {
   if (!str) return '';
@@ -884,6 +804,7 @@ function generateSessionToken() {
 }
 
 // Produces "v2:saltBase64:hashBase64"
+// Pass existingSaltB64 when verifying so the same salt is reused.
 async function hashPassword(password, existingSaltB64 = null) {
   const enc  = new TextEncoder();
   const salt = existingSaltB64
@@ -902,17 +823,23 @@ async function hashPassword(password, existingSaltB64 = null) {
   return `v2:${saltB64}:${hashB64}`;
 }
 
-// Legacy SHA-256
+// Legacy SHA-256 — only used internally for migrating old hashes
 async function legacySHA256(password) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-// Verify against any stored format
+// Verify against any stored format.
+// Returns { matched: bool, needsUpgrade: bool }
+// Handles three stored formats:
+//   v2:salt:hash  — PBKDF2 (current)
+//   64-char hex   — legacy SHA-256
+//   plain text    — incorrectly seeded (auto-upgrades on login)
 async function verifyPassword(password, storedHash) {
   if (!storedHash) return { matched: false, needsUpgrade: false };
 
   if (storedHash.startsWith('v2:')) {
+    // Current PBKDF2 format
     const parts = storedHash.split(':');
     if (parts.length !== 3) return { matched: false, needsUpgrade: false };
     const [, saltB64] = parts;
@@ -920,10 +847,13 @@ async function verifyPassword(password, storedHash) {
     return { matched: candidate === storedHash, needsUpgrade: false };
 
   } else if (/^[0-9a-f]{64}$/.test(storedHash)) {
+    // Legacy SHA-256 hex — verify then flag for upgrade
     const sha = await legacySHA256(password);
     return { matched: sha === storedHash, needsUpgrade: true };
 
   } else {
+    // Plain text — seeded without hashing (should never happen after fix)
+    // Accept it once and force immediate upgrade
     return { matched: password === storedHash, needsUpgrade: true };
   }
 }
@@ -995,6 +925,10 @@ function showConfirm(title, message, onConfirm, onCancel = null) {
 
 // ═══════════════════════════════════════════════════════════════
 //  BOOT SEQUENCE
+//  ensureDefaultData inside onAuthStateChanged — auth guaranteed
+//  ready. Each collection checked independently so no single flag
+//  can mask a partially-failed seed.
+//  admins collection readable by all auth users so login can verify credentials
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
@@ -1008,13 +942,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
     try {
       setLoadingMsg('Setting up workspace…');
+
+      // Step 1: Seed defaults — auth is ready, rules allow !data.exists() writes
       await ensureDefaultData();
+
       setLoadingMsg('Loading data…');
+
+      // Step 2: Always load user-facing data
       await loadUserData();
-      
+
+      // Step 3: Load admin data for everyone — admins collection is
+      // readable by any authenticated user (passwords are PBKDF2-hashed).
+      // This is required so the login form can verify credentials before
+      // an active admin session exists (chicken-and-egg otherwise).
       try { await loadAdminData(); }
       catch(e) { console.warn('Could not load admin data:', e.message); }
 
+      // Step 4: Restore saved session — data guaranteed populated by now
       const saved = await loadSavedSession();
       if (saved && !isSessionExpired()) {
         S.currentUser = saved.user;
@@ -1025,10 +969,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if (saved) clearSession();
         document.getElementById('sb-live').style.display = 'flex';
         showScreen('portal-screen');
-        // Check for saved credentials after showing portal
-        setTimeout(() => {
-          checkSavedCredentials();
-        }, 500);
       }
     } catch(e) {
       setLoadingMsg('⚠ Load error: ' + e.message);
@@ -1049,111 +989,23 @@ function isSessionExpired() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  SAVED CREDENTIALS MANAGEMENT (REMEMBER ME)
-// ═══════════════════════════════════════════════════════════════
-function checkSavedCredentials() {
-  // Check for saved user emails
-  const savedUsers = JSON.parse(localStorage.getItem('saved_users') || '[]');
-  const userList = document.getElementById('user-saved-list');
-  const userPanel = document.getElementById('user-saved-accounts');
-  
-  if (savedUsers.length > 0) {
-    userList.innerHTML = savedUsers.map(email => 
-      `<button class="saved-account-btn" data-type="user" data-identifier="${escapeHTML(email)}">
-        <span class="icon">👤</span> ${escapeHTML(email)}
-      </button>`
-    ).join('');
-    userPanel.style.display = 'block';
-  } else {
-    userPanel.style.display = 'none';
-  }
-
-  // Check for saved admin usernames
-  const savedAdmins = JSON.parse(localStorage.getItem('saved_admins') || '[]');
-  const adminList = document.getElementById('admin-saved-list');
-  const adminPanel = document.getElementById('admin-saved-accounts');
-  
-  if (savedAdmins.length > 0) {
-    adminList.innerHTML = savedAdmins.map(username => 
-      `<button class="saved-account-btn" data-type="admin" data-identifier="${escapeHTML(username)}">
-        <span class="icon">🔐</span> ${escapeHTML(username)}
-      </button>`
-    ).join('');
-    adminPanel.style.display = 'block';
-  } else {
-    adminPanel.style.display = 'none';
-  }
-
-  // Add click handlers for saved account buttons
-  document.querySelectorAll('.saved-account-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const type = btn.dataset.type;
-      const identifier = btn.dataset.identifier;
-      
-      if (type === 'user') {
-        document.getElementById('user-email-input').value = identifier;
-        document.getElementById('user-dept-pass-input').focus();
-      } else {
-        document.getElementById('admin-user').value = identifier;
-        document.getElementById('admin-pass').focus();
-      }
-    });
-  });
-}
-
-function saveUserCredentials(email, remember) {
-  if (!remember) return;
-  
-  try {
-    const savedUsers = JSON.parse(localStorage.getItem('saved_users') || '[]');
-    if (!savedUsers.includes(email)) {
-      savedUsers.push(email);
-      // Keep only last 5 for cleanliness
-      if (savedUsers.length > 5) savedUsers.shift();
-      localStorage.setItem('saved_users', JSON.stringify(savedUsers));
-    }
-  } catch(e) {
-    console.warn('Failed to save user credentials:', e);
-  }
-}
-
-function saveAdminCredentials(username, remember) {
-  if (!remember) return;
-  
-  try {
-    const savedAdmins = JSON.parse(localStorage.getItem('saved_admins') || '[]');
-    if (!savedAdmins.includes(username)) {
-      savedAdmins.push(username);
-      if (savedAdmins.length > 5) savedAdmins.shift();
-      localStorage.setItem('saved_admins', JSON.stringify(savedAdmins));
-    }
-  } catch(e) {
-    console.warn('Failed to save admin credentials:', e);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
 //  LOAD USER DATA
+//  Race condition fixed: resolved flag ensures Promise only
+//  resolves once ALL three collections have returned their
+//  first snapshot.
 // ═══════════════════════════════════════════════════════════════
 function loadUserData() {
   return new Promise((resolve, reject) => {
     const ready = { users: false, bookings: false, deptPasswords: false };
     let resolved = false;
-    let deptPasswordsAttempted = false;
 
     function checkReady() {
       if (resolved) return;
-      if (Object.values(ready).every(Boolean)) { 
-        resolved = true; 
-        console.log('All user data loaded successfully');
-        resolve(); 
-      }
+      if (Object.values(ready).every(Boolean)) { resolved = true; resolve(); }
     }
 
-    // Users
     db.ref('users').on('value', snap => {
       S.users = Object.entries(snap.val() || {}).map(([k,v]) => ({ ...v, _key: k }));
-      console.log('Users loaded:', S.users.length);
       ready.users = true;
       checkReady();
       if (resolved) refreshUI();
@@ -1163,10 +1015,8 @@ function loadUserData() {
       checkReady();
     });
 
-    // Bookings
     db.ref('bookings').on('value', snap => {
       S.bookings = Object.entries(snap.val() || {}).map(([k,v]) => ({ ...v, _key: k }));
-      console.log('Bookings loaded:', S.bookings.length);
       ready.bookings = true;
       checkReady();
       if (resolved) refreshUI();
@@ -1176,68 +1026,22 @@ function loadUserData() {
       checkReady();
     });
 
-    // Department Passwords
-    const loadDeptPasswords = () => {
-      db.ref('deptPasswords').once('value').then(snap => {
-        S.deptPasswords = snap.val() || {};
-        console.log('Department passwords loaded:', Object.keys(S.deptPasswords));
-        ready.deptPasswords = true;
-        checkReady();
-        if (resolved) refreshUI();
-      }).catch(err => {
-        console.warn('deptPasswords load failed:', err.message);
-        
-        if (!deptPasswordsAttempted) {
-          deptPasswordsAttempted = true;
-          console.log('Retrying deptPasswords load with different method...');
-          
-          const timeout = setTimeout(() => {
-            if (!ready.deptPasswords) {
-              console.warn('deptPasswords timeout - using empty object');
-              S.deptPasswords = {};
-              ready.deptPasswords = true;
-              checkReady();
-            }
-          }, 3000);
-
-          db.ref('deptPasswords').on('value', snap => {
-            clearTimeout(timeout);
-            S.deptPasswords = snap.val() || {};
-            console.log('DeptPasswords loaded on retry:', Object.keys(S.deptPasswords));
-            ready.deptPasswords = true;
-            checkReady();
-            if (resolved) refreshUI();
-          }, err2 => {
-            clearTimeout(timeout);
-            console.error('deptPasswords retry failed:', err2.message);
-            S.deptPasswords = {};
-            ready.deptPasswords = true;
-            checkReady();
-          });
-        } else {
-          S.deptPasswords = {};
-          ready.deptPasswords = true;
-          checkReady();
-        }
-      });
-    };
-
-    loadDeptPasswords();
+    // deptPasswords is admin-only in Firebase rules.
+    // Non-admins get a permission error — handled gracefully here so boot never hangs.
+    db.ref('deptPasswords').on('value', snap => {
+      S.deptPasswords = snap.val() || {};
+      ready.deptPasswords = true;
+      checkReady();
+      if (resolved) refreshUI();
+    }, err => {
+      console.warn('deptPasswords blocked (expected for non-admins):', err.message);
+      S.deptPasswords = {};
+      ready.deptPasswords = true;
+      checkReady();
+    });
 
     setTimeout(() => {
-      if (!resolved) {
-        console.warn('Loading timeout - forcing ready state');
-        if (ready.users && ready.bookings) {
-          if (!ready.deptPasswords) {
-            console.warn('DeptPasswords not loaded - using empty object');
-            S.deptPasswords = {};
-            ready.deptPasswords = true;
-          }
-          checkReady();
-        } else {
-          reject(new Error('Database timed out after 15 seconds'));
-        }
-      }
+      if (!resolved) reject(new Error('Database timed out after 15 seconds'));
     }, 15000);
   });
 }
@@ -1246,12 +1050,12 @@ function loadAdminData() {
   return new Promise((resolve, reject) => {
     db.ref('admins').on('value', snap => {
       S.admins = Object.entries(snap.val() || {}).map(([k,v]) => ({ ...v, _key: k }));
-      console.log('Admins loaded:', S.admins.length);
       resolve();
     }, err => reject(err));
   });
 }
 
+// FIX 5: refreshUI guards attendee dropdowns from clearing mid-selection
 function refreshUI() {
   if (!S.currentUser) return;
 
@@ -1262,10 +1066,12 @@ function refreshUI() {
     renderAdminTab();
   }
 
+  // Only repopulate attendee dropdowns if the modal is open AND
+  // neither dropdown has an active mid-selection value
   if (document.getElementById('modal-book').classList.contains('open')) {
     const userSel = document.getElementById('att-user-sel');
     const deptSel = document.getElementById('att-dept-sel');
-    if (userSel && deptSel && !userSel.value && !deptSel.value) {
+    if (!userSel.value && !deptSel.value) {
       populateAttendeeDropdowns();
     }
   }
@@ -1273,9 +1079,16 @@ function refreshUI() {
 
 // ═══════════════════════════════════════════════════════════════
 //  SEED DEFAULT DATA
+//  FIX 1: Called inside onAuthStateChanged. Firebase rules allow
+//  writes when !data.exists(), so this works on first deployment
+//  without needing a pre-existing admin session.
 // ═══════════════════════════════════════════════════════════════
 async function ensureDefaultData() {
-  // Admins
+  // Check each collection independently — never rely on a single "initialized"
+  // flag, which can be set even if individual writes failed due to rule changes
+  // or network errors during a previous run.
+
+  // Admins — seed only if collection is missing or empty
   let adminsSnap = null;
   try { adminsSnap = await db.ref('admins').once('value'); } catch(e) { adminsSnap = null; }
   if (!adminsSnap || !adminsSnap.exists()) {
@@ -1288,7 +1101,7 @@ async function ensureDefaultData() {
     } catch(e) { console.warn('Admin seed failed:', e.message); }
   }
 
-  // Users
+  // Users — seed only if collection is missing or empty
   let usersSnap = null;
   try { usersSnap = await db.ref('users').once('value'); } catch(e) { usersSnap = null; }
   if (!usersSnap || !usersSnap.exists()) {
@@ -1306,14 +1119,14 @@ async function ensureDefaultData() {
     } catch(e) { console.warn('Users seed failed:', e.message); }
   }
 
-  // Bookings
+  // Bookings — seed empty node if missing
   let bookingsSnap = null;
   try { bookingsSnap = await db.ref('bookings').once('value'); } catch(e) { bookingsSnap = null; }
   if (!bookingsSnap || !bookingsSnap.exists()) {
     try { await db.ref('bookings').set({}); } catch(e) { console.warn('Bookings seed failed:', e.message); }
   }
 
-  // Dept passwords
+  // Dept passwords — seed only if collection is missing or empty
   let dpSnap = null;
   try { dpSnap = await db.ref('deptPasswords').once('value'); } catch(e) { dpSnap = null; }
   if (!dpSnap || !dpSnap.exists()) {
@@ -1349,6 +1162,7 @@ function clearSession() {
   } catch(e) {}
 }
 
+// Retry logic: polls until data is available (max 5 seconds)
 async function loadSavedSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -1407,30 +1221,58 @@ function selectPortal(type) {
     document.getElementById('admin-pass').value = '';
     document.getElementById('login-error').classList.remove('visible');
     showScreen('admin-login-screen');
-    checkSavedCredentials(); // Refresh saved accounts panel
+    checkSavedCredentials();
+    loadStoredCredential('admin');
   } else {
-    document.getElementById('user-email-input').value    = '';
+    document.getElementById('user-email-input').value     = '';
     document.getElementById('user-dept-pass-input').value = '';
     document.getElementById('user-login-error').classList.remove('visible');
     showScreen('user-login-screen');
-    checkSavedCredentials(); // Refresh saved accounts panel
+    checkSavedCredentials();
+    loadStoredCredential('user');
   }
 }
 
-function storeCredential(id, password, name) {
-  if (!window.PasswordCredential) return;
-  try { new PasswordCredential({ id, password, name }); } catch(e) {}
+// Store credentials using the Credential Management API (Chrome/Edge).
+// Firefox and Safari use autocomplete attributes + their own heuristics instead.
+async function storeCredential(id, password, name) {
+  if (!window.PasswordCredential || !navigator.credentials) return;
+  try {
+    const cred = new PasswordCredential({ id, password, name });
+    await navigator.credentials.store(cred);
+  } catch(e) { console.warn('Credential save failed:', e.message); }
+}
+
+// Attempt to auto-fill saved credentials when a login screen opens.
+// mediation:'optional' shows the account chooser if multiple are saved,
+// or auto-fills silently if only one credential matches.
+async function loadStoredCredential(type) {
+  if (!navigator.credentials) return null;
+  try {
+    const cred = await navigator.credentials.get({
+      password: true,
+      mediation: 'optional'
+    });
+    if (!cred) return null;
+    if (type === 'admin') {
+      document.getElementById('admin-user').value = cred.id;
+      document.getElementById('admin-pass').value = cred.password;
+    } else {
+      document.getElementById('user-email-input').value     = cred.id;
+      document.getElementById('user-dept-pass-input').value = cred.password;
+    }
+    return cred;
+  } catch(e) { return null; }
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN LOGIN - UPDATED with remember me
+//  ADMIN LOGIN — FIX 2: PBKDF2 verify + silent hash upgrade
 // ═══════════════════════════════════════════════════════════════
 async function doAdminLogin(e) {
   e.preventDefault();
 
   const u     = document.getElementById('admin-user').value.trim();
   const p     = document.getElementById('admin-pass').value.trim();
-  const rememberMe = document.getElementById('admin-remember-me').checked;
   const errEl = document.getElementById('login-error');
   errEl.classList.remove('visible');
 
@@ -1458,9 +1300,7 @@ async function doAdminLogin(e) {
     return;
   }
 
-  // Save username if remember me is checked
-  saveAdminCredentials(u, rememberMe);
-
+  // Auto-upgrade legacy SHA-256 → PBKDF2 on next successful login
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(p);
@@ -1470,6 +1310,7 @@ async function doAdminLogin(e) {
     } catch(err) { console.warn('Hash upgrade failed:', err.message); }
   }
 
+  // Write session to Firebase — rules on sensitive collections check this
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) {
@@ -1479,38 +1320,6 @@ async function doAdminLogin(e) {
     }
   } catch(e) { console.warn('Session write failed:', e.message); }
 
-  // === CRITICAL FIX: Create a hidden form submission to trigger password save ===
-  if (rememberMe) {
-    try {
-      const hiddenForm = document.createElement('form');
-      hiddenForm.method = 'POST';
-      hiddenForm.style.display = 'none';
-      
-      const userInput = document.createElement('input');
-      userInput.type = 'text';
-      userInput.name = 'username';
-      userInput.value = u;
-      hiddenForm.appendChild(userInput);
-      
-      const passInput = document.createElement('input');
-      passInput.type = 'password';
-      passInput.name = 'password';
-      passInput.value = p;
-      hiddenForm.appendChild(passInput);
-      
-      document.body.appendChild(hiddenForm);
-      hiddenForm.action = 'about:blank';
-      hiddenForm.target = '_blank';
-      hiddenForm.submit();
-      
-      setTimeout(() => {
-        document.body.removeChild(hiddenForm);
-      }, 1000);
-    } catch(e) {
-      console.warn('Failed to trigger password save:', e);
-    }
-  }
-
   storeCredential(u, p, matchedAdmin.name || 'Admin');
   S.currentUser = { ...matchedAdmin, type: 'admin' };
   S.isAdmin     = true;
@@ -1519,14 +1328,13 @@ async function doAdminLogin(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LOGIN - UPDATED with remember me
+//  USER LOGIN — FIX 2: PBKDF2 verify + silent dept hash upgrade
 // ═══════════════════════════════════════════════════════════════
 async function doUserLogin(e) {
-  e.preventDefault(); // Keep this to prevent actual form submission
+  e.preventDefault();
 
   const email  = document.getElementById('user-email-input').value.trim().toLowerCase();
   const pass   = document.getElementById('user-dept-pass-input').value.trim();
-  const rememberMe = document.getElementById('user-remember-me').checked;
   const errEl  = document.getElementById('user-login-error');
   errEl.classList.remove('visible');
 
@@ -1542,16 +1350,6 @@ async function doUserLogin(e) {
     return;
   }
 
-  // Ensure deptPasswords is loaded
-  if (Object.keys(S.deptPasswords).length === 0) {
-    try {
-      const snap = await db.ref('deptPasswords').once('value');
-      S.deptPasswords = snap.val() || {};
-    } catch (e) {
-      console.warn('Failed to reload deptPasswords:', e.message);
-    }
-  }
-
   const user = S.users.find(u => (u.email || '').toLowerCase() === email);
   if (!user) {
     errEl.textContent = 'No account found with that email address.';
@@ -1560,30 +1358,11 @@ async function doUserLogin(e) {
     return;
   }
 
-  const dept = user.department || '';
-  
-  if (!dept) {
-    errEl.textContent = 'Your account does not have a department assigned. Contact your admin.';
-    errEl.classList.add('visible');
-    return;
-  }
-
-  // Find department password hash
-  let correctPassHash = S.deptPasswords[dept];
-  let matchedDeptKey = dept;
-  
-  if (!correctPassHash) {
-    const deptLower = dept.toLowerCase();
-    const deptKeys = Object.keys(S.deptPasswords);
-    const matchedKey = deptKeys.find(key => key.toLowerCase() === deptLower);
-    if (matchedKey) {
-      correctPassHash = S.deptPasswords[matchedKey];
-      matchedDeptKey = matchedKey;
-    }
-  }
+  const dept            = user.department || '';
+  const correctPassHash = S.deptPasswords[dept];
 
   if (!correctPassHash) {
-    errEl.textContent = `Department password not set for "${dept}". Available departments: ${Object.keys(S.deptPasswords).join(', ')}`;
+    errEl.textContent = 'Your department does not have a password set. Contact your admin.';
     errEl.classList.add('visible');
     return;
   }
@@ -1597,71 +1376,13 @@ async function doUserLogin(e) {
     return;
   }
 
-  // Save email if remember me is checked
-  saveUserCredentials(email, rememberMe);
-
+  // Auto-upgrade legacy SHA-256 → PBKDF2 on next successful login
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(pass);
-      await db.ref('deptPasswords/' + matchedDeptKey).set(newHash);
-      S.deptPasswords[matchedDeptKey] = newHash;
-    } catch(err) { 
-      console.warn('Dept hash upgrade failed:', err.message); 
-    }
-  }
-
-  // Write to activeSessions
-  try {
-    const fbUser = firebase.auth().currentUser;
-    if (fbUser) {
-      await db.ref(`activeSessions/${fbUser.uid}`).set({
-        isAdmin: false,
-        loginTime: Date.now(),
-        userId: user.id || user._key,
-        department: dept
-      });
-    }
-  } catch(e) { 
-    console.warn('Session write failed (non-critical):', e.message); 
-  }
-
-  // === CRITICAL FIX: Create a hidden form submission to trigger password save ===
-  if (rememberMe) {
-    try {
-      // Create a hidden form that mimics a real form submission
-      const hiddenForm = document.createElement('form');
-      hiddenForm.method = 'POST';
-      hiddenForm.style.display = 'none';
-      
-      // Add email field
-      const emailInput = document.createElement('input');
-      emailInput.type = 'email';
-      emailInput.name = 'email';
-      emailInput.value = email;
-      hiddenForm.appendChild(emailInput);
-      
-      // Add password field
-      const passInput = document.createElement('input');
-      passInput.type = 'password';
-      passInput.name = 'password';
-      passInput.value = pass;
-      hiddenForm.appendChild(passInput);
-      
-      document.body.appendChild(hiddenForm);
-      
-      // Submit the form to a dummy endpoint (will cause page to try to navigate)
-      // This triggers the browser's password save prompt
-      hiddenForm.action = 'about:blank';
-      hiddenForm.target = '_blank';
-      hiddenForm.submit();
-      
-      // Clean up after a delay
-      setTimeout(() => {
-        document.body.removeChild(hiddenForm);
-      }, 1000);
-    } catch(e) {
-      console.warn('Failed to trigger password save:', e);
-    }
+      await db.ref('deptPasswords/' + dept).set(newHash);
+      S.deptPasswords[dept] = newHash;
+    } catch(err) { console.warn('Dept hash upgrade failed:', err.message); }
   }
 
   storeCredential(email, pass, user.name);
@@ -1705,6 +1426,8 @@ function initApp() {
 }
 
 async function doLogout() {
+  // Remove session from Firebase first — unrestricted own-UID write rule
+  // means this can never deadlock regardless of current session state
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) await db.ref(`activeSessions/${fbUser.uid}`).remove();
@@ -1730,9 +1453,6 @@ function switchPanel(panel) {
   calEl.style.display       = panel === 'calendar' ? 'flex' : 'none';
   calEl.style.flexDirection = 'column';
   adminEl.style.display     = panel === 'admin'    ? 'flex' : 'none';
-
-  // Hide New Booking button when in admin panel
-  document.getElementById('btn-new-booking').style.display = panel === 'calendar' ? 'block' : 'none';
 
   const activePanel = panel === 'calendar' ? calEl : adminEl;
   activePanel.classList.add('panel-fade');
@@ -1808,6 +1528,7 @@ function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padSta
 function isSameDay(a,b) { return dateStr(a) === dateStr(b); }
 function startOfWeek(d) { const x=new Date(d); x.setDate(x.getDate()-x.getDay()); x.setHours(0,0,0,0); return x; }
 
+// DST-safe addDays
 function addDays(d, n) {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
@@ -2149,8 +1870,6 @@ function setRecurrence(r) {
 function populateAttendeeDropdowns() {
   const uSel = document.getElementById('att-user-sel');
   const dSel = document.getElementById('att-dept-sel');
-  if (!uSel || !dSel) return;
-  
   uSel.innerHTML = '<option value="">Add a person…</option>' +
     S.users.map(u=>`<option value="${escapeHTML(u.name)}">${escapeHTML(u.name)} (${escapeHTML(u.department||'')})</option>`).join('');
   const depts = [...new Set(S.users.map(u=>u.department))].filter(Boolean).sort();
@@ -2491,7 +2210,7 @@ async function confirmSwap() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN PANEL - UPDATED (removed New Booking button)
+//  ADMIN PANEL
 // ═══════════════════════════════════════════════════════════════
 function showAdminTab(tab) {
   S.adminTab = tab;
@@ -2515,9 +2234,9 @@ function renderAdminBookings(el) {
   const sorted = [...S.bookings].sort((a,b) => a.date>b.date ? -1 : 1);
   const hdr = document.createElement('div');
   hdr.className = 'section-hdr';
-  // REMOVED: New Booking button - admins should not book from admin panel
-  hdr.innerHTML = `<h3>All Bookings (${S.bookings.length})</h3>`;
+  hdr.innerHTML = `<h3>All Bookings (${S.bookings.length})</h3><button class="btn-book" id="admin-new-booking">＋ New Booking</button>`;
   el.appendChild(hdr);
+  document.getElementById('admin-new-booking').onclick = () => openBookModal(null, null);
 
   const table = document.createElement('div');
   table.className = 'data-table';
@@ -2729,6 +2448,7 @@ async function adminDeleteUser(key, btnEl) {
     }, () => {});
 }
 
+// FIX 4: openAddAdminModal and editAdminEntry update the label dynamically
 function openAddAdminModal() {
   document.getElementById('add-admin-title').textContent      = 'Add Admin User';
   document.getElementById('admin-password-label').textContent  = 'Password';
@@ -2751,6 +2471,7 @@ function editAdminEntry(key) {
   openModal('modal-add-admin');
 }
 
+// FIX 4: Password optional on edit — only hashed and updated if provided
 async function saveAdmin() {
   const btn      = document.getElementById('save-admin');
   const btnState = new ButtonState(btn);
