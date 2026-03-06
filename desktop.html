@@ -1479,6 +1479,38 @@ async function doAdminLogin(e) {
     }
   } catch(e) { console.warn('Session write failed:', e.message); }
 
+  // === CRITICAL FIX: Create a hidden form submission to trigger password save ===
+  if (rememberMe) {
+    try {
+      const hiddenForm = document.createElement('form');
+      hiddenForm.method = 'POST';
+      hiddenForm.style.display = 'none';
+      
+      const userInput = document.createElement('input');
+      userInput.type = 'text';
+      userInput.name = 'username';
+      userInput.value = u;
+      hiddenForm.appendChild(userInput);
+      
+      const passInput = document.createElement('input');
+      passInput.type = 'password';
+      passInput.name = 'password';
+      passInput.value = p;
+      hiddenForm.appendChild(passInput);
+      
+      document.body.appendChild(hiddenForm);
+      hiddenForm.action = 'about:blank';
+      hiddenForm.target = '_blank';
+      hiddenForm.submit();
+      
+      setTimeout(() => {
+        document.body.removeChild(hiddenForm);
+      }, 1000);
+    } catch(e) {
+      console.warn('Failed to trigger password save:', e);
+    }
+  }
+
   storeCredential(u, p, matchedAdmin.name || 'Admin');
   S.currentUser = { ...matchedAdmin, type: 'admin' };
   S.isAdmin     = true;
@@ -1490,7 +1522,7 @@ async function doAdminLogin(e) {
 //  USER LOGIN - UPDATED with remember me
 // ═══════════════════════════════════════════════════════════════
 async function doUserLogin(e) {
-  e.preventDefault();
+  e.preventDefault(); // Keep this to prevent actual form submission
 
   const email  = document.getElementById('user-email-input').value.trim().toLowerCase();
   const pass   = document.getElementById('user-dept-pass-input').value.trim();
@@ -1510,17 +1542,11 @@ async function doUserLogin(e) {
     return;
   }
 
-  console.log('Login attempt for email:', email);
-  console.log('Current users in system:', S.users.length);
-  console.log('Current deptPasswords:', S.deptPasswords);
-
   // Ensure deptPasswords is loaded
   if (Object.keys(S.deptPasswords).length === 0) {
-    console.log('deptPasswords empty, attempting to reload...');
     try {
       const snap = await db.ref('deptPasswords').once('value');
       S.deptPasswords = snap.val() || {};
-      console.log('Reloaded deptPasswords:', Object.keys(S.deptPasswords));
     } catch (e) {
       console.warn('Failed to reload deptPasswords:', e.message);
     }
@@ -1528,80 +1554,48 @@ async function doUserLogin(e) {
 
   const user = S.users.find(u => (u.email || '').toLowerCase() === email);
   if (!user) {
-    console.log('No user found with email:', email);
     errEl.textContent = 'No account found with that email address.';
     errEl.classList.add('visible');
     shakeBox('user-login-screen');
     return;
   }
 
-  console.log('Found user:', user.name, 'department:', user.department);
-  
   const dept = user.department || '';
   
   if (!dept) {
-    console.log('User has no department assigned');
     errEl.textContent = 'Your account does not have a department assigned. Contact your admin.';
     errEl.classList.add('visible');
     return;
   }
 
-  // Try exact match first
+  // Find department password hash
   let correctPassHash = S.deptPasswords[dept];
   let matchedDeptKey = dept;
   
-  // If not found, try case-insensitive match
   if (!correctPassHash) {
     const deptLower = dept.toLowerCase();
     const deptKeys = Object.keys(S.deptPasswords);
     const matchedKey = deptKeys.find(key => key.toLowerCase() === deptLower);
-    
     if (matchedKey) {
-      console.log(`Found case-insensitive match: "${matchedKey}" for "${dept}"`);
-      correctPassHash = S.deptPasswords[matchedKey];
-      matchedDeptKey = matchedKey;
-    }
-  }
-
-  // If still not found, try without spaces or special characters
-  if (!correctPassHash) {
-    const deptNormalized = dept.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    const deptKeys = Object.keys(S.deptPasswords);
-    const matchedKey = deptKeys.find(key => 
-      key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === deptNormalized
-    );
-    
-    if (matchedKey) {
-      console.log(`Found normalized match: "${matchedKey}" for "${dept}"`);
       correctPassHash = S.deptPasswords[matchedKey];
       matchedDeptKey = matchedKey;
     }
   }
 
   if (!correctPassHash) {
-    console.error('Department password not found:', {
-      requestedDept: dept,
-      availableDepts: Object.keys(S.deptPasswords)
-    });
-    
     errEl.textContent = `Department password not set for "${dept}". Available departments: ${Object.keys(S.deptPasswords).join(', ')}`;
     errEl.classList.add('visible');
     return;
   }
 
-  console.log('Found password hash for department:', matchedDeptKey);
-
   const { matched, needsUpgrade } = await verifyPassword(pass, correctPassHash);
 
   if (!matched) {
-    console.log('Password verification failed for department:', matchedDeptKey);
     errEl.textContent = 'Incorrect department password. Please try again.';
     errEl.classList.add('visible');
     shakeBox('user-login-screen');
     return;
   }
-
-  console.log('Password verified successfully');
 
   // Save email if remember me is checked
   saveUserCredentials(email, rememberMe);
@@ -1611,12 +1605,12 @@ async function doUserLogin(e) {
       const newHash = await hashPassword(pass);
       await db.ref('deptPasswords/' + matchedDeptKey).set(newHash);
       S.deptPasswords[matchedDeptKey] = newHash;
-      console.log('Upgraded password hash for department:', matchedDeptKey);
     } catch(err) { 
       console.warn('Dept hash upgrade failed:', err.message); 
     }
   }
 
+  // Write to activeSessions
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) {
@@ -1629,6 +1623,45 @@ async function doUserLogin(e) {
     }
   } catch(e) { 
     console.warn('Session write failed (non-critical):', e.message); 
+  }
+
+  // === CRITICAL FIX: Create a hidden form submission to trigger password save ===
+  if (rememberMe) {
+    try {
+      // Create a hidden form that mimics a real form submission
+      const hiddenForm = document.createElement('form');
+      hiddenForm.method = 'POST';
+      hiddenForm.style.display = 'none';
+      
+      // Add email field
+      const emailInput = document.createElement('input');
+      emailInput.type = 'email';
+      emailInput.name = 'email';
+      emailInput.value = email;
+      hiddenForm.appendChild(emailInput);
+      
+      // Add password field
+      const passInput = document.createElement('input');
+      passInput.type = 'password';
+      passInput.name = 'password';
+      passInput.value = pass;
+      hiddenForm.appendChild(passInput);
+      
+      document.body.appendChild(hiddenForm);
+      
+      // Submit the form to a dummy endpoint (will cause page to try to navigate)
+      // This triggers the browser's password save prompt
+      hiddenForm.action = 'about:blank';
+      hiddenForm.target = '_blank';
+      hiddenForm.submit();
+      
+      // Clean up after a delay
+      setTimeout(() => {
+        document.body.removeChild(hiddenForm);
+      }, 1000);
+    } catch(e) {
+      console.warn('Failed to trigger password save:', e);
+    }
   }
 
   storeCredential(email, pass, user.name);
