@@ -42,7 +42,7 @@
   --shadow:     0 4px 24px rgba(13,31,51,.16);
   --shadow-lg:  0 16px 48px rgba(13,31,51,.28);
 
-  /* ── Responsive scale tokens (clamp: min, fluid, max) ── */
+  /* ── Responsive scale tokens ── */
   --sz-xs:   clamp(9px,  2.5vw, 12px);
   --sz-sm:   clamp(11px, 3vw,   14px);
   --sz-base: clamp(13px, 3.8vw, 16px);
@@ -799,7 +799,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
 
 <!-- LOADING -->
 <div id="loading-screen" class="screen active">
-  <div class="load-logo"><img src="Logo.svg" alt="Equip"></div>
+  <div class="load-logo"><img src="Logo.png" alt="Equip"></div>
   <div class="load-spinner"></div>
   <div class="load-txt" id="loading-msg">Connecting…</div>
 </div>
@@ -808,7 +808,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
 <div id="portal-screen" class="screen">
   <div class="portal-scroll">
     <div class="portal-logo-wrap">
-      <div class="portal-logo-icon"><img src="Logo.svg" alt="Equip"></div>
+      <div class="portal-logo-icon"><img src="Logo.png" alt="Equip"></div>
       <div class="portal-eyebrow">Booking Portal</div>
       <h1 class="portal-title">Welcome!</h1>
       <p class="portal-sub">Select your access level</p>
@@ -840,7 +840,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <div class="sheet-logo"><img src="Logo.svg" alt="Equip"></div>
+      <div class="sheet-logo"><img src="Logo.png" alt="Equip"></div>
       <div><div class="sheet-title">Admin Login</div><div class="sheet-sub">Enter your credentials</div></div>
       <button class="btn-sheet-back" onclick="showScreen('portal-screen','back')">×</button>
     </div>
@@ -859,12 +859,12 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
   </div>
 </div>
 
-<!-- USER LOGIN -->
+<!-- USER LOGIN - Updated to match admin styling -->
 <div id="user-login-screen" class="screen" style="background:rgba(10,18,30,.88);backdrop-filter:blur(12px);align-items:flex-end;justify-content:flex-end;" onclick="handleSheetBackdrop(event,'user-login-screen','portal-screen')">
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <div class="sheet-logo"><img src="Logo.svg" alt="Equip Booking"></div>
+      <div class="sheet-logo"><img src="Logo.png" alt="Equip"></div>
       <div><div class="sheet-title">User Login</div><div class="sheet-sub">Enter your credentials</div></div>
       <button class="btn-sheet-back" onclick="showScreen('portal-screen','back')">×</button>
     </div>
@@ -876,7 +876,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
       </div>
       <div class="form-group">
         <label class="form-label">Department Password</label>
-        <input class="form-input" id="user-dept-pass-input" type="password" placeholder="Enter your department password" onkeydown="if(event.key==='Enter')doUserLogin()">
+        <input class="form-input" id="user-dept-pass-input" type="password" placeholder="Enter your department password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doUserLogin()">
       </div>
       <div style="margin-bottom:var(--sp-sm);font-size:var(--sz-xs);color:var(--muted);line-height:1.5;">
         Your department password is shared with all members of your department. Contact your admin if you don't have it.
@@ -889,7 +889,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif;color:var(--navy);-webkit
 <!-- MAIN APP -->
 <div id="app">
   <div class="top-bar">
-    <div class="top-bar-logo"><img src="Logo.svg" alt="Equip"></div>
+    <div class="top-bar-logo"><img src="Logo.png" alt="Equip"></div>
     <div class="top-bar-title" id="top-title">Equip</div>
     <button class="top-bar-user" id="tb-user-btn" onclick="openProfileSheet()"></button>
   </div>
@@ -1193,26 +1193,122 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ═══════════════════════════════════════════════════════════
+//  SECURITY UTILITIES — PBKDF2 implementation
+// ═══════════════════════════════════════════════════════════
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// PBKDF2 password hashing
+async function hashPassword(password, existingSaltB64 = null) {
+  const enc = new TextEncoder();
+  const salt = existingSaltB64
+    ? Uint8Array.from(atob(existingSaltB64), c => c.charCodeAt(0))
+    : crypto.getRandomValues(new Uint8Array(16));
+
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 },
+    keyMaterial, 256
+  );
+  const hashB64 = btoa(String.fromCharCode(...new Uint8Array(bits)));
+  const saltB64 = btoa(String.fromCharCode(...salt));
+  return `v2:${saltB64}:${hashB64}`;
+}
+
+// Legacy SHA-256 for migration
+async function legacySHA256(password) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Verify password against stored hash
+async function verifyPassword(password, storedHash) {
+  if (!storedHash) return { matched: false, needsUpgrade: false };
+
+  if (storedHash.startsWith('v2:')) {
+    const parts = storedHash.split(':');
+    if (parts.length !== 3) return { matched: false, needsUpgrade: false };
+    const [, saltB64] = parts;
+    const candidate = await hashPassword(password, saltB64);
+    return { matched: candidate === storedHash, needsUpgrade: false };
+  } else if (/^[0-9a-f]{64}$/.test(storedHash)) {
+    const sha = await legacySHA256(password);
+    return { matched: sha === storedHash, needsUpgrade: true };
+  } else {
+    return { matched: password === storedHash, needsUpgrade: true };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════
 let S = {
-  users:[],bookings:[],admins:[],deptPasswords:{},
-  currentUser:null,isAdmin:false,
-  resource:'boardroom',view:'day',
-  date:new Date(),
-  adminTab:'bookings',
-  bkResource:'boardroom',bkAs:'self',
-  bkStartMin:540,bkEndMin:600,
-  bkAttendees:[],bkRecurrence:'once',
-  moveTarget:null,swapTarget:null,
-  weekSelectedDay:null
+  users: [], bookings: [], admins: [], deptPasswords: {},
+  currentUser: null, isAdmin: false,
+  resource: 'boardroom', view: 'day',
+  date: new Date(),
+  adminTab: 'bookings',
+  bkResource: 'boardroom', bkAs: 'self',
+  bkStartMin: 540, bkEndMin: 600,
+  bkAttendees: [], bkRecurrence: 'once',
+  moveTarget: null, swapTarget: null,
+  editingBooking: null,
+  weekSelectedDay: null,
+  sessionTimeout: 8 * 60 * 60 * 1000
 };
 
-// ── Day-grid constants ──────────────────────────────────────
 const GRID_START = 6;   // 06:00
 const GRID_END   = 22;  // 22:00
 
 document.getElementById('yr').textContent = new Date().getFullYear();
+
+// ═══════════════════════════════════════════════════════════
+//  BUTTON STATE MANAGER
+// ═══════════════════════════════════════════════════════════
+class ButtonState {
+  constructor(btn) { this.btn = btn; this.originalText = btn.textContent; }
+  loading(text = 'Saving...') { this.btn.disabled = true; this.btn.textContent = text; }
+  restore() { this.btn.disabled = false; this.btn.textContent = this.originalText; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NOTIFICATION
+// ═══════════════════════════════════════════════════════════
+let notifTimer;
+function notify(msg, type = 'success') {
+  const el = document.getElementById('notif');
+  el.innerHTML = '';
+  const icon = document.createElement('span');
+  icon.textContent = type === 'success' ? '✓' : '⚠';
+  icon.style.cssText = `background:${type === 'success' ? 'var(--gold)' : 'var(--danger)'};color:var(--navy);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;`;
+  const txt = document.createElement('span'); txt.textContent = msg;
+  el.appendChild(icon); el.appendChild(txt);
+  el.style.animation = 'none'; el.offsetHeight;
+  el.style.display = 'flex';
+  el.style.animation = 'notifIn .4s cubic-bezier(.22,.68,0,1.2) forwards';
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => {
+    el.style.animation = 'notifOut .3s ease forwards';
+    setTimeout(() => el.style.display = 'none', 300);
+  }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CONFIRMATION MODAL
+// ═══════════════════════════════════════════════════════════
+function showConfirm(title, message, onConfirm) {
+  if (confirm(message)) onConfirm();
+}
 
 // ═══════════════════════════════════════════════════════════
 //  BOOT — with anonymous auth + session restore
@@ -1220,7 +1316,6 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
 
-  // Anonymous auth for security rules
   firebase.auth().onAuthStateChanged(async (fbUser) => {
     if (!fbUser) {
       try { await firebase.auth().signInAnonymously(); }
@@ -1232,13 +1327,14 @@ window.addEventListener('DOMContentLoaded', () => {
       setLoadingMsg('Loading workspace…');
       await loadDataAndSeed();
 
-      // Try to restore session
-      const saved = loadSavedSession();
-      if (saved) {
+      const saved = await loadSavedSession();
+      if (saved && !isSessionExpired()) {
         S.currentUser = saved.user;
         S.isAdmin     = saved.isAdmin;
+        document.getElementById('sb-live').style.display = 'flex';
         initApp();
       } else {
+        if (saved) clearSession();
         showScreen('portal-screen');
       }
     } catch(e) {
@@ -1247,84 +1343,105 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function setLoadingMsg(m) { document.getElementById('loading-msg').textContent = m; }
+function setLoadingMsg(msg) { document.getElementById('loading-msg').textContent = msg; }
+
+function isSessionExpired() {
+  try {
+    const ts = localStorage.getItem(SESSION_KEY + '_timestamp');
+    if (!ts) return true;
+    return Date.now() - parseInt(ts) > S.sessionTimeout;
+  } catch(e) { return true; }
+}
 
 // ═══════════════════════════════════════════════════════════
 //  DATA LOADING + SEED
 // ═══════════════════════════════════════════════════════════
 function loadDataAndSeed() {
   return new Promise((resolve, reject) => {
-    let ready = {users:false, bookings:false, admins:false, deptPasswords:false};
-    let seeded = false;
+    const ready = { users: false, bookings: false, admins: false, deptPasswords: false };
+    let resolved = false;
 
-    const check = async () => {
-      if (!Object.values(ready).every(Boolean)) return;
-      if (!seeded) {
-        seeded = true;
-        await ensureDefaultData();
+    function checkReady() {
+      if (resolved) return;
+      if (Object.values(ready).every(Boolean)) {
+        resolved = true;
+        resolve();
       }
-      resolve();
-    };
+    }
 
     db.ref('users').on('value', snap => {
-      S.users = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-      if (!ready.users) { ready.users = true; check(); }
-      refreshIfNeeded('users');
-    });
-    db.ref('bookings').on('value', snap => {
-      S.bookings = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-      if (!ready.bookings) { ready.bookings = true; check(); }
-      refreshIfNeeded('bookings');
-    });
-    db.ref('admins').on('value', snap => {
-      S.admins = Object.entries(snap.val()||{}).map(([k,v])=>({...v,_key:k}));
-      if (!ready.admins) { ready.admins = true; check(); }
-      refreshIfNeeded('admins');
-    });
-    db.ref('deptPasswords').on('value', snap => {
-      S.deptPasswords = snap.val() || {};
-      if (!ready.deptPasswords) { ready.deptPasswords = true; check(); }
+      S.users = Object.entries(snap.val() || {}).map(([k, v]) => ({ ...v, _key: k }));
+      ready.users = true;
+      checkReady();
+      if (resolved) refreshUI();
+    }, err => {
+      console.warn('users read error:', err.message);
+      ready.users = true;
+      checkReady();
     });
 
-    setTimeout(() => reject(new Error('Database timeout')), 15000);
+    db.ref('bookings').on('value', snap => {
+      S.bookings = Object.entries(snap.val() || {}).map(([k, v]) => ({ ...v, _key: k }));
+      ready.bookings = true;
+      checkReady();
+      if (resolved) refreshUI();
+    }, err => {
+      console.warn('bookings read error:', err.message);
+      ready.bookings = true;
+      checkReady();
+    });
+
+    db.ref('admins').on('value', snap => {
+      S.admins = Object.entries(snap.val() || {}).map(([k, v]) => ({ ...v, _key: k }));
+      ready.admins = true;
+      checkReady();
+      if (resolved) refreshUI();
+    }, err => {
+      console.warn('admins read error:', err.message);
+      ready.admins = true;
+      checkReady();
+    });
+
+    db.ref('deptPasswords').on('value', snap => {
+      S.deptPasswords = snap.val() || {};
+      ready.deptPasswords = true;
+      checkReady();
+      if (resolved) refreshUI();
+    }, err => {
+      console.warn('deptPasswords error:', err.message);
+      S.deptPasswords = {};
+      ready.deptPasswords = true;
+      checkReady();
+    });
+
+    setTimeout(() => {
+      if (!resolved) {
+        // Force ready with what we have
+        if (ready.users && ready.bookings) {
+          ready.admins = true;
+          ready.deptPasswords = true;
+          checkReady();
+        } else {
+          reject(new Error('Database timeout after 15 seconds'));
+        }
+      }
+    }, 15000);
   });
 }
 
-async function ensureDefaultData() {
-  const snap = await db.ref('admins').once('value');
-  if (!snap.exists()) {
-    await db.ref('admins').set({
-      admin1: { username:'admin', password:'admin123', name:'System Administrator' }
-    });
-    await db.ref('users').set({
-      user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',       role:'individual', email:'a.morgan@corp.com' },
-      user2: { id:'u2', name:'James Whitfield',   department:'Finance',         role:'individual', email:'j.whitfield@corp.com' },
-      user3: { id:'u3', name:'Sarah Chen',        department:'Marketing',       role:'individual', email:'s.chen@corp.com' },
-      user4: { id:'u4', name:'David Okafor',      department:'Operations',      role:'individual', email:'d.okafor@corp.com' },
-      user5: { id:'u5', name:'Priya Nair',        department:'Human Resources', role:'individual', email:'p.nair@corp.com' },
-      user6: { id:'u6', name:'Finance Dept',      department:'Finance',         role:'dept',       email:'finance@corp.com' },
-      user7: { id:'u7', name:'Marketing Dept',    department:'Marketing',       role:'dept',       email:'marketing@corp.com' },
-    });
-    await db.ref('bookings').set({});
-    await db.ref('deptPasswords').set({
-      'Executive':       'exec2024',
-      'Finance':         'finance2024',
-      'Marketing':       'marketing2024',
-      'Operations':      'ops2024',
-      'Human Resources': 'hr2024',
-    });
-    await db.ref('meta/initialized').set(true);
+function refreshUI() {
+  if (!S.currentUser) return;
+
+  if (document.getElementById('panel-calendar').style.display !== 'none') {
+    renderCalendar();
+  }
+  if (S.isAdmin && document.getElementById('panel-admin').style.display !== 'none') {
+    renderAdminTab();
   }
 }
 
-function refreshIfNeeded(col) {
-  if (!S.currentUser) return;
-  if (col === 'bookings') renderCalendar();
-  if (S.isAdmin) renderAdminTab();
-}
-
 // ═══════════════════════════════════════════════════════════
-//  SESSION PERSISTENCE (localStorage)
+//  SESSION PERSISTENCE
 // ═══════════════════════════════════════════════════════════
 const SESSION_KEY = 'equipMobile_session';
 
@@ -1334,14 +1451,18 @@ function saveSession(user, isAdmin) {
       key: user._key, 
       type: isAdmin ? 'admin' : 'user' 
     }));
+    localStorage.setItem(SESSION_KEY + '_timestamp', Date.now().toString());
   } catch(e) {}
 }
 
 function clearSession() {
-  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+  try { 
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY + '_timestamp');
+  } catch(e) {}
 }
 
-function loadSavedSession() {
+async function loadSavedSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
@@ -1350,24 +1471,24 @@ function loadSavedSession() {
     if (type === 'admin') {
       const admin = S.admins.find(a => a._key === key);
       if (!admin) { clearSession(); return null; }
-      return { user: {...admin, type:'admin'}, isAdmin: true };
+      return { user: { ...admin, type: 'admin' }, isAdmin: true };
     } else {
       const user = S.users.find(u => u._key === key);
       if (!user) { clearSession(); return null; }
-      return { user: {...user, type:'user'}, isAdmin: false };
+      return { user: { ...user, type: 'user' }, isAdmin: false };
     }
   } catch(e) { clearSession(); return null; }
 }
 
 // ═══════════════════════════════════════════════════════════
-//  PASSWORD CREDENTIAL API (browser save password prompt)
+//  CREDENTIAL MANAGEMENT API
 // ═══════════════════════════════════════════════════════════
-function storeCredential(id, password, name) {
-  if (!window.PasswordCredential) return;
+async function storeCredential(id, password, name) {
+  if (!window.PasswordCredential || !navigator.credentials) return;
   try {
     const cred = new PasswordCredential({ id, password, name });
-    navigator.credentials.store(cred).catch(() => {});
-  } catch(e) {}
+    await navigator.credentials.store(cred);
+  } catch(e) { console.warn('Credential save failed:', e.message); }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1415,25 +1536,59 @@ function selectPortal(type) {
   }
 }
 
-function doAdminLogin() {
+// ═══════════════════════════════════════════════════════════
+//  ADMIN LOGIN — with PBKDF2 verification
+// ═══════════════════════════════════════════════════════════
+async function doAdminLogin() {
   const u = document.getElementById('admin-user').value.trim();
   const p = document.getElementById('admin-pass').value.trim();
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('visible');
 
-  const admin = S.admins.find(a => a.username === u && a.password === p);
-  if (!admin) {
-    document.getElementById('login-error').classList.add('visible');
+  let matchedAdmin = null, needsUpgrade = false;
+
+  for (const admin of S.admins) {
+    if (admin.username !== u) continue;
+    const result = await verifyPassword(p, admin.password);
+    if (result.matched) { matchedAdmin = admin; needsUpgrade = result.needsUpgrade; break; }
+  }
+
+  if (!matchedAdmin) {
+    errEl.textContent = 'Invalid username or password.';
+    errEl.classList.add('visible');
     shakeSheet('admin-login-screen');
     return;
   }
 
-  storeCredential(u, p, admin.name || 'Admin');
-  S.currentUser = {...admin, type:'admin'};
+  if (needsUpgrade) {
+    try {
+      const newHash = await hashPassword(p);
+      await db.ref('admins/' + matchedAdmin._key).update({ password: newHash });
+      matchedAdmin.password = newHash;
+      S.admins = S.admins.map(a => a._key === matchedAdmin._key ? { ...a, password: newHash } : a);
+    } catch(err) { console.warn('Hash upgrade failed:', err.message); }
+  }
+
+  try {
+    const fbUser = firebase.auth().currentUser;
+    if (fbUser) {
+      await db.ref(`activeSessions/${fbUser.uid}`).set({
+        isAdmin: true, loginTime: Date.now()
+      });
+    }
+  } catch(e) { console.warn('Session write failed:', e.message); }
+
+  await storeCredential(u, p, matchedAdmin.name || 'Admin');
+  S.currentUser = { ...matchedAdmin, type: 'admin' };
   S.isAdmin = true;
   saveSession(S.currentUser, true);
   initApp();
 }
 
-function doUserLogin() {
+// ═══════════════════════════════════════════════════════════
+//  USER LOGIN — with PBKDF2 verification
+// ═══════════════════════════════════════════════════════════
+async function doUserLogin() {
   const email = document.getElementById('user-email-input').value.trim().toLowerCase();
   const pass  = document.getElementById('user-dept-pass-input').value.trim();
   const errEl = document.getElementById('user-login-error');
@@ -1441,6 +1596,12 @@ function doUserLogin() {
 
   if (!email || !pass) {
     errEl.textContent = 'Please enter your email and department password.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    errEl.textContent = 'Please enter a valid email address.';
     errEl.classList.add('visible');
     return;
   }
@@ -1454,21 +1615,42 @@ function doUserLogin() {
   }
 
   const dept = user.department || '';
-  const correctPass = S.deptPasswords[dept];
-  if (!correctPass) {
-    errEl.textContent = 'Your department does not have a password set yet.';
+  const correctPassHash = S.deptPasswords[dept];
+
+  if (!correctPassHash) {
+    errEl.textContent = 'Your department does not have a password set. Contact your admin.';
     errEl.classList.add('visible');
     return;
   }
-  if (pass !== correctPass) {
-    errEl.textContent = 'Incorrect department password. Try again.';
+
+  const { matched, needsUpgrade } = await verifyPassword(pass, correctPassHash);
+
+  if (!matched) {
+    errEl.textContent = 'Incorrect department password. Please try again.';
     errEl.classList.add('visible');
     shakeSheet('user-login-screen');
     return;
   }
 
-  storeCredential(email, pass, user.name);
-  S.currentUser = {...user, type:'user'};
+  if (needsUpgrade) {
+    try {
+      const newHash = await hashPassword(pass);
+      await db.ref('deptPasswords/' + dept).set(newHash);
+      S.deptPasswords[dept] = newHash;
+    } catch(err) { console.warn('Dept hash upgrade failed:', err.message); }
+  }
+
+  try {
+    const fbUser = firebase.auth().currentUser;
+    if (fbUser) {
+      await db.ref(`activeSessions/${fbUser.uid}`).set({
+        isAdmin: false, loginTime: Date.now(), userId: user.id || user._key, department: dept
+      });
+    }
+  } catch(e) { console.warn('Session write failed:', e.message); }
+
+  await storeCredential(email, pass, user.name);
+  S.currentUser = { ...user, type: 'user' };
   S.isAdmin = false;
   saveSession(S.currentUser, false);
   initApp();
@@ -1505,7 +1687,12 @@ function initApp() {
   notify('Welcome, ' + u.name.split(' ')[0] + ' ✓');
 }
 
-function doLogout() {
+async function doLogout() {
+  try {
+    const fbUser = firebase.auth().currentUser;
+    if (fbUser) await db.ref(`activeSessions/${fbUser.uid}`).remove();
+  } catch(e) { console.warn('Session remove failed:', e.message); }
+
   clearSession();
   S.currentUser = null;
   S.isAdmin = false;
@@ -1521,7 +1708,7 @@ function openProfileSheet() {
   document.getElementById('profile-info-card').innerHTML = `
     <div class="profile-av">${initials(u.name)}</div>
     <div>
-      <div class="profile-name">${u.name}</div>
+      <div class="profile-name">${escapeHTML(u.name)}</div>
       <div class="profile-role">${S.isAdmin ? 'Administrator' : (u.department || 'User')}</div>
     </div>`;
   openModal('modal-profile');
@@ -1594,29 +1781,29 @@ function fromMin(m) { return `${String(Math.floor(m / 60)).padStart(2, '0')}:${S
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 function isSameDay(a, b) { return dateStr(a) === dateStr(b); }
 function startOfWeek(d) { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); x.setHours(0,0,0,0); return x; }
-function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); x.setHours(12,0,0,0); return x; }
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 // ═══════════════════════════════════════════════════════════
 //  CALENDAR RENDER ROUTER
 // ═══════════════════════════════════════════════════════════
-function renderCalendar(){
-  const wrap=document.getElementById('cal-body');if(!wrap)return;
-  const bks=S.bookings.filter(b=>b.resource===S.resource);
-  if(S.view==='day'){
-    document.getElementById('cal-title').textContent=S.date.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-    renderDayTimeGrid(wrap,bks,dateStr(S.date));
-  }else if(S.view==='week'){
-    const ws=startOfWeek(S.date),we=addDays(ws,6);
-    document.getElementById('cal-title').textContent=ws.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+we.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-    renderWeekView(wrap,bks);
-  }else if(S.view==='month'){
-    document.getElementById('cal-title').textContent=`${MONTHS[S.date.getMonth()]} ${S.date.getFullYear()}`;
-    renderMonthView(wrap,bks);
-  }else if(S.view==='year'){
-    document.getElementById('cal-title').textContent=S.date.getFullYear();
-    renderYearView(wrap,bks);
+function renderCalendar() {
+  const wrap = document.getElementById('cal-body'); if (!wrap) return;
+  const bks = S.bookings.filter(b => b.resource === S.resource);
+  if (S.view === 'day') {
+    document.getElementById('cal-title').textContent = S.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    renderDayTimeGrid(wrap, bks, dateStr(S.date));
+  } else if (S.view === 'week') {
+    const ws = startOfWeek(S.date), we = addDays(ws, 6);
+    document.getElementById('cal-title').textContent = ws.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' – ' + we.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    renderWeekView(wrap, bks);
+  } else if (S.view === 'month') {
+    document.getElementById('cal-title').textContent = `${MONTHS[S.date.getMonth()]} ${S.date.getFullYear()}`;
+    renderMonthView(wrap, bks);
+  } else if (S.view === 'year') {
+    document.getElementById('cal-title').textContent = S.date.getFullYear();
+    renderYearView(wrap, bks);
   }
 }
 
@@ -1652,23 +1839,23 @@ function renderDayTimeGrid(wrap, bks, ds) {
 
   const bkBlocks = dayBks.map(b => {
     const startMin = toMin(b.startTime);
-    const endMin   = toMin(b.endTime);
-    const topPct   = ((startMin - GRID_START * 60) / (totalHours * 60)) * 100;
-    const heightPct= ((endMin - startMin) / (totalHours * 60)) * 100;
+    const endMin = toMin(b.endTime);
+    const topPct = ((startMin - GRID_START * 60) / (totalHours * 60)) * 100;
+    const heightPct = ((endMin - startMin) / (totalHours * 60)) * 100;
     const durationMins = endMin - startMin;
     const showMeta = durationMins >= 45;
     return `<div class="tg-bk ${b.resource}"
       style="top:${topPct}%;height:${heightPct}%;"
       onclick="event.stopPropagation();openDetail('${b._key}')">
-      <div class="tg-bk-title">${b.purpose}</div>
-      ${showMeta ? `<div class="tg-bk-meta">${b.startTime}–${b.endTime} · ${b.user||''}</div>` : ''}
+      <div class="tg-bk-title">${escapeHTML(b.purpose)}</div>
+      ${showMeta ? `<div class="tg-bk-meta">${b.startTime}–${b.endTime} · ${escapeHTML(b.user || '')}</div>` : ''}
     </div>`;
   }).join('');
 
   let rowsHtml = '';
   for (let h = GRID_START; h < GRID_END; h++) {
-    const label = h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h-12}pm`;
-    const hStr  = String(h).padStart(2,'0');
+    const label = h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h - 12}pm`;
+    const hStr = String(h).padStart(2, '0');
     rowsHtml += `
       <div class="tg-row half-mark">
         <div class="tg-time">${label}</div>
@@ -1679,7 +1866,7 @@ function renderDayTimeGrid(wrap, bks, ds) {
   wrap.innerHTML = `
     <div class="day-grid-wrap fade-in">
       <div class="day-grid-date-hdr">
-        <span class="day-grid-date-text">${dateObj.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</span>
+        <span class="day-grid-date-text">${dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         ${isToday ? '<span class="day-grid-today-badge">Today</span>' : ''}
       </div>
       <div class="day-time-grid" style="position:relative;">
@@ -1708,17 +1895,17 @@ function renderWeekView(wrap, bks) {
   const ws = startOfWeek(S.date);
   const todayStr = dateStr(new Date());
   if (!S.weekSelectedDay) S.weekSelectedDay = dateStr(S.date);
-  const wdays = Array.from({length:7},(_,i)=>addDays(ws,i));
-  const wdStrs = wdays.map(d=>dateStr(d));
-  if (!wdStrs.includes(S.weekSelectedDay)) S.weekSelectedDay = wdStrs.find(d=>d===todayStr)||wdStrs[0];
+  const wdays = Array.from({ length: 7 }, (_, i) => addDays(ws, i));
+  const wdStrs = wdays.map(d => dateStr(d));
+  if (!wdStrs.includes(S.weekSelectedDay)) S.weekSelectedDay = wdStrs.find(d => d === todayStr) || wdStrs[0];
 
-  const strip = wdays.map((d,i) => {
+  const strip = wdays.map((d, i) => {
     const ds = dateStr(d);
     const isToday = ds === todayStr;
     const isSelected = ds === S.weekSelectedDay;
-    const bksDay = bks.filter(b=>b.date===ds);
-    const dots = bksDay.slice(0,3).map(b=>`<div class="mc-dot ${b.resource}"></div>`).join('');
-    return `<button class="week-day-btn${isSelected?' active':''}${bksDay.length&&!isSelected?' has-bk':''}${isToday&&!isSelected?' today-day':''}"
+    const bksDay = bks.filter(b => b.date === ds);
+    const dots = bksDay.slice(0, 3).map(b => `<div class="mc-dot ${b.resource}"></div>`).join('');
+    return `<button class="week-day-btn${isSelected ? ' active' : ''}${bksDay.length && !isSelected ? ' has-bk' : ''}${isToday && !isSelected ? ' today-day' : ''}"
       onclick="S.weekSelectedDay='${ds}';renderCalendar();">
       <div class="week-day-label">${DAYS[d.getDay()]}</div>
       <div class="week-day-num">${d.getDate()}</div>
@@ -1740,29 +1927,29 @@ function renderWeekView(wrap, bks) {
 function renderMonthView(wrap, bks) {
   const d = S.date;
   const todayStr = dateStr(new Date());
-  const first = new Date(d.getFullYear(),d.getMonth(),1);
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
   const pad = first.getDay();
-  const dim = new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
   const cells = [];
-  for(let i=0;i<pad;i++) cells.push({day:null,ds:null});
-  for(let i=1;i<=dim;i++){const cd=new Date(d.getFullYear(),d.getMonth(),i);cells.push({day:i,ds:dateStr(cd)});}
-  while(cells.length%7!==0) cells.push({day:null,ds:null});
+  for (let i = 0; i < pad; i++) cells.push({ day: null, ds: null });
+  for (let i = 1; i <= dim; i++) { const cd = new Date(d.getFullYear(), d.getMonth(), i); cells.push({ day: i, ds: dateStr(cd) }); }
+  while (cells.length % 7 !== 0) cells.push({ day: null, ds: null });
 
   const bodyHtml = cells.map(c => {
     if (!c.day) return `<div class="month-cell other-month"></div>`;
     const isT = c.ds === todayStr;
-    const dayBks = bks.filter(b=>b.date===c.ds);
-    const dots = dayBks.slice(0,3).map(b=>`<div class="mc-dot ${b.resource}"></div>`).join('');
-    const more = dayBks.length > 3 ? `<div class="mc-more">+${dayBks.length-3}</div>` : '';
-    return `<div class="month-cell${isT?' today':''}" onclick="S.date=new Date('${c.ds}T12:00:00');switchView('day');">
-      <div class="mc-num${isT?' today-num':''}">${c.day}</div>
+    const dayBks = bks.filter(b => b.date === c.ds);
+    const dots = dayBks.slice(0, 3).map(b => `<div class="mc-dot ${b.resource}"></div>`).join('');
+    const more = dayBks.length > 3 ? `<div class="mc-more">+${dayBks.length - 3}</div>` : '';
+    return `<div class="month-cell${isT ? ' today' : ''}" onclick="S.date=new Date('${c.ds}T12:00:00');switchView('day');">
+      <div class="mc-num${isT ? ' today-num' : ''}">${c.day}</div>
       <div class="mc-dot-row">${dots}</div>${more}
     </div>`;
   }).join('');
 
   wrap.innerHTML = `<div class="month-view-wrap fade-in">
     <div class="month-grid">
-      <div class="month-hdr-row">${'SMTWTFS'.split('').map(x=>`<div class="mhc">${x}</div>`).join('')}</div>
+      <div class="month-hdr-row">${'SMTWTFS'.split('').map(x => `<div class="mhc">${x}</div>`).join('')}</div>
       <div class="month-body-grid">${bodyHtml}</div>
     </div>
   </div>`;
@@ -1774,25 +1961,25 @@ function renderMonthView(wrap, bks) {
 function renderYearView(wrap, bks) {
   const yr = S.date.getFullYear();
   const today = new Date();
-  const cards = MONTHS.map((mn,mi) => {
-    const first = new Date(yr,mi,1);
-    const dim = new Date(yr,mi+1,0).getDate();
+  const cards = MONTHS.map((mn, mi) => {
+    const first = new Date(yr, mi, 1);
+    const dim = new Date(yr, mi + 1, 0).getDate();
     const pad = first.getDay();
-    const bksM = bks.filter(b=>{const bd=new Date(b.date+'T12:00:00');return bd.getFullYear()===yr&&bd.getMonth()===mi;});
+    const bksM = bks.filter(b => { const bd = new Date(b.date + 'T12:00:00'); return bd.getFullYear() === yr && bd.getMonth() === mi; });
     const cells = [];
-    for(let i=0;i<pad;i++) cells.push('');
-    for(let d=1;d<=dim;d++) cells.push(d);
-    const daysHtml = cells.map(d=>{
-      if(!d) return`<div class="mini-day other"></div>`;
-      const ds=`${yr}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const hasB=bksM.some(b=>b.date===ds);
-      const isT=isSameDay(new Date(ds+'T12:00:00'),today);
-      return`<div class="mini-day${isT?' today-mini':hasB?' has-bk':''}">${d}</div>`;
+    for (let i = 0; i < pad; i++) cells.push('');
+    for (let d = 1; d <= dim; d++) cells.push(d);
+    const daysHtml = cells.map(d => {
+      if (!d) return `<div class="mini-day other"></div>`;
+      const ds = `${yr}-${String(mi + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const hasB = bksM.some(b => b.date === ds);
+      const isT = isSameDay(new Date(ds + 'T12:00:00'), today);
+      return `<div class="mini-day${isT ? ' today-mini' : hasB ? ' has-bk' : ''}">${d}</div>`;
     }).join('');
-    return`<div class="mini-cal" onclick="S.date=new Date(${yr},${mi},1);switchView('month');">
-      <div class="mini-cal-hdr"><span>${mn}</span>${bksM.length?`<span class="mini-bk-badge">${bksM.length}</span>`:''}</div>
+    return `<div class="mini-cal" onclick="S.date=new Date(${yr},${mi},1);switchView('month');">
+      <div class="mini-cal-hdr"><span>${mn}</span>${bksM.length ? `<span class="mini-bk-badge">${bksM.length}</span>` : ''}</div>
       <div class="mini-cal-body">
-        <div class="mini-days-hdr">${'SMTWTFS'.split('').map(x=>`<span>${x}</span>`).join('')}</div>
+        <div class="mini-days-hdr">${'SMTWTFS'.split('').map(x => `<span>${x}</span>`).join('')}</div>
         <div class="mini-days-body">${daysHtml}</div>
       </div>
     </div>`;
@@ -1803,345 +1990,646 @@ function renderYearView(wrap, bks) {
 // ═══════════════════════════════════════════════════════════
 //  BOOKING MODAL
 // ═══════════════════════════════════════════════════════════
-function openBookModal(prefillDate,prefillTime){
-  S.bkResource=S.resource;S.bkAs='self';S.bkAttendees=[];S.bkRecurrence='once';
-  S.bkStartMin=prefillTime?toMin(prefillTime):540;
-  S.bkEndMin=S.bkStartMin+60;
-  setBkResource(S.bkResource);setBkAs('self');setRecurrence('once');
-  document.getElementById('bk-purpose').value='';
-  document.getElementById('bk-notes').value='';
-  document.getElementById('bk-date').value=prefillDate||dateStr(S.date);
+function openBookModal(prefillDate, prefillTime, editBookingKey = null) {
+  S.editingBooking = editBookingKey;
+
+  if (editBookingKey) {
+    const b = S.bookings.find(x => x._key === editBookingKey);
+    if (b) {
+      document.getElementById('book-modal-title').textContent = 'Edit Booking';
+      S.bkResource = b.resource;
+      S.bkAs = b.bookedAs || 'self';
+      S.bkAttendees = b.attendees ? b.attendees.split(',').map(s => s.trim()).filter(Boolean) : [];
+      S.bkRecurrence = 'once';
+      S.bkStartMin = toMin(b.startTime);
+      S.bkEndMin = toMin(b.endTime);
+      document.getElementById('bk-purpose').value = b.purpose || '';
+      document.getElementById('bk-notes').value = b.notes || '';
+      document.getElementById('bk-date').value = b.date;
+      document.getElementById('bk-submit-btn').textContent = 'Update Booking';
+    }
+  } else {
+    document.getElementById('book-modal-title').textContent = 'New Booking';
+    S.bkResource = S.resource;
+    S.bkAs = 'self';
+    S.bkAttendees = [];
+    S.bkRecurrence = 'once';
+    S.bkStartMin = prefillTime ? toMin(prefillTime) : 540;
+    S.bkEndMin = S.bkStartMin + 60;
+    document.getElementById('bk-purpose').value = '';
+    document.getElementById('bk-notes').value = '';
+    document.getElementById('bk-date').value = prefillDate || dateStr(S.date);
+    document.getElementById('bk-submit-btn').textContent = 'Confirm Booking';
+  }
+
+  setBkResource(S.bkResource);
+  setBkAs(S.bkAs);
+  setRecurrence('once');
+  renderAttendeeTags();
+  updateDials();
   document.getElementById('bk-conflict').classList.remove('visible');
-  const errEl=document.getElementById('bk-error');errEl.classList.remove('visible');errEl.style.display='none';
-  document.getElementById('rec-until').value='';
-  document.getElementById('rec-until-wrap').style.display='none';
-  renderAttendeeTags();updateDials();
+  document.getElementById('bk-error').style.display = 'none';
+  document.getElementById('rec-until').value = '';
+  document.getElementById('rec-until-wrap').style.display = 'none';
   openModal('modal-book');
 }
-function setBkResource(r){S.bkResource=r;document.getElementById('bk-res-boardroom').classList.toggle('active',r==='boardroom');document.getElementById('bk-res-car').classList.toggle('active',r==='car');checkConflict();}
-function setBkAs(a){S.bkAs=a;document.getElementById('bk-as-self').classList.toggle('active',a==='self');document.getElementById('bk-as-dept').classList.toggle('active',a==='dept');}
-function adjustTime(w,d){
-  if(w==='start'){S.bkStartMin=Math.max(GRID_START*60,Math.min(GRID_END*60-30,S.bkStartMin+d));if(S.bkEndMin<=S.bkStartMin)S.bkEndMin=S.bkStartMin+30;}
-  else{S.bkEndMin=Math.max(S.bkStartMin+30,Math.min(GRID_END*60,S.bkEndMin+d));}
-  updateDials();checkConflict();
+
+function setBkResource(r) {
+  S.bkResource = r;
+  document.getElementById('bk-res-boardroom').classList.toggle('active', r === 'boardroom');
+  document.getElementById('bk-res-car').classList.toggle('active', r === 'car');
+  checkConflict();
 }
-function updateDials(){document.getElementById('dial-start').textContent=fromMin(S.bkStartMin);document.getElementById('dial-end').textContent=fromMin(S.bkEndMin);}
-function setRecurrence(r){
-  S.bkRecurrence=r;
-  ['once','daily','weekdays','weekly','monthly'].forEach(v=>document.getElementById('rec-'+v).classList.toggle('active',v===r));
-  const wrap=document.getElementById('rec-until-wrap');
-  wrap.style.display=r==='once'?'none':'block';
-  if(r!=='once'){const u=document.getElementById('rec-until');if(!u.value){const def=new Date();def.setMonth(def.getMonth()+3);u.value=dateStr(def);}updateRecPreview();}
+
+function setBkAs(a) {
+  S.bkAs = a;
+  document.getElementById('bk-as-self').classList.toggle('active', a === 'self');
+  document.getElementById('bk-as-dept').classList.toggle('active', a === 'dept');
 }
-function populateAttendeeDropdowns(){
-  const uSel=document.getElementById('att-user-sel');
-  const dSel=document.getElementById('att-dept-sel');
-  uSel.innerHTML='<option value="">Add person…</option>'+S.users.map(u=>`<option value="${u.name}">${u.name} (${u.department})</option>`).join('');
-  const depts=[...new Set(S.users.map(u=>u.department))].sort();
-  dSel.innerHTML='<option value="">Add department…</option>'+depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+
+function adjustTime(which, delta) {
+  if (which === 'start') {
+    S.bkStartMin = Math.max(GRID_START * 60, Math.min(GRID_END * 60 - 30, S.bkStartMin + delta));
+    if (S.bkEndMin <= S.bkStartMin) S.bkEndMin = S.bkStartMin + 30;
+  } else {
+    S.bkEndMin = Math.max(S.bkStartMin + 30, Math.min(GRID_END * 60, S.bkEndMin + delta));
+  }
+  updateDials();
+  checkConflict();
 }
-function addAttendeeFromUser(){const v=document.getElementById('att-user-sel').value;if(v&&!S.bkAttendees.includes(v)){S.bkAttendees.push(v);renderAttendeeTags();}document.getElementById('att-user-sel').value='';}
-function addAttendeeFromDept(){const dept=document.getElementById('att-dept-sel').value;if(!dept)return;S.users.filter(u=>u.department===dept).forEach(u=>{if(!S.bkAttendees.includes(u.name))S.bkAttendees.push(u.name);});renderAttendeeTags();document.getElementById('att-dept-sel').value='';}
-function removeAttendee(name){S.bkAttendees=S.bkAttendees.filter(a=>a!==name);renderAttendeeTags();}
-function renderAttendeeTags(){document.getElementById('attendees-wrap').innerHTML=S.bkAttendees.map(a=>`<div class="att-tag">${a}<button onclick="removeAttendee('${a.replace(/'/g,"\\'")}')">×</button></div>`).join('');}
-function checkConflict(){
-  const date=document.getElementById('bk-date').value;if(!date)return;
-  const st=fromMin(S.bkStartMin),et=fromMin(S.bkEndMin);
-  const c=S.bookings.some(b=>b.resource===S.bkResource&&b.date===date&&toMin(b.startTime)<toMin(et)&&toMin(b.endTime)>toMin(st));
-  document.getElementById('bk-conflict').classList.toggle('visible',c);
+
+function updateDials() {
+  document.getElementById('dial-start').textContent = fromMin(S.bkStartMin);
+  document.getElementById('dial-end').textContent = fromMin(S.bkEndMin);
 }
-function buildRecurrenceDates(baseDate,type,untilDate){
-  if(type==='once'||!untilDate||untilDate<baseDate)return[baseDate];
-  const dates=[];let cur=new Date(baseDate+'T12:00:00');
-  const until=new Date(untilDate+'T12:00:00');const MAX=365;
-  while(cur<=until&&dates.length<MAX){
-    if(type!=='weekdays'||(cur.getDay()!==0&&cur.getDay()!==6))dates.push(dateStr(cur));
-    if(type==='daily'||type==='weekdays')cur=addDays(cur,1);
-    else if(type==='weekly')cur=addDays(cur,7);
-    else if(type==='monthly'){const x=new Date(cur);x.setMonth(x.getMonth()+1);cur=x;}
+
+function setRecurrence(r) {
+  S.bkRecurrence = r;
+  ['once', 'daily', 'weekdays', 'weekly', 'monthly'].forEach(v =>
+    document.getElementById('rec-' + v).classList.toggle('active', v === r)
+  );
+  const wrap = document.getElementById('rec-until-wrap');
+  wrap.style.display = r === 'once' ? 'none' : 'block';
+  if (r !== 'once') {
+    const u = document.getElementById('rec-until');
+    if (!u.value) {
+      const def = new Date();
+      def.setMonth(def.getMonth() + 3);
+      u.value = dateStr(def);
+    }
+    updateRecPreview();
+  }
+}
+
+function populateAttendeeDropdowns() {
+  const uSel = document.getElementById('att-user-sel');
+  const dSel = document.getElementById('att-dept-sel');
+  if (!uSel || !dSel) return;
+  
+  uSel.innerHTML = '<option value="">Add person…</option>' +
+    S.users.map(u => `<option value="${escapeHTML(u.name)}">${escapeHTML(u.name)} (${escapeHTML(u.department || '')})</option>`).join('');
+  const depts = [...new Set(S.users.map(u => u.department))].filter(Boolean).sort();
+  dSel.innerHTML = '<option value="">Add department…</option>' +
+    depts.map(d => `<option value="${escapeHTML(d)}">${escapeHTML(d)}</option>`).join('');
+}
+
+function addAttendeeFromUser() {
+  const v = document.getElementById('att-user-sel').value;
+  if (v && !S.bkAttendees.includes(v)) {
+    S.bkAttendees.push(v);
+    renderAttendeeTags();
+  }
+  document.getElementById('att-user-sel').value = '';
+}
+
+function addAttendeeFromDept() {
+  const dept = document.getElementById('att-dept-sel').value;
+  if (!dept) return;
+  S.users.filter(u => u.department === dept).forEach(u => {
+    if (!S.bkAttendees.includes(u.name)) S.bkAttendees.push(u.name);
+  });
+  renderAttendeeTags();
+  document.getElementById('att-dept-sel').value = '';
+}
+
+function removeAttendee(name) {
+  S.bkAttendees = S.bkAttendees.filter(a => a !== name);
+  renderAttendeeTags();
+}
+
+function renderAttendeeTags() {
+  document.getElementById('attendees-wrap').innerHTML = S.bkAttendees.map(a =>
+    `<div class="att-tag">${escapeHTML(a)}<button onclick="removeAttendee('${a.replace(/'/g, "\\'")}')">×</button></div>`
+  ).join('');
+}
+
+function checkConflict() {
+  const date = document.getElementById('bk-date').value;
+  if (!date) return;
+  const st = fromMin(S.bkStartMin), et = fromMin(S.bkEndMin);
+  const c = S.bookings.some(b =>
+    b.resource === S.bkResource && b.date === date &&
+    b._key !== S.editingBooking &&
+    toMin(b.startTime) < toMin(et) && toMin(b.endTime) > toMin(st)
+  );
+  document.getElementById('bk-conflict').classList.toggle('visible', c);
+}
+
+function buildRecurrenceDates(baseDate, type, untilDate) {
+  if (type === 'once' || !untilDate || untilDate < baseDate) return [baseDate];
+  const dates = [];
+  let cur = new Date(baseDate + 'T12:00:00');
+  const until = new Date(untilDate + 'T12:00:00');
+  const MAX = 365;
+  while (cur <= until && dates.length < MAX) {
+    if (type !== 'weekdays' || (cur.getDay() !== 0 && cur.getDay() !== 6)) dates.push(dateStr(cur));
+    if (type === 'daily' || type === 'weekdays') cur = addDays(cur, 1);
+    else if (type === 'weekly') cur = addDays(cur, 7);
+    else if (type === 'monthly') { const x = new Date(cur); x.setMonth(x.getMonth() + 1); cur = x; }
     else break;
   }
-  return dates.length>0?dates:[baseDate];
+  return dates.length > 0 ? dates : [baseDate];
 }
-function updateRecPreview(){
-  const dv=document.getElementById('bk-date').value,u=document.getElementById('rec-until').value,p=document.getElementById('rec-preview');
-  if(!p)return;if(!dv||!u||S.bkRecurrence==='once'){p.textContent='';return;}
-  const dates=buildRecurrenceDates(dv,S.bkRecurrence,u);
-  p.textContent=`${dates.length} booking${dates.length!==1?'s':''} will be created`;
+
+function updateRecPreview() {
+  const dv = document.getElementById('bk-date').value, u = document.getElementById('rec-until').value, p = document.getElementById('rec-preview');
+  if (!p) return;
+  if (!dv || !u || S.bkRecurrence === 'once') { p.textContent = ''; return; }
+  const dates = buildRecurrenceDates(dv, S.bkRecurrence, u);
+  p.textContent = `${dates.length} booking${dates.length !== 1 ? 's' : ''} will be created`;
 }
-async function saveBooking(){
-  const purpose=document.getElementById('bk-purpose').value.trim();
-  const date=document.getElementById('bk-date').value;
-  if(!purpose){showBkError('Please enter a title.');return;}
-  if(!date){showBkError('Please select a date.');return;}
-  const startT=fromMin(S.bkStartMin),endT=fromMin(S.bkEndMin);
-  const conflict=S.bookings.some(b=>b.resource===S.bkResource&&b.date===date&&toMin(b.startTime)<toMin(endT)&&toMin(b.endTime)>toMin(startT));
-  if(conflict){showBkError('Time slot conflicts with an existing booking.');return;}
-  const btn=document.getElementById('bk-submit-btn');btn.textContent='Saving…';btn.disabled=true;
-  const untilDate=document.getElementById('rec-until').value;
-  const dates=buildRecurrenceDates(date,S.bkRecurrence,untilDate);
-  const groupId=dates.length>1?uid():null;
-  try{
-    for(const d of dates){
-      await db.ref('bookings').push({resource:S.bkResource,date:d,startTime:startT,endTime:endT,user:S.currentUser.name,userId:S.currentUser.id||S.currentUser._key||'',department:S.currentUser.department||'',bookedAs:S.bkAs,purpose,attendees:S.bkAttendees.join(', '),notes:document.getElementById('bk-notes').value.trim(),groupId,createdAt:new Date().toISOString()});
+
+async function saveBooking() {
+  const btn = document.getElementById('bk-submit-btn');
+  const btnState = new ButtonState(btn);
+  const purpose = document.getElementById('bk-purpose').value.trim();
+  const date = document.getElementById('bk-date').value;
+
+  if (!purpose) { showBkError('Please enter a title.'); return; }
+  if (!date) { showBkError('Please select a date.'); return; }
+
+  const startT = fromMin(S.bkStartMin), endT = fromMin(S.bkEndMin);
+  const untilDate = document.getElementById('rec-until').value;
+  const dates = buildRecurrenceDates(date, S.bkRecurrence, untilDate);
+
+  if (S.editingBooking) {
+    btnState.loading('Updating...');
+    try {
+      await db.ref('bookings/' + S.editingBooking).update({
+        purpose, resource: S.bkResource, bookedAs: S.bkAs,
+        startTime: startT, endTime: endT,
+        attendees: S.bkAttendees.join(', '),
+        notes: document.getElementById('bk-notes').value.trim(),
+        editedAt: new Date().toISOString(), editedBy: S.currentUser.name
+      });
+      closeModal('modal-book');
+      notify('Booking updated ✓');
+    } catch (e) { notify('Failed: ' + e.message, 'error'); }
+    finally { btnState.restore(); }
+    return;
+  }
+
+  const conflicts = dates.filter(d =>
+    S.bookings.some(b =>
+      b.resource === S.bkResource && b.date === d &&
+      toMin(b.startTime) < toMin(endT) && toMin(b.endTime) > toMin(startT)
+    )
+  );
+
+  if (conflicts.length > 0) {
+    notify(`Conflict on: ${conflicts.map(d => new Date(d).toLocaleDateString()).join(', ')}. Please adjust.`, 'error');
+    return;
+  }
+
+  btnState.loading('Saving...');
+  const groupId = dates.length > 1 ? uid() : null;
+
+  try {
+    for (const d of dates) {
+      await db.ref('bookings').push({
+        resource: S.bkResource, date: d, startTime: startT, endTime: endT,
+        user: S.currentUser.name, userId: S.currentUser.id || S.currentUser._key || '',
+        department: S.currentUser.department || '', bookedAs: S.bkAs,
+        purpose, attendees: S.bkAttendees.join(', '),
+        notes: document.getElementById('bk-notes').value.trim(),
+        groupId, createdAt: new Date().toISOString()
+      });
     }
     closeModal('modal-book');
-    notify(dates.length>1?`${dates.length} recurring bookings saved ✓`:'Booking confirmed ✓');
-  }catch(e){showBkError('Failed: '+e.message);}
-  finally{btn.textContent='Confirm Booking';btn.disabled=false;}
+    notify(dates.length > 1 ? `${dates.length} recurring bookings saved ✓` : 'Booking confirmed ✓');
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
+  finally { btnState.restore(); }
 }
-function showBkError(msg){const el=document.getElementById('bk-error');el.textContent=msg;el.style.display='block';el.classList.add('visible');}
+
+function showBkError(msg) {
+  const el = document.getElementById('bk-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.classList.add('visible');
+}
 
 // ═══════════════════════════════════════════════════════════
 //  BOOKING DETAIL
 // ═══════════════════════════════════════════════════════════
-function openDetail(key){
-  const b=S.bookings.find(x=>x._key===key);if(!b)return;
-  const canManage=S.isAdmin||b.userId===(S.currentUser.id||S.currentUser._key)||b.user===S.currentUser.name;
-  document.getElementById('detail-hdr').className=`detail-res-banner ${b.resource}`;
-  document.getElementById('detail-resource-label').textContent=b.resource==='boardroom'?'Board Room':'Company Car';
-  document.getElementById('detail-title').textContent=b.purpose;
-  const dateObj=new Date(b.date+'T12:00:00');
-  document.getElementById('detail-info-grid').innerHTML=`
-    <div class="info-card"><div class="ic-label">Date</div><div class="ic-val">${dateObj.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div></div>
+function openDetail(key) {
+  const b = S.bookings.find(x => x._key === key);
+  if (!b) return;
+
+  const canManage = S.isAdmin ||
+    b.userId === (S.currentUser.id || S.currentUser._key) ||
+    b.user === S.currentUser.name;
+
+  document.getElementById('detail-hdr').className = `detail-res-banner ${b.resource}`;
+  document.getElementById('detail-resource-label').textContent = b.resource === 'boardroom' ? 'Board Room' : 'Company Car';
+  document.getElementById('detail-title').textContent = b.purpose || 'Untitled';
+
+  const dateObj = new Date(b.date + 'T12:00:00');
+  document.getElementById('detail-info-grid').innerHTML = `
+    <div class="info-card"><div class="ic-label">Date</div><div class="ic-val">${dateObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</div></div>
     <div class="info-card"><div class="ic-label">Time</div><div class="ic-val">${b.startTime} – ${b.endTime}</div></div>
-    <div class="info-card"><div class="ic-label">Booked By</div><div class="ic-val">${b.user||'—'}</div></div>
-    <div class="info-card"><div class="ic-label">Booked As</div><div class="ic-val">${b.bookedAs==='dept'?'Department':'Individual'}</div></div>`;
-  const attWrap=document.getElementById('detail-attendees-wrap');
-  if(b.attendees){attWrap.style.display='block';document.getElementById('detail-attendees').innerHTML=b.attendees.split(',').filter(Boolean).map(a=>`<div class="att-tag">${a.trim()}</div>`).join('');}
-  else{attWrap.style.display='none';}
-  const notesEl=document.getElementById('detail-notes');
-  if(b.notes){notesEl.style.display='block';notesEl.textContent=b.notes;}else{notesEl.style.display='none';}
-  const actEl=document.getElementById('detail-actions');
-  if(canManage){
-    const hasSeries=b.groupId&&S.bookings.filter(x=>x.groupId===b.groupId).length>1;
-    const sc=hasSeries?S.bookings.filter(x=>x.groupId===b.groupId).length:0;
-    actEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px;">
-      ${S.isAdmin?`<div style="display:flex;gap:10px;"><button class="btn-primary" style="background:linear-gradient(135deg,var(--teal),#004d58);color:white;" onclick="openMoveModal('${key}');closeModal('modal-detail');">Move</button><button class="btn-primary" style="background:linear-gradient(135deg,var(--plum),#6b1a33);color:white;" onclick="openSwapModal('${key}');closeModal('modal-detail');">Swap</button></div>`:''}
+    <div class="info-card"><div class="ic-label">Booked By</div><div class="ic-val">${escapeHTML(b.user || '—')}</div></div>
+    <div class="info-card"><div class="ic-label">Booked As</div><div class="ic-val">${b.bookedAs === 'dept' ? 'Department' : 'Individual'}</div></div>`;
+
+  const attWrap = document.getElementById('detail-attendees-wrap');
+  if (b.attendees) {
+    attWrap.style.display = 'block';
+    document.getElementById('detail-attendees').innerHTML = b.attendees.split(',').filter(Boolean).map(a =>
+      `<div class="att-tag">${escapeHTML(a.trim())}</div>`
+    ).join('');
+  } else {
+    attWrap.style.display = 'none';
+  }
+
+  const notesEl = document.getElementById('detail-notes');
+  if (b.notes) { notesEl.style.display = 'block'; notesEl.textContent = b.notes; } else { notesEl.style.display = 'none'; }
+
+  const actEl = document.getElementById('detail-actions');
+  if (canManage) {
+    const hasGroup = b.groupId && S.bookings.filter(x => x.groupId === b.groupId).length > 1;
+    const sc = hasGroup ? S.bookings.filter(x => x.groupId === b.groupId).length : 0;
+    actEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">
+      ${S.isAdmin ? `<div style="display:flex;gap:10px;"><button class="btn-primary" style="background:linear-gradient(135deg,var(--teal),#004d58);color:white;" onclick="openMoveModal('${key}');closeModal('modal-detail');">Move</button><button class="btn-primary" style="background:linear-gradient(135deg,var(--plum),#6b1a33);color:white;" onclick="openSwapModal('${key}');closeModal('modal-detail');">Swap</button></div>` : ''}
       <button class="btn-secondary" style="color:var(--danger);border:1px solid rgba(192,57,43,.2);" onclick="deleteBooking('${key}',false)">Remove This Booking</button>
-      ${hasSeries?`<button class="btn-secondary" style="color:var(--danger);background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);font-weight:700;" onclick="deleteBooking('${key}',true)">Remove All ${sc} in Series</button>`:''}
+      ${hasGroup ? `<button class="btn-secondary" style="color:var(--danger);background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);font-weight:700;" onclick="deleteBooking('${key}',true)">Remove All ${sc} in Series</button>` : ''}
     </div>`;
-  }else{actEl.innerHTML='';}
+  } else {
+    actEl.innerHTML = '';
+  }
   openModal('modal-detail');
 }
-async function deleteBooking(key,deleteSeries){
-  const b=S.bookings.find(x=>x._key===key);if(!b)return;
-  if(deleteSeries&&b.groupId){
-    const skeys=S.bookings.filter(x=>x.groupId===b.groupId).map(x=>x._key);
-    if(!confirm(`Remove all ${skeys.length} bookings in series?`))return;
-    try{await Promise.all(skeys.map(k=>db.ref('bookings/'+k).remove()));closeModal('modal-detail');notify(`${skeys.length} bookings removed ✓`);}
-    catch(e){alert('Failed: '+e.message);}
-  }else{
-    if(!confirm('Remove this booking?'))return;
-    try{await db.ref('bookings/'+key).remove();closeModal('modal-detail');notify('Booking removed ✓');}
-    catch(e){alert('Failed: '+e.message);}
+
+async function deleteBooking(key, deleteSeries) {
+  const b = S.bookings.find(x => x._key === key);
+  if (!b) return;
+
+  if (deleteSeries && b.groupId) {
+    const skeys = S.bookings.filter(x => x.groupId === b.groupId).map(x => x._key);
+    showConfirm('Delete Series', `Remove all ${skeys.length} bookings in series?`, async () => {
+      try {
+        await Promise.all(skeys.map(k => db.ref('bookings/' + k).remove()));
+        closeModal('modal-detail');
+        notify(`${skeys.length} bookings removed ✓`);
+      } catch (e) { notify('Failed: ' + e.message, 'error'); }
+    });
+  } else {
+    showConfirm('Delete Booking', 'Remove this booking?', async () => {
+      try {
+        await db.ref('bookings/' + key).remove();
+        closeModal('modal-detail');
+        notify('Booking removed ✓');
+      } catch (e) { notify('Failed: ' + e.message, 'error'); }
+    });
   }
 }
 
 // ═══════════════════════════════════════════════════════════
 //  MOVE / SWAP
 // ═══════════════════════════════════════════════════════════
-function openMoveModal(key){
-  const b=S.bookings.find(x=>x._key===key);if(!b)return;
-  S.moveTarget=key;
-  document.getElementById('move-booking-info').innerHTML=`<div class="ic-label">Moving</div><div class="ic-val">${b.purpose} · ${b.date} ${b.startTime}–${b.endTime}</div>`;
-  document.getElementById('move-date').value=b.date;
-  document.getElementById('move-start').value=b.startTime;
-  document.getElementById('move-end').value=b.endTime;
+function openMoveModal(key) {
+  const b = S.bookings.find(x => x._key === key);
+  if (!b) return;
+  S.moveTarget = key;
+  document.getElementById('move-booking-info').innerHTML = `<div class="ic-label">Moving</div><div class="ic-val">${escapeHTML(b.purpose)} · ${b.date} ${b.startTime}–${b.endTime}</div>`;
+  document.getElementById('move-date').value = b.date;
+  document.getElementById('move-start').value = b.startTime;
+  document.getElementById('move-end').value = b.endTime;
   openModal('modal-move');
 }
-async function confirmMove(){
-  const nd=document.getElementById('move-date').value,ns=document.getElementById('move-start').value,ne=document.getElementById('move-end').value;
-  if(!nd||!ns||!ne)return;
-  if(toMin(ne)<=toMin(ns)){alert('End time must be after start.');return;}
-  try{await db.ref('bookings/'+S.moveTarget).update({date:nd,startTime:ns,endTime:ne});closeModal('modal-move');notify('Booking moved ✓');}
-  catch(e){alert('Failed: '+e.message);}
+
+async function confirmMove() {
+  const nd = document.getElementById('move-date').value, ns = document.getElementById('move-start').value, ne = document.getElementById('move-end').value;
+  if (!nd || !ns || !ne) return;
+  if (toMin(ne) <= toMin(ns)) { notify('End time must be after start.', 'error'); return; }
+
+  const b = S.bookings.find(x => x._key === S.moveTarget);
+  if (!b) return;
+
+  const conflict = S.bookings.some(bk =>
+    bk._key !== S.moveTarget && bk.resource === b.resource && bk.date === nd &&
+    toMin(bk.startTime) < toMin(ne) && toMin(bk.endTime) > toMin(ns)
+  );
+
+  if (conflict) {
+    if (!confirm('This slot conflicts with another booking. Move anyway?')) return;
+  }
+
+  try {
+    await db.ref('bookings/' + S.moveTarget).update({
+      date: nd, startTime: ns, endTime: ne,
+      movedAt: new Date().toISOString(), movedBy: S.currentUser.name
+    });
+    closeModal('modal-move');
+    notify('Booking moved ✓');
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
 }
-function openSwapModal(key){
-  const b=S.bookings.find(x=>x._key===key);if(!b)return;
-  S.swapTarget=key;
-  document.getElementById('swap-a-info').innerHTML=`<div class="ic-val">${b.purpose} · ${b.date} ${b.startTime}–${b.endTime}</div>`;
-  const others=S.bookings.filter(x=>x._key!==key&&x.resource===b.resource);
-  document.getElementById('swap-b-sel').innerHTML='<option value="">Select…</option>'+others.map(x=>`<option value="${x._key}">${x.purpose} — ${x.date} ${x.startTime}–${x.endTime}</option>`).join('');
+
+function openSwapModal(key) {
+  const b = S.bookings.find(x => x._key === key);
+  if (!b) return;
+  S.swapTarget = key;
+  document.getElementById('swap-a-info').innerHTML = `<div class="ic-val">${escapeHTML(b.purpose)} · ${b.date} ${b.startTime}–${b.endTime}</div>`;
+  const others = S.bookings.filter(x => x._key !== key && x.resource === b.resource);
+  document.getElementById('swap-b-sel').innerHTML = '<option value="">Select…</option>' +
+    others.map(x => `<option value="${x._key}">${escapeHTML(x.purpose)} — ${x.date} ${x.startTime}–${x.endTime}</option>`).join('');
   openModal('modal-swap');
 }
-async function confirmSwap(){
-  const bKey=document.getElementById('swap-b-sel').value;if(!bKey){alert('Select a booking.');return;}
-  const a=S.bookings.find(x=>x._key===S.swapTarget),b=S.bookings.find(x=>x._key===bKey);if(!a||!b)return;
-  try{
-    await db.ref('bookings/'+S.swapTarget).update({date:b.date,startTime:b.startTime,endTime:b.endTime});
-    await db.ref('bookings/'+bKey).update({date:a.date,startTime:a.startTime,endTime:a.endTime});
-    closeModal('modal-swap');notify('Bookings swapped ✓');
-  }catch(e){alert('Failed: '+e.message);}
+
+async function confirmSwap() {
+  const bKey = document.getElementById('swap-b-sel').value;
+  if (!bKey) { notify('Select a booking.', 'error'); return; }
+
+  const a = S.bookings.find(x => x._key === S.swapTarget), b = S.bookings.find(x => x._key === bKey);
+  if (!a || !b) return;
+
+  if (!confirm(`Swap "${a.purpose}" with "${b.purpose}"?`)) return;
+
+  try {
+    await db.ref('bookings/' + S.swapTarget).update({
+      date: b.date, startTime: b.startTime, endTime: b.endTime,
+      swappedAt: new Date().toISOString(), swappedBy: S.currentUser.name
+    });
+    await db.ref('bookings/' + bKey).update({
+      date: a.date, startTime: a.startTime, endTime: a.endTime,
+      swappedAt: new Date().toISOString(), swappedBy: S.currentUser.name
+    });
+    closeModal('modal-swap');
+    notify('Bookings swapped ✓');
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
 }
 
 // ═══════════════════════════════════════════════════════════
 //  ADMIN PANEL
 // ═══════════════════════════════════════════════════════════
-function showAdminTab(tab){
-  S.adminTab=tab;
-  document.querySelectorAll('.admin-tab-btn').forEach((t,i)=>t.classList.toggle('active',['bookings','users','admins','deptPasswords'][i]===tab));
+function showAdminTab(tab) {
+  S.adminTab = tab;
+  document.querySelectorAll('.admin-tab-btn').forEach((t, i) =>
+    t.classList.toggle('active', ['bookings', 'users', 'admins', 'deptPasswords'][i] === tab)
+  );
   renderAdminTab();
 }
-function renderAdminTab(){
-  const el=document.getElementById('admin-body');if(!el)return;
-  if(S.adminTab==='bookings')el.innerHTML=renderAdminBookings();
-  else if(S.adminTab==='users')el.innerHTML=renderAdminUsers();
-  else if(S.adminTab==='admins')el.innerHTML=renderAdminAdmins();
-  else el.innerHTML=renderDeptPasswords2();
+
+function renderAdminTab() {
+  const el = document.getElementById('admin-body');
+  if (!el) return;
+  if (S.adminTab === 'bookings') el.innerHTML = renderAdminBookings();
+  else if (S.adminTab === 'users') el.innerHTML = renderAdminUsers();
+  else if (S.adminTab === 'admins') el.innerHTML = renderAdminAdmins();
+  else el.innerHTML = renderDeptPasswords();
 }
-function renderAdminBookings(){
-  const sorted=[...S.bookings].sort((a,b)=>a.date>b.date?-1:1);
-  const cards=sorted.map(b=>{
-    const hasSeries=b.groupId&&S.bookings.filter(x=>x.groupId===b.groupId).length>1;
-    return`<div class="admin-bk-card ${b.resource}">
+
+function renderAdminBookings() {
+  const sorted = [...S.bookings].sort((a, b) => a.date > b.date ? -1 : 1);
+  const cards = sorted.map(b => {
+    const hasSeries = b.groupId && S.bookings.filter(x => x.groupId === b.groupId).length > 1;
+    return `<div class="admin-bk-card ${b.resource}">
       <div class="admin-bk-card-top">
-        <div><div class="admin-bk-card-title">${b.purpose}${hasSeries?`<span class="series-tag">Series</span>`:''}</div><div class="admin-bk-card-meta">${b.date} · ${b.startTime}–${b.endTime} · ${b.user||'—'}</div></div>
-        <span class="res-badge ${b.resource}">${b.resource==='boardroom'?'Room':'Car'}</span>
+        <div><div class="admin-bk-card-title">${escapeHTML(b.purpose)}${hasSeries ? `<span class="series-tag">Series</span>` : ''}</div><div class="admin-bk-card-meta">${b.date} · ${b.startTime}–${b.endTime} · ${escapeHTML(b.user || '—')}</div></div>
+        <span class="res-badge ${b.resource}">${b.resource === 'boardroom' ? 'Room' : 'Car'}</span>
       </div>
       <div class="admin-bk-actions">
         <button class="btn-xs move" onclick="openMoveModal('${b._key}')">Move</button>
         <button class="btn-xs swap" onclick="openSwapModal('${b._key}')">Swap</button>
         <button class="btn-xs del" onclick="deleteBooking('${b._key}',false)">Delete</button>
-        ${hasSeries?`<button class="btn-xs del-series" onclick="deleteBooking('${b._key}',true)">Del Series</button>`:''}
+        ${hasSeries ? `<button class="btn-xs del-series" onclick="deleteBooking('${b._key}',true)">Del Series</button>` : ''}
       </div>
     </div>`;
   }).join('');
-  return`<div class="admin-section-hdr"><h3>Bookings (${S.bookings.length})</h3><button class="btn-add" onclick="openBookModal(null,null)">＋ New</button></div>${cards||'<div style="text-align:center;padding:40px;color:var(--muted);">No bookings yet</div>'}`;
+  return `<div class="admin-section-hdr"><h3>Bookings (${S.bookings.length})</h3><button class="btn-add" onclick="openBookModal(null,null)">＋ New</button></div>${cards || '<div style="text-align:center;padding:40px;color:var(--muted);">No bookings yet</div>'}`;
 }
-function renderAdminUsers(){
-  const cards=S.users.map(u=>`
+
+function renderAdminUsers() {
+  const cards = S.users.map(u => `
     <div class="user-card">
       <div class="uc-av">${initials(u.name)}</div>
-      <div class="uc-info"><div class="uc-name">${u.name}</div><div class="uc-dept">${u.department||'—'} · ${u.role==='dept'?'Dept':'Individual'}</div></div>
+      <div class="uc-info"><div class="uc-name">${escapeHTML(u.name)}</div><div class="uc-dept">${escapeHTML(u.department || '—')} · ${u.role === 'dept' ? 'Dept' : 'Individual'}</div></div>
       <div class="uc-actions">
         <button class="btn-xs move" onclick="editUser('${u._key}')">Edit</button>
         <button class="btn-xs del" onclick="adminDeleteUser('${u._key}')">Del</button>
       </div>
     </div>`).join('');
-  return`<div class="admin-section-hdr"><h3>Users (${S.users.length})</h3><button class="btn-add" onclick="openAddUserModal()">＋ Add</button></div>${cards}`;
+  return `<div class="admin-section-hdr"><h3>Users (${S.users.length})</h3><button class="btn-add" onclick="openAddUserModal()">＋ Add</button></div>${cards}`;
 }
-function renderAdminAdmins(){
-  const cards=S.admins.map(a=>`
+
+function renderAdminAdmins() {
+  const cards = S.admins.map(a => `
     <div class="user-card">
       <div class="uc-av" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);">${initials(a.name)}</div>
-      <div class="uc-info"><div class="uc-name">${a.name}</div><div class="uc-dept">@${a.username}</div></div>
+      <div class="uc-info"><div class="uc-name">${escapeHTML(a.name)}</div><div class="uc-dept">@${escapeHTML(a.username)}</div></div>
       <div class="uc-actions">
         <button class="btn-xs move" onclick="editAdminEntry('${a._key}')">Edit</button>
         <button class="btn-xs del" onclick="adminDeleteAdmin('${a._key}')">Del</button>
       </div>
     </div>`).join('');
-  return`<div class="admin-section-hdr"><h3>Admins (${S.admins.length})</h3><button class="btn-add" onclick="openAddAdminModal()">＋ Add</button></div>${cards}`;
+  return `<div class="admin-section-hdr"><h3>Admins (${S.admins.length})</h3><button class="btn-add" onclick="openAddAdminModal()">＋ Add</button></div>${cards}`;
 }
 
-// ─── Department Passwords ────────────────────────────────────────────────
-function renderDeptPasswords2(){
-  const depts=[...new Set(S.users.map(u=>u.department))].filter(Boolean).sort();
-  const cards=depts.map(dept=>{
-    const current=S.deptPasswords[dept]||'';
-    const memberCount=S.users.filter(u=>u.department===dept).length;
-    const safeId='deptpass-'+dept.replace(/[^a-zA-Z0-9]/g,'_');
-    return`<div class="user-card" style="flex-direction:column;align-items:stretch;gap:10px;">
+function renderDeptPasswords() {
+  const depts = [...new Set(S.users.map(u => u.department))].filter(Boolean).sort();
+  const cards = depts.map(dept => {
+    const current = S.deptPasswords[dept] || '';
+    const memberCount = S.users.filter(u => u.department === dept).length;
+    const safeId = 'deptpass-' + dept.replace(/[^a-zA-Z0-9]/g, '_');
+    return `<div class="user-card" style="flex-direction:column;align-items:stretch;gap:10px;">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div class="uc-av" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);">${dept.slice(0,2).toUpperCase()}</div>
-        <div class="uc-info"><div class="uc-name">${dept}</div><div class="uc-dept">${memberCount} member${memberCount!==1?'s':''}</div></div>
+        <div class="uc-av" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);">${dept.slice(0, 2).toUpperCase()}</div>
+        <div class="uc-info"><div class="uc-name">${escapeHTML(dept)}</div><div class="uc-dept">${memberCount} member${memberCount !== 1 ? 's' : ''}</div></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <input class="form-input" style="flex:1;font-size:var(--sz-sm);" type="text"
-          id="${safeId}" value="${current}" placeholder="Set department password…">
-        <button class="btn-xs move" onclick="saveDeptPassword('${dept.replace(/'/g,"\\'")}','${dept.replace(/[^a-zA-Z0-9]/g,'_')}')">Save</button>
+        <input class="form-input" style="flex:1;font-size:var(--sz-sm);" type="password"
+          id="${safeId}" placeholder="Set department password…">
+        <button class="btn-xs move" onclick="saveDeptPassword('${dept.replace(/'/g, "\\'")}','${dept.replace(/[^a-zA-Z0-9]/g, '_')}')">Save</button>
       </div>
     </div>`;
   }).join('');
-  return`<div class="admin-section-hdr"><h3>Dept Passwords</h3></div>
+  return `<div class="admin-section-hdr"><h3>Dept Passwords</h3></div>
     <div style="font-size:var(--sz-sm);color:var(--muted);margin-bottom:var(--sp-sm);line-height:1.55;">
       Each department shares one password. Members log in with their own email + this shared password.
     </div>
-    ${cards||'<div style="text-align:center;padding:40px;color:var(--muted);">No departments — add users first.</div>'}`;
+    ${cards || '<div style="text-align:center;padding:40px;color:var(--muted);">No departments — add users first.</div>'}`;
 }
-async function saveDeptPassword(dept,safeKey){
-  const val=document.getElementById('deptpass-'+safeKey)?.value?.trim();
-  if(!val){notify('Password cannot be empty.');return;}
-  await db.ref('deptPasswords/'+dept).set(val);
-  notify('Password saved for '+dept+' ✓');
+
+async function saveDeptPassword(dept, safeKey) {
+  const val = document.getElementById('deptpass-' + safeKey)?.value?.trim();
+  if (!val) { notify('Password cannot be empty.', 'error'); return; }
+  const hashed = await hashPassword(val);
+  try {
+    await db.ref('deptPasswords/' + dept).set(hashed);
+    notify('Password saved for ' + dept + ' ✓');
+    renderAdminTab();
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
 }
 
 // ═══════════════════════════════════════════════════════════
 //  USER CRUD
 // ═══════════════════════════════════════════════════════════
-function openAddUserModal(){document.getElementById('add-user-title').textContent='Add User';document.getElementById('edit-user-key').value='';document.getElementById('user-name').value='';document.getElementById('user-email').value='';document.getElementById('user-dept').value='';document.getElementById('user-role').value='individual';openModal('modal-add-user');}
-function editUser(key){const u=S.users.find(x=>x._key===key);if(!u)return;document.getElementById('add-user-title').textContent='Edit User';document.getElementById('edit-user-key').value=key;document.getElementById('user-name').value=u.name;document.getElementById('user-email').value=u.email||'';document.getElementById('user-dept').value=u.department||'';document.getElementById('user-role').value=u.role||'individual';openModal('modal-add-user');}
-async function saveUser(){
-  const key=document.getElementById('edit-user-key').value,name=document.getElementById('user-name').value.trim(),email=document.getElementById('user-email').value.trim(),dept=document.getElementById('user-dept').value.trim(),role=document.getElementById('user-role').value;
-  if(!name){alert('Name required.');return;}
-  const data={name,email,department:dept,role};
-  if(key)await db.ref('users/'+key).update(data);else{data.id=uid();await db.ref('users').push(data);}
-  populateAttendeeDropdowns();closeModal('modal-add-user');notify('User saved ✓');
+function openAddUserModal() {
+  document.getElementById('add-user-title').textContent = 'Add User';
+  document.getElementById('edit-user-key').value = '';
+  document.getElementById('user-name').value = '';
+  document.getElementById('user-email').value = '';
+  document.getElementById('user-dept').value = '';
+  document.getElementById('user-role').value = 'individual';
+  openModal('modal-add-user');
 }
-async function adminDeleteUser(key){if(!confirm('Delete this user?'))return;await db.ref('users/'+key).remove();notify('User deleted ✓');}
+
+function editUser(key) {
+  const u = S.users.find(x => x._key === key);
+  if (!u) return;
+  document.getElementById('add-user-title').textContent = 'Edit User';
+  document.getElementById('edit-user-key').value = key;
+  document.getElementById('user-name').value = u.name || '';
+  document.getElementById('user-email').value = u.email || '';
+  document.getElementById('user-dept').value = u.department || '';
+  document.getElementById('user-role').value = u.role || 'individual';
+  openModal('modal-add-user');
+}
+
+async function saveUser() {
+  const btn = document.getElementById('save-user');
+  const btnState = new ButtonState(btn);
+  const key = document.getElementById('edit-user-key').value;
+  const name = document.getElementById('user-name').value.trim();
+  const email = document.getElementById('user-email').value.trim();
+  const dept = document.getElementById('user-dept').value.trim();
+  const role = document.getElementById('user-role').value;
+
+  if (!name) { notify('Name required.', 'error'); return; }
+  if (email && !isValidEmail(email)) { notify('Please enter a valid email address.', 'error'); return; }
+
+  btnState.loading();
+  try {
+    const data = { name, email, department: dept, role };
+    if (key) await db.ref('users/' + key).update(data);
+    else { data.id = uid(); await db.ref('users').push(data); }
+    populateAttendeeDropdowns();
+    closeModal('modal-add-user');
+    notify('User saved ✓');
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
+  finally { btnState.restore(); }
+}
+
+async function adminDeleteUser(key) {
+  if (!confirm('Delete this user?')) return;
+  try {
+    await db.ref('users/' + key).remove();
+    notify('User deleted ✓');
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
+}
 
 // ═══════════════════════════════════════════════════════════
 //  ADMIN CRUD
 // ═══════════════════════════════════════════════════════════
-function openAddAdminModal(){document.getElementById('add-admin-title').textContent='Add Admin';document.getElementById('edit-admin-key').value='';document.getElementById('admin-name-input').value='';document.getElementById('admin-username-input').value='';document.getElementById('admin-password-input').value='';openModal('modal-add-admin');}
-function editAdminEntry(key){const a=S.admins.find(x=>x._key===key);if(!a)return;document.getElementById('add-admin-title').textContent='Edit Admin';document.getElementById('edit-admin-key').value=key;document.getElementById('admin-name-input').value=a.name;document.getElementById('admin-username-input').value=a.username;document.getElementById('admin-password-input').value=a.password||'';openModal('modal-add-admin');}
-async function saveAdmin(){
-  const key=document.getElementById('edit-admin-key').value,name=document.getElementById('admin-name-input').value.trim(),uname=document.getElementById('admin-username-input').value.trim(),pass=document.getElementById('admin-password-input').value.trim();
-  if(!name||!uname||!pass){alert('All fields required.');return;}
-  const data={name,username:uname,password:pass};
-  if(key)await db.ref('admins/'+key).update(data);else await db.ref('admins').push(data);
-  closeModal('modal-add-admin');notify('Admin saved ✓');
+function openAddAdminModal() {
+  document.getElementById('add-admin-title').textContent = 'Add Admin';
+  document.getElementById('edit-admin-key').value = '';
+  document.getElementById('admin-name-input').value = '';
+  document.getElementById('admin-username-input').value = '';
+  document.getElementById('admin-password-input').value = '';
+  openModal('modal-add-admin');
 }
-async function adminDeleteAdmin(key){if(S.admins.length<=1){alert('Cannot delete last admin.');return;}if(!confirm('Delete admin?'))return;await db.ref('admins/'+key).remove();notify('Admin deleted ✓');}
+
+function editAdminEntry(key) {
+  const a = S.admins.find(x => x._key === key);
+  if (!a) return;
+  document.getElementById('add-admin-title').textContent = 'Edit Admin';
+  document.getElementById('edit-admin-key').value = key;
+  document.getElementById('admin-name-input').value = a.name || '';
+  document.getElementById('admin-username-input').value = a.username || '';
+  document.getElementById('admin-password-input').value = '';
+  openModal('modal-add-admin');
+}
+
+async function saveAdmin() {
+  const btn = document.getElementById('save-admin');
+  const btnState = new ButtonState(btn);
+  const key = document.getElementById('edit-admin-key').value;
+  const name = document.getElementById('admin-name-input').value.trim();
+  const uname = document.getElementById('admin-username-input').value.trim();
+  const pass = document.getElementById('admin-password-input').value.trim();
+
+  if (!name || !uname) { notify('Name and username required.', 'error'); return; }
+  if (!key && !pass) { notify('Password required for new admin.', 'error'); return; }
+
+  const data = { name, username: uname };
+  if (pass) data.password = await hashPassword(pass);
+
+  btnState.loading();
+  try {
+    if (key) await db.ref('admins/' + key).update(data);
+    else await db.ref('admins').push(data);
+    closeModal('modal-add-admin');
+    notify('Admin saved ✓');
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
+  finally { btnState.restore(); }
+}
+
+async function adminDeleteAdmin(key) {
+  if (S.admins.length <= 1) { notify('Cannot delete last admin.', 'error'); return; }
+  if (!confirm('Delete admin?')) return;
+  try {
+    await db.ref('admins/' + key).remove();
+    notify('Admin deleted ✓');
+  } catch (e) { notify('Failed: ' + e.message, 'error'); }
+}
 
 // ═══════════════════════════════════════════════════════════
 //  MODAL HELPERS
 // ═══════════════════════════════════════════════════════════
-function openModal(id){
-  const el=document.getElementById(id);if(!el)return;
-  el.style.display='flex';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('open')));
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'flex';
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
 }
-function closeModal(id){
-  const el=document.getElementById(id);if(!el)return;
-  el.classList.remove('open');
-  setTimeout(()=>{if(!el.classList.contains('open'))el.style.display='none';},400);
-}
-function handleOverlayClick(e,id){if(e.target===document.getElementById(id))closeModal(id);}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>closeModal(o.id));});
 
-// ═══════════════════════════════════════════════════════════
-//  NOTIFICATION
-// ═══════════════════════════════════════════════════════════
-let notifTimer;
-function notify(msg){
-  const el=document.getElementById('notif');
-  el.textContent='';
-  const icon=document.createElement('span');
-  icon.textContent='✓';
-  icon.style.cssText='background:var(--gold);color:var(--navy);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;';
-  const txt=document.createElement('span');txt.textContent=msg;
-  el.appendChild(icon);el.appendChild(txt);
-  el.style.animation='none';el.offsetHeight;
-  el.style.display='flex';
-  el.style.animation='notifIn .4s cubic-bezier(.22,.68,0,1.2) forwards';
-  clearTimeout(notifTimer);
-  notifTimer=setTimeout(()=>{el.style.animation='notifOut .3s ease forwards';setTimeout(()=>el.style.display='none',300);},3000);
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('open');
+  setTimeout(() => { if (!el.classList.contains('open')) el.style.display = 'none'; }, 400);
 }
+
+function handleOverlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(o => closeModal(o.id));
+});
 
 // ═══════════════════════════════════════════════════════════
 //  UTILITIES
 // ═══════════════════════════════════════════════════════════
-function initials(name){return(name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function initials(name) { return (name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
 // Inject notif keyframes
-const _ks=document.createElement('style');
-_ks.textContent=`
+const ks = document.createElement('style');
+ks.textContent = `
 @keyframes notifIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes notifOut{from{opacity:1}to{opacity:0;transform:translateY(10px)}}
 `;
-document.head.appendChild(_ks);
+document.head.appendChild(ks);
 </script>
 </body>
 </html>
