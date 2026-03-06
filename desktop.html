@@ -831,19 +831,30 @@ async function legacySHA256(password) {
 
 // Verify against any stored format.
 // Returns { matched: bool, needsUpgrade: bool }
+// Handles three stored formats:
+//   v2:salt:hash  — PBKDF2 (current)
+//   64-char hex   — legacy SHA-256
+//   plain text    — incorrectly seeded (auto-upgrades on login)
 async function verifyPassword(password, storedHash) {
   if (!storedHash) return { matched: false, needsUpgrade: false };
 
   if (storedHash.startsWith('v2:')) {
+    // Current PBKDF2 format
     const parts = storedHash.split(':');
     if (parts.length !== 3) return { matched: false, needsUpgrade: false };
     const [, saltB64] = parts;
     const candidate   = await hashPassword(password, saltB64);
     return { matched: candidate === storedHash, needsUpgrade: false };
-  } else {
-    // Legacy SHA-256 — verify, then flag for silent upgrade on next login
+
+  } else if (/^[0-9a-f]{64}$/.test(storedHash)) {
+    // Legacy SHA-256 hex — verify then flag for upgrade
     const sha = await legacySHA256(password);
     return { matched: sha === storedHash, needsUpgrade: true };
+
+  } else {
+    // Plain text — seeded without hashing (should never happen after fix)
+    // Accept it once and force immediate upgrade
+    return { matched: password === storedHash, needsUpgrade: true };
   }
 }
 
@@ -914,9 +925,10 @@ function showConfirm(title, message, onConfirm, onCancel = null) {
 
 // ═══════════════════════════════════════════════════════════════
 //  BOOT SEQUENCE
-//  FIX 1: ensureDefaultData inside onAuthStateChanged — auth
-//         guaranteed ready, seed writes allowed by "!data.exists()"
-//  FIX 2: loadAdminData only for returning admin sessions
+//  ensureDefaultData inside onAuthStateChanged — auth guaranteed
+//  ready. Each collection checked independently so no single flag
+//  can mask a partially-failed seed.
+//  admins collection readable by all auth users so login can verify credentials
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
@@ -939,16 +951,12 @@ window.addEventListener('DOMContentLoaded', () => {
       // Step 2: Always load user-facing data
       await loadUserData();
 
-      // Step 3: Only load admin data for returning admin sessions
-      const rawSession    = localStorage.getItem(SESSION_KEY);
-      const looksLikeAdmin = rawSession && JSON.parse(rawSession).type === 'admin';
-      if (looksLikeAdmin) {
-        try { await loadAdminData(); }
-        catch(e) {
-          // Rules blocked it — stale or tampered session
-          clearSession();
-        }
-      }
+      // Step 3: Load admin data for everyone — admins collection is
+      // readable by any authenticated user (passwords are PBKDF2-hashed).
+      // This is required so the login form can verify credentials before
+      // an active admin session exists (chicken-and-egg otherwise).
+      try { await loadAdminData(); }
+      catch(e) { console.warn('Could not load admin data:', e.message); }
 
       // Step 4: Restore saved session — data guaranteed populated by now
       const saved = await loadSavedSession();
@@ -1076,54 +1084,63 @@ function refreshUI() {
 //  without needing a pre-existing admin session.
 // ═══════════════════════════════════════════════════════════════
 async function ensureDefaultData() {
-  const snap = await db.ref('meta/initialized').once('value');
-  if (snap.val() === true) return;
+  // Check each collection independently — never rely on a single "initialized"
+  // flag, which can be set even if individual writes failed due to rule changes
+  // or network errors during a previous run.
 
-  setLoadingMsg('First run — setting up workspace…');
-
-  // These reads may be blocked by Firebase rules on a truly fresh database
-  // (no admin session yet). Treat permission errors as "doesn't exist" and
-  // proceed — the !data.exists() write rules allow the seed writes regardless.
-  let adminsExist = false;
-  try { adminsExist = (await db.ref('admins').once('value')).exists(); } catch(e) { adminsExist = false; }
-  if (!adminsExist) {
-    const hp = await hashPassword('admin123');
-    await db.ref('admins').set({
-      admin1: { username: 'admin', password: hp, name: 'System Administrator' }
-    });
+  // Admins — seed only if collection is missing or empty
+  let adminsSnap = null;
+  try { adminsSnap = await db.ref('admins').once('value'); } catch(e) { adminsSnap = null; }
+  if (!adminsSnap || !adminsSnap.exists()) {
+    setLoadingMsg('Setting up admin account…');
+    try {
+      const hp = await hashPassword('admin123');
+      await db.ref('admins').set({
+        admin1: { username: 'admin', password: hp, name: 'System Administrator' }
+      });
+    } catch(e) { console.warn('Admin seed failed:', e.message); }
   }
 
-  let usersExist = false;
-  try { usersExist = (await db.ref('users').once('value')).exists(); } catch(e) { usersExist = false; }
-  if (!usersExist) {
-    await db.ref('users').set({
-      user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',       role:'individual', email:'a.morgan@corp.com'    },
-      user2: { id:'u2', name:'James Whitfield',   department:'Finance',          role:'individual', email:'j.whitfield@corp.com' },
-      user3: { id:'u3', name:'Sarah Chen',        department:'Marketing',        role:'individual', email:'s.chen@corp.com'      },
-      user4: { id:'u4', name:'David Okafor',      department:'Operations',       role:'individual', email:'d.okafor@corp.com'    },
-      user5: { id:'u5', name:'Priya Nair',        department:'Human Resources',  role:'individual', email:'p.nair@corp.com'      },
-      user6: { id:'u6', name:'Finance Dept',      department:'Finance',          role:'dept',       email:'finance@corp.com'     },
-      user7: { id:'u7', name:'Marketing Dept',    department:'Marketing',        role:'dept',       email:'marketing@corp.com'   },
-    });
+  // Users — seed only if collection is missing or empty
+  let usersSnap = null;
+  try { usersSnap = await db.ref('users').once('value'); } catch(e) { usersSnap = null; }
+  if (!usersSnap || !usersSnap.exists()) {
+    setLoadingMsg('Setting up users…');
+    try {
+      await db.ref('users').set({
+        user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',       role:'individual', email:'a.morgan@corp.com'    },
+        user2: { id:'u2', name:'James Whitfield',   department:'Finance',          role:'individual', email:'j.whitfield@corp.com' },
+        user3: { id:'u3', name:'Sarah Chen',        department:'Marketing',        role:'individual', email:'s.chen@corp.com'      },
+        user4: { id:'u4', name:'David Okafor',      department:'Operations',       role:'individual', email:'d.okafor@corp.com'    },
+        user5: { id:'u5', name:'Priya Nair',        department:'Human Resources',  role:'individual', email:'p.nair@corp.com'      },
+        user6: { id:'u6', name:'Finance Dept',      department:'Finance',          role:'dept',       email:'finance@corp.com'     },
+        user7: { id:'u7', name:'Marketing Dept',    department:'Marketing',        role:'dept',       email:'marketing@corp.com'   },
+      });
+    } catch(e) { console.warn('Users seed failed:', e.message); }
   }
 
-  let bookingsExist = false;
-  try { bookingsExist = (await db.ref('bookings').once('value')).exists(); } catch(e) { bookingsExist = false; }
-  if (!bookingsExist) await db.ref('bookings').set({});
-
-  let dpExist = false;
-  try { dpExist = (await db.ref('deptPasswords').once('value')).exists(); } catch(e) { dpExist = false; }
-  if (!dpExist) {
-    await db.ref('deptPasswords').set({
-      'Executive':       await hashPassword('exec2024'),
-      'Finance':         await hashPassword('finance2024'),
-      'Marketing':       await hashPassword('marketing2024'),
-      'Operations':      await hashPassword('ops2024'),
-      'Human Resources': await hashPassword('hr2024'),
-    });
+  // Bookings — seed empty node if missing
+  let bookingsSnap = null;
+  try { bookingsSnap = await db.ref('bookings').once('value'); } catch(e) { bookingsSnap = null; }
+  if (!bookingsSnap || !bookingsSnap.exists()) {
+    try { await db.ref('bookings').set({}); } catch(e) { console.warn('Bookings seed failed:', e.message); }
   }
 
-  await db.ref('meta/initialized').set(true);
+  // Dept passwords — seed only if collection is missing or empty
+  let dpSnap = null;
+  try { dpSnap = await db.ref('deptPasswords').once('value'); } catch(e) { dpSnap = null; }
+  if (!dpSnap || !dpSnap.exists()) {
+    setLoadingMsg('Setting up department passwords…');
+    try {
+      await db.ref('deptPasswords').set({
+        'Executive':       await hashPassword('exec2024'),
+        'Finance':         await hashPassword('finance2024'),
+        'Marketing':       await hashPassword('marketing2024'),
+        'Operations':      await hashPassword('ops2024'),
+        'Human Resources': await hashPassword('hr2024'),
+      });
+    } catch(e) { console.warn('DeptPasswords seed failed:', e.message); }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
