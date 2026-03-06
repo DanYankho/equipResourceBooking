@@ -117,6 +117,66 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .modal-box h2{text-align:center;color:var(--navy);font-size:26px;margin-bottom:6px;}
 .modal-box .subtitle{text-align:center;color:var(--blue-grey);font-size:13px;margin-bottom:32px;}
 
+/* ─── SAVED ACCOUNTS PANEL ─── */
+.saved-accounts-panel {
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid var(--grey);
+  display: none;
+}
+.saved-accounts-label {
+  font-size: 10px;
+  color: var(--blue-grey);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.saved-account-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.saved-account-btn {
+  padding: 8px 14px;
+  background: var(--white);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .15s ease;
+}
+.saved-account-btn:hover {
+  background: var(--gold);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+.saved-account-btn .icon {
+  font-size: 14px;
+}
+.remember-me-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 20px;
+}
+.remember-me-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+.remember-me-row label {
+  font-size: 13px;
+  color: var(--navy);
+  cursor: pointer;
+}
+
 /* ─── MAIN APP ─── */
 #app{display:none;flex-direction:row;height:100vh;}
 #app.active{display:flex;}
@@ -429,6 +489,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     </div>
     <h2>Admin Login</h2>
     <p class="subtitle">Enter your credentials to access the admin portal</p>
+    
+    <!-- SAVED ACCOUNTS PANEL - ADMIN -->
+    <div class="saved-accounts-panel" id="admin-saved-accounts">
+      <div class="saved-accounts-label">🔐 Saved Admin Accounts</div>
+      <div class="saved-account-list" id="admin-saved-list"></div>
+    </div>
+    
     <div class="error-msg" id="login-error">Invalid username or password.</div>
     <form id="admin-login-form" autocomplete="on">
       <div class="form-group">
@@ -438,6 +505,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <div class="form-group">
         <label class="form-label">Password</label>
         <input class="form-input" id="admin-pass" name="password" type="password" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <div class="remember-me-row">
+        <input type="checkbox" id="admin-remember-me" checked>
+        <label for="admin-remember-me">Remember my username</label>
       </div>
       <button class="btn-book" type="submit" style="width:100%;padding:13px;">Login to Admin Portal</button>
     </form>
@@ -455,6 +526,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     </div>
     <h2>User Login</h2>
     <p class="subtitle">Sign in with your email and department password</p>
+    
+    <!-- SAVED ACCOUNTS PANEL - USER -->
+    <div class="saved-accounts-panel" id="user-saved-accounts">
+      <div class="saved-accounts-label">👤 Saved User Accounts</div>
+      <div class="saved-account-list" id="user-saved-list"></div>
+    </div>
+    
     <div class="error-msg" id="user-login-error">Incorrect email or department password.</div>
     <form id="user-login-form" autocomplete="on">
       <div class="form-group">
@@ -464,6 +542,10 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <div class="form-group">
         <label class="form-label">Department Password</label>
         <input class="form-input" id="user-dept-pass-input" name="password" type="password" placeholder="Enter your department password" autocomplete="current-password">
+      </div>
+      <div class="remember-me-row">
+        <input type="checkbox" id="user-remember-me" checked>
+        <label for="user-remember-me">Remember my email</label>
       </div>
       <p style="font-size:12px;color:var(--blue-grey);margin-bottom:20px;line-height:1.55;">Your department password is shared with all members of your department. Contact your admin if you don't have it.</p>
       <button class="btn-book" type="submit" style="width:100%;padding:13px;">Sign In</button>
@@ -943,6 +1025,10 @@ window.addEventListener('DOMContentLoaded', () => {
         if (saved) clearSession();
         document.getElementById('sb-live').style.display = 'flex';
         showScreen('portal-screen');
+        // Check for saved credentials after showing portal
+        setTimeout(() => {
+          checkSavedCredentials();
+        }, 500);
       }
     } catch(e) {
       setLoadingMsg('⚠ Load error: ' + e.message);
@@ -963,7 +1049,91 @@ function isSessionExpired() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  LOAD USER DATA - FIXED VERSION
+//  SAVED CREDENTIALS MANAGEMENT (REMEMBER ME)
+// ═══════════════════════════════════════════════════════════════
+function checkSavedCredentials() {
+  // Check for saved user emails
+  const savedUsers = JSON.parse(localStorage.getItem('saved_users') || '[]');
+  const userList = document.getElementById('user-saved-list');
+  const userPanel = document.getElementById('user-saved-accounts');
+  
+  if (savedUsers.length > 0) {
+    userList.innerHTML = savedUsers.map(email => 
+      `<button class="saved-account-btn" data-type="user" data-identifier="${escapeHTML(email)}">
+        <span class="icon">👤</span> ${escapeHTML(email)}
+      </button>`
+    ).join('');
+    userPanel.style.display = 'block';
+  } else {
+    userPanel.style.display = 'none';
+  }
+
+  // Check for saved admin usernames
+  const savedAdmins = JSON.parse(localStorage.getItem('saved_admins') || '[]');
+  const adminList = document.getElementById('admin-saved-list');
+  const adminPanel = document.getElementById('admin-saved-accounts');
+  
+  if (savedAdmins.length > 0) {
+    adminList.innerHTML = savedAdmins.map(username => 
+      `<button class="saved-account-btn" data-type="admin" data-identifier="${escapeHTML(username)}">
+        <span class="icon">🔐</span> ${escapeHTML(username)}
+      </button>`
+    ).join('');
+    adminPanel.style.display = 'block';
+  } else {
+    adminPanel.style.display = 'none';
+  }
+
+  // Add click handlers for saved account buttons
+  document.querySelectorAll('.saved-account-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      const identifier = btn.dataset.identifier;
+      
+      if (type === 'user') {
+        document.getElementById('user-email-input').value = identifier;
+        document.getElementById('user-dept-pass-input').focus();
+      } else {
+        document.getElementById('admin-user').value = identifier;
+        document.getElementById('admin-pass').focus();
+      }
+    });
+  });
+}
+
+function saveUserCredentials(email, remember) {
+  if (!remember) return;
+  
+  try {
+    const savedUsers = JSON.parse(localStorage.getItem('saved_users') || '[]');
+    if (!savedUsers.includes(email)) {
+      savedUsers.push(email);
+      // Keep only last 5 for cleanliness
+      if (savedUsers.length > 5) savedUsers.shift();
+      localStorage.setItem('saved_users', JSON.stringify(savedUsers));
+    }
+  } catch(e) {
+    console.warn('Failed to save user credentials:', e);
+  }
+}
+
+function saveAdminCredentials(username, remember) {
+  if (!remember) return;
+  
+  try {
+    const savedAdmins = JSON.parse(localStorage.getItem('saved_admins') || '[]');
+    if (!savedAdmins.includes(username)) {
+      savedAdmins.push(username);
+      if (savedAdmins.length > 5) savedAdmins.shift();
+      localStorage.setItem('saved_admins', JSON.stringify(savedAdmins));
+    }
+  } catch(e) {
+    console.warn('Failed to save admin credentials:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LOAD USER DATA
 // ═══════════════════════════════════════════════════════════════
 function loadUserData() {
   return new Promise((resolve, reject) => {
@@ -1006,7 +1176,7 @@ function loadUserData() {
       checkReady();
     });
 
-    // Department Passwords - FIXED: Use once() with retry logic
+    // Department Passwords
     const loadDeptPasswords = () => {
       db.ref('deptPasswords').once('value').then(snap => {
         S.deptPasswords = snap.val() || {};
@@ -1021,7 +1191,6 @@ function loadUserData() {
           deptPasswordsAttempted = true;
           console.log('Retrying deptPasswords load with different method...');
           
-          // Retry with on() as fallback
           const timeout = setTimeout(() => {
             if (!ready.deptPasswords) {
               console.warn('deptPasswords timeout - using empty object');
@@ -1055,11 +1224,9 @@ function loadUserData() {
 
     loadDeptPasswords();
 
-    // Timeout after 15 seconds
     setTimeout(() => {
       if (!resolved) {
         console.warn('Loading timeout - forcing ready state');
-        // Force ready if we have users and bookings at minimum
         if (ready.users && ready.bookings) {
           if (!ready.deptPasswords) {
             console.warn('DeptPasswords not loaded - using empty object');
@@ -1240,11 +1407,13 @@ function selectPortal(type) {
     document.getElementById('admin-pass').value = '';
     document.getElementById('login-error').classList.remove('visible');
     showScreen('admin-login-screen');
+    checkSavedCredentials(); // Refresh saved accounts panel
   } else {
     document.getElementById('user-email-input').value    = '';
     document.getElementById('user-dept-pass-input').value = '';
     document.getElementById('user-login-error').classList.remove('visible');
     showScreen('user-login-screen');
+    checkSavedCredentials(); // Refresh saved accounts panel
   }
 }
 
@@ -1254,13 +1423,14 @@ function storeCredential(id, password, name) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN LOGIN - FIXED
+//  ADMIN LOGIN - UPDATED with remember me
 // ═══════════════════════════════════════════════════════════════
 async function doAdminLogin(e) {
   e.preventDefault();
 
   const u     = document.getElementById('admin-user').value.trim();
   const p     = document.getElementById('admin-pass').value.trim();
+  const rememberMe = document.getElementById('admin-remember-me').checked;
   const errEl = document.getElementById('login-error');
   errEl.classList.remove('visible');
 
@@ -1288,6 +1458,9 @@ async function doAdminLogin(e) {
     return;
   }
 
+  // Save username if remember me is checked
+  saveAdminCredentials(u, rememberMe);
+
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(p);
@@ -1314,13 +1487,14 @@ async function doAdminLogin(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LOGIN - FIXED VERSION with department matching
+//  USER LOGIN - UPDATED with remember me
 // ═══════════════════════════════════════════════════════════════
 async function doUserLogin(e) {
   e.preventDefault();
 
   const email  = document.getElementById('user-email-input').value.trim().toLowerCase();
   const pass   = document.getElementById('user-dept-pass-input').value.trim();
+  const rememberMe = document.getElementById('user-remember-me').checked;
   const errEl  = document.getElementById('user-login-error');
   errEl.classList.remove('visible');
 
@@ -1336,7 +1510,6 @@ async function doUserLogin(e) {
     return;
   }
 
-  // Debug logging
   console.log('Login attempt for email:', email);
   console.log('Current users in system:', S.users.length);
   console.log('Current deptPasswords:', S.deptPasswords);
@@ -1353,7 +1526,6 @@ async function doUserLogin(e) {
     }
   }
 
-  // Find user by email
   const user = S.users.find(u => (u.email || '').toLowerCase() === email);
   if (!user) {
     console.log('No user found with email:', email);
@@ -1431,6 +1603,9 @@ async function doUserLogin(e) {
 
   console.log('Password verified successfully');
 
+  // Save email if remember me is checked
+  saveUserCredentials(email, rememberMe);
+
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(pass);
@@ -1442,7 +1617,6 @@ async function doUserLogin(e) {
     }
   }
 
-  // Write to activeSessions
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) {
@@ -1523,6 +1697,9 @@ function switchPanel(panel) {
   calEl.style.display       = panel === 'calendar' ? 'flex' : 'none';
   calEl.style.flexDirection = 'column';
   adminEl.style.display     = panel === 'admin'    ? 'flex' : 'none';
+
+  // Hide New Booking button when in admin panel
+  document.getElementById('btn-new-booking').style.display = panel === 'calendar' ? 'block' : 'none';
 
   const activePanel = panel === 'calendar' ? calEl : adminEl;
   activePanel.classList.add('panel-fade');
@@ -2281,7 +2458,7 @@ async function confirmSwap() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN PANEL
+//  ADMIN PANEL - UPDATED (removed New Booking button)
 // ═══════════════════════════════════════════════════════════════
 function showAdminTab(tab) {
   S.adminTab = tab;
@@ -2305,9 +2482,9 @@ function renderAdminBookings(el) {
   const sorted = [...S.bookings].sort((a,b) => a.date>b.date ? -1 : 1);
   const hdr = document.createElement('div');
   hdr.className = 'section-hdr';
-  hdr.innerHTML = `<h3>All Bookings (${S.bookings.length})</h3><button class="btn-book" id="admin-new-booking">＋ New Booking</button>`;
+  // REMOVED: New Booking button - admins should not book from admin panel
+  hdr.innerHTML = `<h3>All Bookings (${S.bookings.length})</h3>`;
   el.appendChild(hdr);
-  document.getElementById('admin-new-booking').onclick = () => openBookModal(null, null);
 
   const table = document.createElement('div');
   table.className = 'data-table';
