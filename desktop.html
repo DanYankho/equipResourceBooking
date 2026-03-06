@@ -39,7 +39,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'Libre Franklin',sans-serif;color:var(--navy);background:var(--cream);}
-h1,h2,h3,h4,h5,.serif{font-family:'Georgia',serif;font-weight:normal;}
+h1,h2,h3,h4,.serif{font-family:'Georgia',serif;font-weight:normal;}
 button{cursor:pointer;font-family:'Libre Franklin',sans-serif;transition:all .18s ease;}
 button:active{transform:scale(.97);}
 input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);}
@@ -75,7 +75,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .panel-fade{animation:panelFade 0.4s cubic-bezier(.22,.68,0,1.1);}
 @keyframes panelFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-/* FIX 3 — shake animation typo corrected */
 @keyframes shake{
   0%,100%{transform:translateX(0)}
   20%{transform:translateX(-10px)}
@@ -348,7 +347,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .helper-text{font-size:12px;color:var(--blue-grey);line-height:1.55;margin-bottom:20px;padding:12px 16px;background:rgba(168,147,90,.08);border-radius:9px;border-left:3px solid var(--gold);}
 .rec-preview{font-size:13px;color:var(--navy);background:rgba(168,147,90,.15);padding:8px 12px;border-radius:6px;margin-top:8px;border-left:3px solid var(--gold);}
 
-/* ─── TABLET / PC BREAKPOINT (FIX 3 — was 768px) ─── */
+/* ─── TABLET / PC BREAKPOINT ─── */
 @media (max-width: 600px) {
   #app.active{flex-direction:column;}
   .sidebar{width:100%;height:auto;max-height:200px;overflow-y:auto;}
@@ -736,7 +735,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <input type="hidden" id="edit-admin-key">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="admin-name-input" placeholder="e.g. System Administrator"></div>
       <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="admin-username-input" placeholder="e.g. admin"></div>
-      <!-- FIX 4: label is updated dynamically for add vs edit -->
       <div class="form-group">
         <label class="form-label" id="admin-password-label">Password</label>
         <input class="form-input" id="admin-password-input" type="password" placeholder="Set a password">
@@ -785,7 +783,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ═══════════════════════════════════════════════════════════════
-//  SECURITY UTILITIES — FIX 2: PBKDF2 replacing bare SHA-256
+//  SECURITY UTILITIES
 // ═══════════════════════════════════════════════════════════════
 function escapeHTML(str) {
   if (!str) return '';
@@ -804,7 +802,6 @@ function generateSessionToken() {
 }
 
 // Produces "v2:saltBase64:hashBase64"
-// Pass existingSaltB64 when verifying so the same salt is reused.
 async function hashPassword(password, existingSaltB64 = null) {
   const enc  = new TextEncoder();
   const salt = existingSaltB64
@@ -823,23 +820,17 @@ async function hashPassword(password, existingSaltB64 = null) {
   return `v2:${saltB64}:${hashB64}`;
 }
 
-// Legacy SHA-256 — only used internally for migrating old hashes
+// Legacy SHA-256
 async function legacySHA256(password) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-// Verify against any stored format.
-// Returns { matched: bool, needsUpgrade: bool }
-// Handles three stored formats:
-//   v2:salt:hash  — PBKDF2 (current)
-//   64-char hex   — legacy SHA-256
-//   plain text    — incorrectly seeded (auto-upgrades on login)
+// Verify against any stored format
 async function verifyPassword(password, storedHash) {
   if (!storedHash) return { matched: false, needsUpgrade: false };
 
   if (storedHash.startsWith('v2:')) {
-    // Current PBKDF2 format
     const parts = storedHash.split(':');
     if (parts.length !== 3) return { matched: false, needsUpgrade: false };
     const [, saltB64] = parts;
@@ -847,13 +838,10 @@ async function verifyPassword(password, storedHash) {
     return { matched: candidate === storedHash, needsUpgrade: false };
 
   } else if (/^[0-9a-f]{64}$/.test(storedHash)) {
-    // Legacy SHA-256 hex — verify then flag for upgrade
     const sha = await legacySHA256(password);
     return { matched: sha === storedHash, needsUpgrade: true };
 
   } else {
-    // Plain text — seeded without hashing (should never happen after fix)
-    // Accept it once and force immediate upgrade
     return { matched: password === storedHash, needsUpgrade: true };
   }
 }
@@ -925,10 +913,6 @@ function showConfirm(title, message, onConfirm, onCancel = null) {
 
 // ═══════════════════════════════════════════════════════════════
 //  BOOT SEQUENCE
-//  ensureDefaultData inside onAuthStateChanged — auth guaranteed
-//  ready. Each collection checked independently so no single flag
-//  can mask a partially-failed seed.
-//  admins collection readable by all auth users so login can verify credentials
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
@@ -942,23 +926,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     try {
       setLoadingMsg('Setting up workspace…');
-
-      // Step 1: Seed defaults — auth is ready, rules allow !data.exists() writes
       await ensureDefaultData();
-
       setLoadingMsg('Loading data…');
-
-      // Step 2: Always load user-facing data
       await loadUserData();
-
-      // Step 3: Load admin data for everyone — admins collection is
-      // readable by any authenticated user (passwords are PBKDF2-hashed).
-      // This is required so the login form can verify credentials before
-      // an active admin session exists (chicken-and-egg otherwise).
+      
       try { await loadAdminData(); }
       catch(e) { console.warn('Could not load admin data:', e.message); }
 
-      // Step 4: Restore saved session — data guaranteed populated by now
       const saved = await loadSavedSession();
       if (saved && !isSessionExpired()) {
         S.currentUser = saved.user;
@@ -989,23 +963,27 @@ function isSessionExpired() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  LOAD USER DATA
-//  Race condition fixed: resolved flag ensures Promise only
-//  resolves once ALL three collections have returned their
-//  first snapshot.
+//  LOAD USER DATA - FIXED VERSION
 // ═══════════════════════════════════════════════════════════════
 function loadUserData() {
   return new Promise((resolve, reject) => {
     const ready = { users: false, bookings: false, deptPasswords: false };
     let resolved = false;
+    let deptPasswordsAttempted = false;
 
     function checkReady() {
       if (resolved) return;
-      if (Object.values(ready).every(Boolean)) { resolved = true; resolve(); }
+      if (Object.values(ready).every(Boolean)) { 
+        resolved = true; 
+        console.log('All user data loaded successfully');
+        resolve(); 
+      }
     }
 
+    // Users
     db.ref('users').on('value', snap => {
       S.users = Object.entries(snap.val() || {}).map(([k,v]) => ({ ...v, _key: k }));
+      console.log('Users loaded:', S.users.length);
       ready.users = true;
       checkReady();
       if (resolved) refreshUI();
@@ -1015,8 +993,10 @@ function loadUserData() {
       checkReady();
     });
 
+    // Bookings
     db.ref('bookings').on('value', snap => {
       S.bookings = Object.entries(snap.val() || {}).map(([k,v]) => ({ ...v, _key: k }));
+      console.log('Bookings loaded:', S.bookings.length);
       ready.bookings = true;
       checkReady();
       if (resolved) refreshUI();
@@ -1026,22 +1006,71 @@ function loadUserData() {
       checkReady();
     });
 
-    // deptPasswords is admin-only in Firebase rules.
-    // Non-admins get a permission error — handled gracefully here so boot never hangs.
-    db.ref('deptPasswords').on('value', snap => {
-      S.deptPasswords = snap.val() || {};
-      ready.deptPasswords = true;
-      checkReady();
-      if (resolved) refreshUI();
-    }, err => {
-      console.warn('deptPasswords blocked (expected for non-admins):', err.message);
-      S.deptPasswords = {};
-      ready.deptPasswords = true;
-      checkReady();
-    });
+    // Department Passwords - FIXED: Use once() with retry logic
+    const loadDeptPasswords = () => {
+      db.ref('deptPasswords').once('value').then(snap => {
+        S.deptPasswords = snap.val() || {};
+        console.log('Department passwords loaded:', Object.keys(S.deptPasswords));
+        ready.deptPasswords = true;
+        checkReady();
+        if (resolved) refreshUI();
+      }).catch(err => {
+        console.warn('deptPasswords load failed:', err.message);
+        
+        if (!deptPasswordsAttempted) {
+          deptPasswordsAttempted = true;
+          console.log('Retrying deptPasswords load with different method...');
+          
+          // Retry with on() as fallback
+          const timeout = setTimeout(() => {
+            if (!ready.deptPasswords) {
+              console.warn('deptPasswords timeout - using empty object');
+              S.deptPasswords = {};
+              ready.deptPasswords = true;
+              checkReady();
+            }
+          }, 3000);
 
+          db.ref('deptPasswords').on('value', snap => {
+            clearTimeout(timeout);
+            S.deptPasswords = snap.val() || {};
+            console.log('DeptPasswords loaded on retry:', Object.keys(S.deptPasswords));
+            ready.deptPasswords = true;
+            checkReady();
+            if (resolved) refreshUI();
+          }, err2 => {
+            clearTimeout(timeout);
+            console.error('deptPasswords retry failed:', err2.message);
+            S.deptPasswords = {};
+            ready.deptPasswords = true;
+            checkReady();
+          });
+        } else {
+          S.deptPasswords = {};
+          ready.deptPasswords = true;
+          checkReady();
+        }
+      });
+    };
+
+    loadDeptPasswords();
+
+    // Timeout after 15 seconds
     setTimeout(() => {
-      if (!resolved) reject(new Error('Database timed out after 15 seconds'));
+      if (!resolved) {
+        console.warn('Loading timeout - forcing ready state');
+        // Force ready if we have users and bookings at minimum
+        if (ready.users && ready.bookings) {
+          if (!ready.deptPasswords) {
+            console.warn('DeptPasswords not loaded - using empty object');
+            S.deptPasswords = {};
+            ready.deptPasswords = true;
+          }
+          checkReady();
+        } else {
+          reject(new Error('Database timed out after 15 seconds'));
+        }
+      }
     }, 15000);
   });
 }
@@ -1050,12 +1079,12 @@ function loadAdminData() {
   return new Promise((resolve, reject) => {
     db.ref('admins').on('value', snap => {
       S.admins = Object.entries(snap.val() || {}).map(([k,v]) => ({ ...v, _key: k }));
+      console.log('Admins loaded:', S.admins.length);
       resolve();
     }, err => reject(err));
   });
 }
 
-// FIX 5: refreshUI guards attendee dropdowns from clearing mid-selection
 function refreshUI() {
   if (!S.currentUser) return;
 
@@ -1066,12 +1095,10 @@ function refreshUI() {
     renderAdminTab();
   }
 
-  // Only repopulate attendee dropdowns if the modal is open AND
-  // neither dropdown has an active mid-selection value
   if (document.getElementById('modal-book').classList.contains('open')) {
     const userSel = document.getElementById('att-user-sel');
     const deptSel = document.getElementById('att-dept-sel');
-    if (!userSel.value && !deptSel.value) {
+    if (userSel && deptSel && !userSel.value && !deptSel.value) {
       populateAttendeeDropdowns();
     }
   }
@@ -1079,16 +1106,9 @@ function refreshUI() {
 
 // ═══════════════════════════════════════════════════════════════
 //  SEED DEFAULT DATA
-//  FIX 1: Called inside onAuthStateChanged. Firebase rules allow
-//  writes when !data.exists(), so this works on first deployment
-//  without needing a pre-existing admin session.
 // ═══════════════════════════════════════════════════════════════
 async function ensureDefaultData() {
-  // Check each collection independently — never rely on a single "initialized"
-  // flag, which can be set even if individual writes failed due to rule changes
-  // or network errors during a previous run.
-
-  // Admins — seed only if collection is missing or empty
+  // Admins
   let adminsSnap = null;
   try { adminsSnap = await db.ref('admins').once('value'); } catch(e) { adminsSnap = null; }
   if (!adminsSnap || !adminsSnap.exists()) {
@@ -1101,7 +1121,7 @@ async function ensureDefaultData() {
     } catch(e) { console.warn('Admin seed failed:', e.message); }
   }
 
-  // Users — seed only if collection is missing or empty
+  // Users
   let usersSnap = null;
   try { usersSnap = await db.ref('users').once('value'); } catch(e) { usersSnap = null; }
   if (!usersSnap || !usersSnap.exists()) {
@@ -1119,14 +1139,14 @@ async function ensureDefaultData() {
     } catch(e) { console.warn('Users seed failed:', e.message); }
   }
 
-  // Bookings — seed empty node if missing
+  // Bookings
   let bookingsSnap = null;
   try { bookingsSnap = await db.ref('bookings').once('value'); } catch(e) { bookingsSnap = null; }
   if (!bookingsSnap || !bookingsSnap.exists()) {
     try { await db.ref('bookings').set({}); } catch(e) { console.warn('Bookings seed failed:', e.message); }
   }
 
-  // Dept passwords — seed only if collection is missing or empty
+  // Dept passwords
   let dpSnap = null;
   try { dpSnap = await db.ref('deptPasswords').once('value'); } catch(e) { dpSnap = null; }
   if (!dpSnap || !dpSnap.exists()) {
@@ -1162,7 +1182,6 @@ function clearSession() {
   } catch(e) {}
 }
 
-// Retry logic: polls until data is available (max 5 seconds)
 async function loadSavedSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -1235,7 +1254,7 @@ function storeCredential(id, password, name) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN LOGIN — FIX 2: PBKDF2 verify + silent hash upgrade
+//  ADMIN LOGIN - FIXED
 // ═══════════════════════════════════════════════════════════════
 async function doAdminLogin(e) {
   e.preventDefault();
@@ -1269,7 +1288,6 @@ async function doAdminLogin(e) {
     return;
   }
 
-  // Auto-upgrade legacy SHA-256 → PBKDF2 on next successful login
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(p);
@@ -1279,7 +1297,6 @@ async function doAdminLogin(e) {
     } catch(err) { console.warn('Hash upgrade failed:', err.message); }
   }
 
-  // Write session to Firebase — rules on sensitive collections check this
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) {
@@ -1297,7 +1314,7 @@ async function doAdminLogin(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LOGIN — FIX 2: PBKDF2 verify + silent dept hash upgrade
+//  USER LOGIN - FIXED VERSION with department matching
 // ═══════════════════════════════════════════════════════════════
 async function doUserLogin(e) {
   e.preventDefault();
@@ -1319,39 +1336,125 @@ async function doUserLogin(e) {
     return;
   }
 
+  // Debug logging
+  console.log('Login attempt for email:', email);
+  console.log('Current users in system:', S.users.length);
+  console.log('Current deptPasswords:', S.deptPasswords);
+
+  // Ensure deptPasswords is loaded
+  if (Object.keys(S.deptPasswords).length === 0) {
+    console.log('deptPasswords empty, attempting to reload...');
+    try {
+      const snap = await db.ref('deptPasswords').once('value');
+      S.deptPasswords = snap.val() || {};
+      console.log('Reloaded deptPasswords:', Object.keys(S.deptPasswords));
+    } catch (e) {
+      console.warn('Failed to reload deptPasswords:', e.message);
+    }
+  }
+
+  // Find user by email
   const user = S.users.find(u => (u.email || '').toLowerCase() === email);
   if (!user) {
+    console.log('No user found with email:', email);
     errEl.textContent = 'No account found with that email address.';
     errEl.classList.add('visible');
     shakeBox('user-login-screen');
     return;
   }
 
-  const dept            = user.department || '';
-  const correctPassHash = S.deptPasswords[dept];
-
-  if (!correctPassHash) {
-    errEl.textContent = 'Your department does not have a password set. Contact your admin.';
+  console.log('Found user:', user.name, 'department:', user.department);
+  
+  const dept = user.department || '';
+  
+  if (!dept) {
+    console.log('User has no department assigned');
+    errEl.textContent = 'Your account does not have a department assigned. Contact your admin.';
     errEl.classList.add('visible');
     return;
   }
 
+  // Try exact match first
+  let correctPassHash = S.deptPasswords[dept];
+  let matchedDeptKey = dept;
+  
+  // If not found, try case-insensitive match
+  if (!correctPassHash) {
+    const deptLower = dept.toLowerCase();
+    const deptKeys = Object.keys(S.deptPasswords);
+    const matchedKey = deptKeys.find(key => key.toLowerCase() === deptLower);
+    
+    if (matchedKey) {
+      console.log(`Found case-insensitive match: "${matchedKey}" for "${dept}"`);
+      correctPassHash = S.deptPasswords[matchedKey];
+      matchedDeptKey = matchedKey;
+    }
+  }
+
+  // If still not found, try without spaces or special characters
+  if (!correctPassHash) {
+    const deptNormalized = dept.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const deptKeys = Object.keys(S.deptPasswords);
+    const matchedKey = deptKeys.find(key => 
+      key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === deptNormalized
+    );
+    
+    if (matchedKey) {
+      console.log(`Found normalized match: "${matchedKey}" for "${dept}"`);
+      correctPassHash = S.deptPasswords[matchedKey];
+      matchedDeptKey = matchedKey;
+    }
+  }
+
+  if (!correctPassHash) {
+    console.error('Department password not found:', {
+      requestedDept: dept,
+      availableDepts: Object.keys(S.deptPasswords)
+    });
+    
+    errEl.textContent = `Department password not set for "${dept}". Available departments: ${Object.keys(S.deptPasswords).join(', ')}`;
+    errEl.classList.add('visible');
+    return;
+  }
+
+  console.log('Found password hash for department:', matchedDeptKey);
+
   const { matched, needsUpgrade } = await verifyPassword(pass, correctPassHash);
 
   if (!matched) {
+    console.log('Password verification failed for department:', matchedDeptKey);
     errEl.textContent = 'Incorrect department password. Please try again.';
     errEl.classList.add('visible');
     shakeBox('user-login-screen');
     return;
   }
 
-  // Auto-upgrade legacy SHA-256 → PBKDF2 on next successful login
+  console.log('Password verified successfully');
+
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(pass);
-      await db.ref('deptPasswords/' + dept).set(newHash);
-      S.deptPasswords[dept] = newHash;
-    } catch(err) { console.warn('Dept hash upgrade failed:', err.message); }
+      await db.ref('deptPasswords/' + matchedDeptKey).set(newHash);
+      S.deptPasswords[matchedDeptKey] = newHash;
+      console.log('Upgraded password hash for department:', matchedDeptKey);
+    } catch(err) { 
+      console.warn('Dept hash upgrade failed:', err.message); 
+    }
+  }
+
+  // Write to activeSessions
+  try {
+    const fbUser = firebase.auth().currentUser;
+    if (fbUser) {
+      await db.ref(`activeSessions/${fbUser.uid}`).set({
+        isAdmin: false,
+        loginTime: Date.now(),
+        userId: user.id || user._key,
+        department: dept
+      });
+    }
+  } catch(e) { 
+    console.warn('Session write failed (non-critical):', e.message); 
   }
 
   storeCredential(email, pass, user.name);
@@ -1395,8 +1498,6 @@ function initApp() {
 }
 
 async function doLogout() {
-  // Remove session from Firebase first — unrestricted own-UID write rule
-  // means this can never deadlock regardless of current session state
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) await db.ref(`activeSessions/${fbUser.uid}`).remove();
@@ -1497,7 +1598,6 @@ function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padSta
 function isSameDay(a,b) { return dateStr(a) === dateStr(b); }
 function startOfWeek(d) { const x=new Date(d); x.setDate(x.getDate()-x.getDay()); x.setHours(0,0,0,0); return x; }
 
-// DST-safe addDays
 function addDays(d, n) {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
@@ -1839,6 +1939,8 @@ function setRecurrence(r) {
 function populateAttendeeDropdowns() {
   const uSel = document.getElementById('att-user-sel');
   const dSel = document.getElementById('att-dept-sel');
+  if (!uSel || !dSel) return;
+  
   uSel.innerHTML = '<option value="">Add a person…</option>' +
     S.users.map(u=>`<option value="${escapeHTML(u.name)}">${escapeHTML(u.name)} (${escapeHTML(u.department||'')})</option>`).join('');
   const depts = [...new Set(S.users.map(u=>u.department))].filter(Boolean).sort();
@@ -2417,7 +2519,6 @@ async function adminDeleteUser(key, btnEl) {
     }, () => {});
 }
 
-// FIX 4: openAddAdminModal and editAdminEntry update the label dynamically
 function openAddAdminModal() {
   document.getElementById('add-admin-title').textContent      = 'Add Admin User';
   document.getElementById('admin-password-label').textContent  = 'Password';
@@ -2440,7 +2541,6 @@ function editAdminEntry(key) {
   openModal('modal-add-admin');
 }
 
-// FIX 4: Password optional on edit — only hashed and updated if provided
 async function saveAdmin() {
   const btn      = document.getElementById('save-admin');
   const btnState = new ButtonState(btn);
