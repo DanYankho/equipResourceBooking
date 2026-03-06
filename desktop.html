@@ -1279,11 +1279,15 @@ async function doAdminLogin(e) {
     } catch(err) { console.warn('Hash upgrade failed:', err.message); }
   }
 
-  const fbUser = firebase.auth().currentUser;
-  await db.ref(`activeSessions/${fbUser.uid}`).set({
-    isAdmin: true, username: u,
-    loginTime: Date.now(), sessionToken: generateSessionToken()
-  });
+  // Write session to Firebase — rules on sensitive collections check this
+  try {
+    const fbUser = firebase.auth().currentUser;
+    if (fbUser) {
+      await db.ref(`activeSessions/${fbUser.uid}`).set({
+        isAdmin: true, loginTime: Date.now()
+      });
+    }
+  } catch(e) { console.warn('Session write failed:', e.message); }
 
   storeCredential(u, p, matchedAdmin.name || 'Admin');
   S.currentUser = { ...matchedAdmin, type: 'admin' };
@@ -1390,16 +1394,13 @@ function initApp() {
   notify('Welcome, ' + u.name.split(' ')[0] + ' ✓');
 }
 
-// FIX 6c: Clears server-side session immediately, then cleans up async
 async function doLogout() {
-  // Remove the server-side session FIRST and wait for it to complete.
-  // This must be blocking — if we redirect before the remove finishes,
-  // a fast re-login attempt finds isAdmin:true still in activeSessions
-  // and the next write is denied by the Firebase rules.
+  // Remove session from Firebase first — unrestricted own-UID write rule
+  // means this can never deadlock regardless of current session state
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) await db.ref(`activeSessions/${fbUser.uid}`).remove();
-  } catch(e) { console.warn('Session cleanup failed:', e.message); }
+  } catch(e) { console.warn('Session remove failed:', e.message); }
 
   clearSession();
   S.currentUser = null;
