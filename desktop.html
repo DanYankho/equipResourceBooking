@@ -75,7 +75,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .panel-fade{animation:panelFade 0.4s cubic-bezier(.22,.68,0,1.1);}
 @keyframes panelFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-/* FIX 3 — shake animation typo corrected */
 @keyframes shake{
   0%,100%{transform:translateX(0)}
   20%{transform:translateX(-10px)}
@@ -348,7 +347,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .helper-text{font-size:12px;color:var(--blue-grey);line-height:1.55;margin-bottom:20px;padding:12px 16px;background:rgba(168,147,90,.08);border-radius:9px;border-left:3px solid var(--gold);}
 .rec-preview{font-size:13px;color:var(--navy);background:rgba(168,147,90,.15);padding:8px 12px;border-radius:6px;margin-top:8px;border-left:3px solid var(--gold);}
 
-/* ─── TABLET / PC BREAKPOINT (FIX 3 — was 768px) ─── */
+/* ─── TABLET / PC BREAKPOINT ─── */
 @media (max-width: 600px) {
   #app.active{flex-direction:column;}
   .sidebar{width:100%;height:auto;max-height:200px;overflow-y:auto;}
@@ -376,24 +375,24 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 </head>
 <body>
 
-<!-- LOADING SCREEN -->
+<!-- LOADING SCREEN - Updated with larger Logo.png -->
 <div id="loading-screen" class="screen active">
-  <div style="width:180px;height:180px;border-radius:36px;background:linear-gradient(135deg,#a8935a,#d6cab0);display:flex;align-items:center;justify-content:center;box-shadow:0 28px 70px rgba(0,0,0,.4);margin-bottom:24px;">
-    <div style="color:#0d2136;font-size:72px;font-weight:bold;font-family:Georgia,serif;">E</div>
+  <div style="width:360px;height:360px;border-radius:72px;background:linear-gradient(135deg,#a8935a,#d6cab0);display:flex;align-items:center;justify-content:center;box-shadow:0 56px 140px rgba(0,0,0,.4);margin-bottom:48px;">
+    <img src="Logo.png" alt="Equip Logo" style="width:280px;height:280px;object-fit:contain;">
   </div>
-  <div class="spinner"></div>
-  <div class="loading-text" id="loading-msg">Connecting…</div>
+  <div class="spinner" style="width:88px;height:88px;border-width:6px;"></div>
+  <div class="loading-text" style="font-size:26px;letter-spacing:6px;" id="loading-msg">Connecting…</div>
 </div>
 
-<!-- PORTAL SELECTION -->
+<!-- PORTAL SELECTION - Updated with larger Logo.png -->
 <div id="portal-screen" class="screen">
   <div class="portal-deco portal-deco-1"></div>
   <div class="portal-deco portal-deco-2"></div>
   <div class="portal-deco portal-deco-3"></div>
   <div class="portal-inner fade-in">
     <div class="portal-logo-wrap">
-      <div class="portal-logo">
-        <div style="color:var(--navy);font-size:80px;font-weight:bold;font-family:Georgia,serif;">E</div>
+      <div class="portal-logo" style="width:360px;height:360px;border-radius:72px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));">
+        <img src="Logo.png" alt="Equip Logo" style="width:280px;height:280px;object-fit:contain;">
       </div>
     </div>
     <div class="portal-divider">
@@ -419,13 +418,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   </div>
 </div>
 
-<!-- ADMIN LOGIN -->
+<!-- ADMIN LOGIN - Updated with larger Logo.png -->
 <div id="admin-login-screen" class="screen modal-screen">
   <div class="modal-box">
     <button class="modal-back" type="button" data-screen="portal-screen" data-direction="back">← Back</button>
     <div class="modal-logo">
-      <div class="portal-logo" style="width:120px;height:120px;border-radius:28px;">
-        <div style="color:var(--navy);font-size:52px;font-weight:bold;font-family:Georgia,serif;">E</div>
+      <div class="portal-logo" style="width:240px;height:240px;border-radius:48px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));">
+        <img src="Logo.png" alt="Equip Logo" style="width:180px;height:180px;object-fit:contain;">
       </div>
     </div>
     <h2>Admin Login</h2>
@@ -445,13 +444,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   </div>
 </div>
 
-<!-- USER LOGIN -->
+<!-- USER LOGIN - Updated with larger Logo.png -->
 <div id="user-login-screen" class="screen modal-screen">
   <div class="modal-box">
     <button class="modal-back" type="button" data-screen="portal-screen" data-direction="back">← Back</button>
     <div class="modal-logo">
-      <div class="portal-logo" style="width:120px;height:120px;border-radius:28px;">
-        <div style="color:var(--navy);font-size:52px;font-weight:bold;font-family:Georgia,serif;">E</div>
+      <div class="portal-logo" style="width:240px;height:240px;border-radius:48px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));">
+        <img src="Logo.png" alt="Equip Logo" style="width:180px;height:180px;object-fit:contain;">
       </div>
     </div>
     <h2>User Login</h2>
@@ -476,12 +475,12 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 <div id="app">
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">
-        <div style="color:var(--navy);font-size:30px;font-weight:bold;font-family:Georgia,serif;">E</div>
+      <div class="sidebar-logo-icon" style="width:160px;height:160px;border-radius:40px;background:linear-gradient(135deg,var(--gold),var(--soft-gold));">
+        <img src="Logo.png" alt="Equip Logo" style="width:120px;height:120px;object-fit:contain;">
       </div>
       <div class="sidebar-brand">
-        <h1>Equip Group</h1>
-        <span>Booking Portal</span>
+        <h1 style="font-size:32px;">Equip Group</h1>
+        <span style="font-size:20px;">Booking Portal</span>
       </div>
     </div>
     <div class="sidebar-user">
@@ -736,7 +735,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
       <input type="hidden" id="edit-admin-key">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="admin-name-input" placeholder="e.g. System Administrator"></div>
       <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="admin-username-input" placeholder="e.g. admin"></div>
-      <!-- FIX 4: label is updated dynamically for add vs edit -->
       <div class="form-group">
         <label class="form-label" id="admin-password-label">Password</label>
         <input class="form-input" id="admin-password-input" type="password" placeholder="Set a password">
@@ -785,7 +783,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ═══════════════════════════════════════════════════════════════
-//  SECURITY UTILITIES — FIX 2: PBKDF2 replacing bare SHA-256
+//  SECURITY UTILITIES
 // ═══════════════════════════════════════════════════════════════
 function escapeHTML(str) {
   if (!str) return '';
@@ -804,7 +802,6 @@ function generateSessionToken() {
 }
 
 // Produces "v2:saltBase64:hashBase64"
-// Pass existingSaltB64 when verifying so the same salt is reused.
 async function hashPassword(password, existingSaltB64 = null) {
   const enc  = new TextEncoder();
   const salt = existingSaltB64
@@ -823,23 +820,17 @@ async function hashPassword(password, existingSaltB64 = null) {
   return `v2:${saltB64}:${hashB64}`;
 }
 
-// Legacy SHA-256 — only used internally for migrating old hashes
+// Legacy SHA-256
 async function legacySHA256(password) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-// Verify against any stored format.
-// Returns { matched: bool, needsUpgrade: bool }
-// Handles three stored formats:
-//   v2:salt:hash  — PBKDF2 (current)
-//   64-char hex   — legacy SHA-256
-//   plain text    — incorrectly seeded (auto-upgrades on login)
+// Verify against any stored format
 async function verifyPassword(password, storedHash) {
   if (!storedHash) return { matched: false, needsUpgrade: false };
 
   if (storedHash.startsWith('v2:')) {
-    // Current PBKDF2 format
     const parts = storedHash.split(':');
     if (parts.length !== 3) return { matched: false, needsUpgrade: false };
     const [, saltB64] = parts;
@@ -847,13 +838,10 @@ async function verifyPassword(password, storedHash) {
     return { matched: candidate === storedHash, needsUpgrade: false };
 
   } else if (/^[0-9a-f]{64}$/.test(storedHash)) {
-    // Legacy SHA-256 hex — verify then flag for upgrade
     const sha = await legacySHA256(password);
     return { matched: sha === storedHash, needsUpgrade: true };
 
   } else {
-    // Plain text — seeded without hashing (should never happen after fix)
-    // Accept it once and force immediate upgrade
     return { matched: password === storedHash, needsUpgrade: true };
   }
 }
@@ -925,10 +913,6 @@ function showConfirm(title, message, onConfirm, onCancel = null) {
 
 // ═══════════════════════════════════════════════════════════════
 //  BOOT SEQUENCE
-//  ensureDefaultData inside onAuthStateChanged — auth guaranteed
-//  ready. Each collection checked independently so no single flag
-//  can mask a partially-failed seed.
-//  admins collection readable by all auth users so login can verify credentials
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   setLoadingMsg('Connecting…');
@@ -942,23 +926,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     try {
       setLoadingMsg('Setting up workspace…');
-
-      // Step 1: Seed defaults — auth is ready, rules allow !data.exists() writes
       await ensureDefaultData();
-
       setLoadingMsg('Loading data…');
-
-      // Step 2: Always load user-facing data
       await loadUserData();
-
-      // Step 3: Load admin data for everyone — admins collection is
-      // readable by any authenticated user (passwords are PBKDF2-hashed).
-      // This is required so the login form can verify credentials before
-      // an active admin session exists (chicken-and-egg otherwise).
+      
       try { await loadAdminData(); }
       catch(e) { console.warn('Could not load admin data:', e.message); }
 
-      // Step 4: Restore saved session — data guaranteed populated by now
       const saved = await loadSavedSession();
       if (saved && !isSessionExpired()) {
         S.currentUser = saved.user;
@@ -990,9 +964,6 @@ function isSessionExpired() {
 
 // ═══════════════════════════════════════════════════════════════
 //  LOAD USER DATA
-//  Race condition fixed: resolved flag ensures Promise only
-//  resolves once ALL three collections have returned their
-//  first snapshot.
 // ═══════════════════════════════════════════════════════════════
 function loadUserData() {
   return new Promise((resolve, reject) => {
@@ -1026,15 +997,13 @@ function loadUserData() {
       checkReady();
     });
 
-    // deptPasswords is admin-only in Firebase rules.
-    // Non-admins get a permission error — handled gracefully here so boot never hangs.
     db.ref('deptPasswords').on('value', snap => {
       S.deptPasswords = snap.val() || {};
       ready.deptPasswords = true;
       checkReady();
       if (resolved) refreshUI();
     }, err => {
-      console.warn('deptPasswords blocked (expected for non-admins):', err.message);
+      console.warn('deptPasswords error:', err.message);
       S.deptPasswords = {};
       ready.deptPasswords = true;
       checkReady();
@@ -1055,7 +1024,6 @@ function loadAdminData() {
   });
 }
 
-// FIX 5: refreshUI guards attendee dropdowns from clearing mid-selection
 function refreshUI() {
   if (!S.currentUser) return;
 
@@ -1066,8 +1034,6 @@ function refreshUI() {
     renderAdminTab();
   }
 
-  // Only repopulate attendee dropdowns if the modal is open AND
-  // neither dropdown has an active mid-selection value
   if (document.getElementById('modal-book').classList.contains('open')) {
     const userSel = document.getElementById('att-user-sel');
     const deptSel = document.getElementById('att-dept-sel');
@@ -1079,16 +1045,8 @@ function refreshUI() {
 
 // ═══════════════════════════════════════════════════════════════
 //  SEED DEFAULT DATA
-//  FIX 1: Called inside onAuthStateChanged. Firebase rules allow
-//  writes when !data.exists(), so this works on first deployment
-//  without needing a pre-existing admin session.
 // ═══════════════════════════════════════════════════════════════
 async function ensureDefaultData() {
-  // Check each collection independently — never rely on a single "initialized"
-  // flag, which can be set even if individual writes failed due to rule changes
-  // or network errors during a previous run.
-
-  // Admins — seed only if collection is missing or empty
   let adminsSnap = null;
   try { adminsSnap = await db.ref('admins').once('value'); } catch(e) { adminsSnap = null; }
   if (!adminsSnap || !adminsSnap.exists()) {
@@ -1101,7 +1059,6 @@ async function ensureDefaultData() {
     } catch(e) { console.warn('Admin seed failed:', e.message); }
   }
 
-  // Users — seed only if collection is missing or empty
   let usersSnap = null;
   try { usersSnap = await db.ref('users').once('value'); } catch(e) { usersSnap = null; }
   if (!usersSnap || !usersSnap.exists()) {
@@ -1119,14 +1076,12 @@ async function ensureDefaultData() {
     } catch(e) { console.warn('Users seed failed:', e.message); }
   }
 
-  // Bookings — seed empty node if missing
   let bookingsSnap = null;
   try { bookingsSnap = await db.ref('bookings').once('value'); } catch(e) { bookingsSnap = null; }
   if (!bookingsSnap || !bookingsSnap.exists()) {
     try { await db.ref('bookings').set({}); } catch(e) { console.warn('Bookings seed failed:', e.message); }
   }
 
-  // Dept passwords — seed only if collection is missing or empty
   let dpSnap = null;
   try { dpSnap = await db.ref('deptPasswords').once('value'); } catch(e) { dpSnap = null; }
   if (!dpSnap || !dpSnap.exists()) {
@@ -1162,7 +1117,6 @@ function clearSession() {
   } catch(e) {}
 }
 
-// Retry logic: polls until data is available (max 5 seconds)
 async function loadSavedSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -1221,20 +1175,15 @@ function selectPortal(type) {
     document.getElementById('admin-pass').value = '';
     document.getElementById('login-error').classList.remove('visible');
     showScreen('admin-login-screen');
-    checkSavedCredentials();
-    loadStoredCredential('admin');
   } else {
-    document.getElementById('user-email-input').value     = '';
+    document.getElementById('user-email-input').value    = '';
     document.getElementById('user-dept-pass-input').value = '';
     document.getElementById('user-login-error').classList.remove('visible');
     showScreen('user-login-screen');
-    checkSavedCredentials();
-    loadStoredCredential('user');
   }
 }
 
-// Store credentials using the Credential Management API (Chrome/Edge).
-// Firefox and Safari use autocomplete attributes + their own heuristics instead.
+// Store credentials using Credential Management API
 async function storeCredential(id, password, name) {
   if (!window.PasswordCredential || !navigator.credentials) return;
   try {
@@ -1243,30 +1192,8 @@ async function storeCredential(id, password, name) {
   } catch(e) { console.warn('Credential save failed:', e.message); }
 }
 
-// Attempt to auto-fill saved credentials when a login screen opens.
-// mediation:'optional' shows the account chooser if multiple are saved,
-// or auto-fills silently if only one credential matches.
-async function loadStoredCredential(type) {
-  if (!navigator.credentials) return null;
-  try {
-    const cred = await navigator.credentials.get({
-      password: true,
-      mediation: 'optional'
-    });
-    if (!cred) return null;
-    if (type === 'admin') {
-      document.getElementById('admin-user').value = cred.id;
-      document.getElementById('admin-pass').value = cred.password;
-    } else {
-      document.getElementById('user-email-input').value     = cred.id;
-      document.getElementById('user-dept-pass-input').value = cred.password;
-    }
-    return cred;
-  } catch(e) { return null; }
-}
-
 // ═══════════════════════════════════════════════════════════════
-//  ADMIN LOGIN — FIX 2: PBKDF2 verify + silent hash upgrade
+//  ADMIN LOGIN
 // ═══════════════════════════════════════════════════════════════
 async function doAdminLogin(e) {
   e.preventDefault();
@@ -1300,7 +1227,6 @@ async function doAdminLogin(e) {
     return;
   }
 
-  // Auto-upgrade legacy SHA-256 → PBKDF2 on next successful login
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(p);
@@ -1310,7 +1236,6 @@ async function doAdminLogin(e) {
     } catch(err) { console.warn('Hash upgrade failed:', err.message); }
   }
 
-  // Write session to Firebase — rules on sensitive collections check this
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) {
@@ -1328,7 +1253,7 @@ async function doAdminLogin(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  USER LOGIN — FIX 2: PBKDF2 verify + silent dept hash upgrade
+//  USER LOGIN
 // ═══════════════════════════════════════════════════════════════
 async function doUserLogin(e) {
   e.preventDefault();
@@ -1376,7 +1301,6 @@ async function doUserLogin(e) {
     return;
   }
 
-  // Auto-upgrade legacy SHA-256 → PBKDF2 on next successful login
   if (needsUpgrade) {
     try {
       const newHash = await hashPassword(pass);
@@ -1426,8 +1350,6 @@ function initApp() {
 }
 
 async function doLogout() {
-  // Remove session from Firebase first — unrestricted own-UID write rule
-  // means this can never deadlock regardless of current session state
   try {
     const fbUser = firebase.auth().currentUser;
     if (fbUser) await db.ref(`activeSessions/${fbUser.uid}`).remove();
@@ -1528,7 +1450,6 @@ function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padSta
 function isSameDay(a,b) { return dateStr(a) === dateStr(b); }
 function startOfWeek(d) { const x=new Date(d); x.setDate(x.getDate()-x.getDay()); x.setHours(0,0,0,0); return x; }
 
-// DST-safe addDays
 function addDays(d, n) {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
@@ -2448,7 +2369,6 @@ async function adminDeleteUser(key, btnEl) {
     }, () => {});
 }
 
-// FIX 4: openAddAdminModal and editAdminEntry update the label dynamically
 function openAddAdminModal() {
   document.getElementById('add-admin-title').textContent      = 'Add Admin User';
   document.getElementById('admin-password-label').textContent  = 'Password';
@@ -2471,7 +2391,6 @@ function editAdminEntry(key) {
   openModal('modal-add-admin');
 }
 
-// FIX 4: Password optional on edit — only hashed and updated if provided
 async function saveAdmin() {
   const btn      = document.getElementById('save-admin');
   const btnState = new ButtonState(btn);
