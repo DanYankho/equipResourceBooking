@@ -378,8 +378,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 
 <!-- LOADING SCREEN -->
 <div id="loading-screen" class="screen active">
-  <div class="portal-logo" style="margin-bottom:24px;">
-    <div style="color:var(--navy);font-size:72px;font-weight:bold;font-family:Georgia,serif;">E</div>
+  <div style="width:180px;height:180px;border-radius:36px;background:linear-gradient(135deg,#a8935a,#d6cab0);display:flex;align-items:center;justify-content:center;box-shadow:0 28px 70px rgba(0,0,0,.4);margin-bottom:24px;">
+    <div style="color:#0d2136;font-size:72px;font-weight:bold;font-family:Georgia,serif;">E</div>
   </div>
   <div class="spinner"></div>
   <div class="loading-text" id="loading-msg">Connecting…</div>
@@ -1001,6 +1001,10 @@ function loadUserData() {
       ready.users = true;
       checkReady();
       if (resolved) refreshUI();
+    }, err => {
+      console.warn('users read error:', err.message);
+      ready.users = true;
+      checkReady();
     });
 
     db.ref('bookings').on('value', snap => {
@@ -1008,14 +1012,24 @@ function loadUserData() {
       ready.bookings = true;
       checkReady();
       if (resolved) refreshUI();
+    }, err => {
+      console.warn('bookings read error:', err.message);
+      ready.bookings = true;
+      checkReady();
     });
 
-    // FIX 6: deptPasswords now calls refreshUI on live updates
+    // deptPasswords is admin-only in Firebase rules.
+    // Non-admins get a permission error — handled gracefully here so boot never hangs.
     db.ref('deptPasswords').on('value', snap => {
       S.deptPasswords = snap.val() || {};
       ready.deptPasswords = true;
       checkReady();
       if (resolved) refreshUI();
+    }, err => {
+      console.warn('deptPasswords blocked (expected for non-admins):', err.message);
+      S.deptPasswords = {};
+      ready.deptPasswords = true;
+      checkReady();
     });
 
     setTimeout(() => {
@@ -1067,16 +1081,21 @@ async function ensureDefaultData() {
 
   setLoadingMsg('First run — setting up workspace…');
 
-  const adminsSnap = await db.ref('admins').once('value');
-  if (!adminsSnap.exists()) {
+  // These reads may be blocked by Firebase rules on a truly fresh database
+  // (no admin session yet). Treat permission errors as "doesn't exist" and
+  // proceed — the !data.exists() write rules allow the seed writes regardless.
+  let adminsExist = false;
+  try { adminsExist = (await db.ref('admins').once('value')).exists(); } catch(e) { adminsExist = false; }
+  if (!adminsExist) {
     const hp = await hashPassword('admin123');
     await db.ref('admins').set({
       admin1: { username: 'admin', password: hp, name: 'System Administrator' }
     });
   }
 
-  const usersSnap = await db.ref('users').once('value');
-  if (!usersSnap.exists()) {
+  let usersExist = false;
+  try { usersExist = (await db.ref('users').once('value')).exists(); } catch(e) { usersExist = false; }
+  if (!usersExist) {
     await db.ref('users').set({
       user1: { id:'u1', name:'Alexandra Morgan',  department:'Executive',       role:'individual', email:'a.morgan@corp.com'    },
       user2: { id:'u2', name:'James Whitfield',   department:'Finance',          role:'individual', email:'j.whitfield@corp.com' },
@@ -1088,11 +1107,13 @@ async function ensureDefaultData() {
     });
   }
 
-  const bSnap = await db.ref('bookings').once('value');
-  if (!bSnap.exists()) await db.ref('bookings').set({});
+  let bookingsExist = false;
+  try { bookingsExist = (await db.ref('bookings').once('value')).exists(); } catch(e) { bookingsExist = false; }
+  if (!bookingsExist) await db.ref('bookings').set({});
 
-  const dpSnap = await db.ref('deptPasswords').once('value');
-  if (!dpSnap.exists()) {
+  let dpExist = false;
+  try { dpExist = (await db.ref('deptPasswords').once('value')).exists(); } catch(e) { dpExist = false; }
+  if (!dpExist) {
     await db.ref('deptPasswords').set({
       'Executive':       await hashPassword('exec2024'),
       'Finance':         await hashPassword('finance2024'),
