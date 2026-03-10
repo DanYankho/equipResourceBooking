@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Equip">
 <meta name="theme-color" content="#0d2136">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Equip Booking</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -33,12 +36,11 @@
   --dk-plum:    #512137;
   --white:      #ffffff;
   --danger:     #c0392b;
-  --safe-top:    env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
   --nav-h:      68px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
-html,body{height:100%;overflow:hidden;font-family:'Libre Franklin',sans-serif;color:var(--navy);background:var(--navy);overscroll-behavior:none;}
+html{height:100%;height:100dvh;}
+body{height:100%;height:100dvh;overflow:hidden;font-family:'Libre Franklin',sans-serif;color:var(--navy);background:var(--navy);overscroll-behavior:none;position:fixed;width:100%;}
 button{cursor:pointer;font-family:'Libre Franklin',sans-serif;border:none;background:none;}
 button:active{opacity:.75;}
 input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);-webkit-appearance:none;appearance:none;}
@@ -77,8 +79,9 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 #portal-screen{
   background:linear-gradient(160deg,var(--navy) 0%,var(--dk-teal) 55%,#1a0d1c 100%);
   align-items:center;justify-content:center;overflow-y:auto;
-  padding-top:calc(var(--safe-top) + 20px);
-  padding-bottom:calc(var(--safe-bottom) + 20px);
+  -webkit-overflow-scrolling:touch;
+  padding-top:calc(env(safe-area-inset-top, 0px) + 20px);
+  padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 20px);
 }
 .portal-wrap{width:100%;max-width:380px;padding:0 24px;display:flex;flex-direction:column;align-items:center;}
 .portal-logo-box{
@@ -113,7 +116,8 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .login-screen{
   background:linear-gradient(160deg,var(--navy) 0%,var(--dk-teal) 100%);
   align-items:stretch;overflow-y:auto;
-  padding-top:var(--safe-top);
+  -webkit-overflow-scrolling:touch;
+  padding-top:env(safe-area-inset-top, 0px);
 }
 .login-topbar{
   padding:16px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;
@@ -163,15 +167,26 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 
 /* ─── MAIN APP ─── */
 #app{
-  display:none;flex-direction:column;
+  display:none;
+  position:fixed;
+  inset:0;
+  flex-direction:column;
   background:var(--cream);
-  padding-bottom:calc(var(--nav-h) + var(--safe-bottom));
-  padding-top:var(--safe-top);
+  padding-top:env(safe-area-inset-top, 0px);
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  height:100%;
+  height:100dvh;
 }
 #app.active{display:flex;}
 
 /* ─── PAGE CONTAINER ─── */
-.page{display:none;flex-direction:column;flex:1;overflow:hidden;height:calc(100vh - var(--nav-h) - var(--safe-bottom) - var(--safe-top));}
+.page{
+  display:none;
+  flex-direction:column;
+  flex:1;
+  min-height:0; /* CRITICAL: allows flex child to shrink and scroll on iOS */
+  overflow:hidden;
+}
 .page.active{display:flex;animation:fadeIn .25s ease;}
 
 /* ─── PAGE HEADER ─── */
@@ -191,11 +206,12 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 /* ─── BOTTOM NAV ─── */
 #bottom-nav{
   position:fixed;bottom:0;left:0;right:0;
-  height:calc(var(--nav-h) + var(--safe-bottom));
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   background:var(--navy);
   border-top:1px solid rgba(168,147,90,.2);
   display:none;align-items:flex-start;justify-content:space-around;
-  padding-top:8px;padding-bottom:var(--safe-bottom);
+  padding-top:8px;
+  padding-bottom:env(safe-area-inset-bottom, 0px);
   z-index:200;box-shadow:0 -8px 32px rgba(0,0,0,.25);
 }
 #bottom-nav.active{display:flex;}
@@ -267,7 +283,14 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 }
 
 /* ─── CALENDAR BODY ─── */
-.cal-body{flex:1;overflow-y:auto;background:var(--cream);}
+.cal-body{
+  flex:1;
+  min-height:0; /* critical for iOS flex scroll */
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  background:var(--cream);
+}
 
 /* MONTH VIEW */
 .month-grid-wrap{background:var(--white);}
@@ -317,7 +340,12 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .w-chip.car{background:linear-gradient(135deg,var(--dk-plum),var(--plum));}
 
 /* DAY VIEW */
-.day-scroll{overflow-y:auto;flex:1;}
+.day-scroll{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  flex:1;
+  min-height:0;
+}
 .day-row{
   display:flex;min-height:52px;
   border-bottom:1px solid var(--lt-beige);cursor:pointer;
@@ -362,7 +390,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .mc-day.today-mini{background:var(--gold);color:var(--white);font-weight:700;}
 
 /* ─── BOOKINGS PAGE ─── */
-.bookings-list{flex:1;overflow-y:auto;padding:14px 16px;}
+.bookings-list{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px 16px;
+}
 .bk-card{
   background:var(--white);border-radius:14px;
   border:1px solid var(--lt-beige);margin-bottom:10px;
@@ -407,7 +441,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s;flex-shrink:0;
 }
 .at-tab.active{color:var(--soft-gold);border-bottom-color:var(--gold);}
-.admin-body{flex:1;overflow-y:auto;padding:14px 16px;}
+.admin-body{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px 16px;
+}
 .admin-card{
   background:var(--white);border-radius:12px;border:1px solid var(--lt-beige);
   margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(13,33,54,.05);
@@ -451,7 +491,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .add-btn:active{background:rgba(168,147,90,.06);}
 
 /* ─── ACCOUNT PAGE ─── */
-.account-body{flex:1;overflow-y:auto;padding:0 16px 24px;}
+.account-body{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:0 16px 24px;
+}
 .acct-profile{
   background:linear-gradient(135deg,var(--navy),var(--dk-teal));
   border-radius:18px;padding:24px 20px;margin-bottom:14px;margin-top:14px;
@@ -529,10 +575,13 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 .bottom-sheet{
   position:fixed;bottom:0;left:0;right:0;z-index:500;
   background:var(--white);border-radius:22px 22px 0 0;
-  padding-bottom:calc(16px + var(--safe-bottom));
+  padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
   box-shadow:0 -12px 50px rgba(13,33,54,.25);
   transform:translateY(100%);transition:transform .42s cubic-bezier(.22,.68,0,1.2);
-  max-height:92vh;overflow-y:auto;
+  max-height:92dvh;
+  max-height:92vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
   border-top:1px solid rgba(168,147,90,.2);
 }
 .bottom-sheet.open{transform:translateY(0);}
@@ -1546,7 +1595,7 @@ function renderWeekView(wrap,bks){
   document.getElementById('cal-title-m').textContent=`${fmt(ws)} – ${fmt(we)}`;
   const days=Array.from({length:7},(_,i)=>addDays(ws,i));
   const outer=document.createElement('div');
-  outer.style.cssText='overflow:auto;flex:1;';
+  outer.style.cssText='overflow:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;';
   const hdrRow=document.createElement('div');
   hdrRow.style.cssText='display:flex;position:sticky;top:0;z-index:10;background:var(--navy);';
   const thTime=document.createElement('div');thTime.style.cssText='width:44px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.08);';
@@ -2348,6 +2397,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Keyboard
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAllSheets();});
 });
+
+// ── PWA SERVICE WORKER REGISTRATION ──
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{/* SW optional */});
+  });
+}
 </script>
 </body>
 </html>
