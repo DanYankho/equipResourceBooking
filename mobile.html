@@ -1446,6 +1446,13 @@ async function doAdminLogin(e){
   }
   if(!matched){errEl.textContent='Invalid username or password.';errEl.classList.add('visible');shakeForm('admin-login-screen');return;}
   if(needsUpgrade){try{const h=await hashPassword(p);await db.ref('admins/'+matched._key).update({password:h});}catch(e){}}
+  // Tell browser/password manager to offer saving credentials
+  try{
+    if(window.PasswordCredential){
+      const cred=new PasswordCredential({id:u,password:p,name:matched.name||u});
+      await navigator.credentials.store(cred);
+    }
+  }catch(_){}
   S.currentUser={...matched,type:'admin'};S.isAdmin=true;
   saveSession(S.currentUser,true);initApp();
 }
@@ -1464,6 +1471,13 @@ async function doUserLogin(e){
   const{matched,needsUpgrade}=await verifyPassword(pass,stored);
   if(!matched){errEl.textContent='Incorrect department password.';errEl.classList.add('visible');shakeForm('user-login-screen');return;}
   if(needsUpgrade){try{const h=await hashPassword(pass);await db.ref('deptPasswords/'+user.department).set(h);S.deptPasswords[user.department]=h;}catch(e){}}
+  // Tell browser/password manager to offer saving credentials
+  try{
+    if(window.PasswordCredential){
+      const cred=new PasswordCredential({id:email,password:pass,name:user.name||email});
+      await navigator.credentials.store(cred);
+    }
+  }catch(_){}
   S.currentUser={...user,type:'user'};S.isAdmin=false;
   saveSession(S.currentUser,false);initApp();
 }
@@ -1496,6 +1510,8 @@ function initApp(){
 }
 async function doLogout(){
   showConfirm('Sign out of Equip?','👋',async()=>{
+    // Prevent browser from silently re-logging in
+    try{if(navigator.credentials&&navigator.credentials.preventSilentAccess)await navigator.credentials.preventSilentAccess();}catch(_){}
     clearSession();S.currentUser=null;S.isAdmin=false;S.admins=[];
     document.getElementById('app').classList.remove('active');
     document.getElementById('bottom-nav').classList.remove('active');
