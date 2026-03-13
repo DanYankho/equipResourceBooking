@@ -1133,7 +1133,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
     <input type="hidden" id="edit-user-key">
     <div class="sheet-form-group"><label class="sf-label">Full Name</label><input class="sf-input" id="user-name" placeholder="e.g. Alexandra Morgan"></div>
     <div class="sheet-form-group"><label class="sf-label">Email</label><input class="sf-input" id="user-email" type="email" placeholder="name@company.com"></div>
-    <div class="sheet-form-group"><label class="sf-label">Department</label><input class="sf-input" id="user-dept" placeholder="e.g. Finance"></div>
+    <div class="sheet-form-group"><label class="sf-label">Department</label><select class="sf-select" id="user-dept"></select></div>
     <div class="sheet-form-group">
       <label class="sf-label">Account Type</label>
       <select class="sf-select" id="user-role">
@@ -1555,6 +1555,9 @@ function initApp(){
   if(S.isAdmin){
     document.getElementById('acct-av').classList.add('admin-av');
     document.getElementById('nav-admin-tab').style.display='flex';
+    document.querySelector('.nav-tab-fab').style.display='none'; // admins can't create bookings
+  } else {
+    document.querySelector('.nav-tab-fab').style.display='flex';
   }
   populateAttendeeDropdowns();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1573,6 +1576,7 @@ async function doLogout(){
     document.getElementById('bottom-nav').classList.remove('active');
     document.getElementById('nav-admin-tab').style.display='none';
     document.getElementById('acct-av').classList.remove('admin-av');
+    document.querySelector('.nav-tab-fab').style.display='flex';
     showScreen('portal-screen');
   });
 }
@@ -1903,6 +1907,16 @@ function setRecurrence(r){
     updateRecPreview();
   }
 }
+function populateDeptDropdown(selected){
+  const sel=document.getElementById('user-dept');
+  if(!sel)return;
+  const depts=[...new Set(S.users.map(u=>u.department))].filter(Boolean).sort();
+  // Always include a blank option + the currently selected value even if not in list
+  const all=[...new Set([...depts,selected].filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Select department…</option>'+
+    all.map(d=>`<option value="${escapeHTML(d)}"${d===selected?' selected':''}>${escapeHTML(d)}</option>`).join('');
+}
+
 function populateAttendeeDropdowns(){
   const uSel=document.getElementById('att-user-sel');
   const dSel=document.getElementById('att-dept-sel');
@@ -2182,8 +2196,6 @@ function renderAdminTab(){
   else if(S.adminTab==='deptPasswords')renderDeptPasswords(el);
 }
 function renderAdminBookings(el){
-  const addBtn=document.createElement('button');addBtn.className='add-btn';addBtn.innerHTML='＋ New Booking';
-  addBtn.onclick=()=>openBookSheet(null,null);el.appendChild(addBtn);
   const sorted=[...S.bookings].sort((a,b)=>a.date>b.date?-1:1);
   if(sorted.length===0){el.innerHTML+='<div class="empty-state"><span class="es-icon">📅</span><p>No bookings yet</p></div>';return;}
   sorted.forEach(b=>{
@@ -2273,8 +2285,9 @@ async function saveDeptPassword(dept,safeId){
 // ─── USER CRUD ───
 function openAddUserSheet(){
   document.getElementById('add-user-title').textContent='Add User';
-  ['edit-user-key','user-name','user-email','user-dept'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['edit-user-key','user-name','user-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('user-role').value='individual';
+  populateDeptDropdown('');
   openSheet('sheet-add-user');
 }
 function editUser(key){
@@ -2283,8 +2296,8 @@ function editUser(key){
   document.getElementById('edit-user-key').value=key;
   document.getElementById('user-name').value=u.name||'';
   document.getElementById('user-email').value=u.email||'';
-  document.getElementById('user-dept').value=u.department||'';
   document.getElementById('user-role').value=u.role||'individual';
+  populateDeptDropdown(u.department||'');
   openSheet('sheet-add-user');
 }
 async function saveUser(){
