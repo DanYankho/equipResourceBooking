@@ -1242,6 +1242,7 @@ async function verifyPassword(password,stored){
 // ═══════════════════════════════════════════════════════════════
 let S={
   users:[],bookings:[],admins:[],deptPasswords:{},
+  firebaseUid:null,
   currentUser:null,isAdmin:false,
   resource:'boardroom',view:'week',
   date:new Date(),
@@ -1293,6 +1294,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       catch(e){setLoadMsg('⚠ Auth error');}
       return;
     }
+    S.firebaseUid=fbUser.uid; // store for activeSessions writes
     try{
       setLoadMsg('Setting up…');
       await ensureDefaultData();
@@ -1395,6 +1397,19 @@ async function ensureDefaultData(){
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  ACTIVE SESSION — syncs login state to Firebase so rules work
+// ═══════════════════════════════════════════════════════════════
+async function writeActiveSession(isAdmin){
+  if(!S.firebaseUid) return;
+  try{
+    await db.ref('activeSessions/'+S.firebaseUid).set({
+      isAdmin: isAdmin,
+      loginAt: new Date().toISOString()
+    });
+  }catch(e){ console.warn('activeSessions write failed:',e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  SESSION
 // ═══════════════════════════════════════════════════════════════
 const SK='equipM_session';
@@ -1448,6 +1463,7 @@ async function doAdminLogin(e){
   if(needsUpgrade){try{const h=await hashPassword(p);await db.ref('admins/'+matched._key).update({password:h});}catch(e){}}
   saveCredentials(u,p);
   S.currentUser={...matched,type:'admin'};S.isAdmin=true;
+  await writeActiveSession(true);
   saveSession(S.currentUser,true);initApp();
 }
 async function doUserLogin(e){
@@ -1467,6 +1483,7 @@ async function doUserLogin(e){
   if(needsUpgrade){try{const h=await hashPassword(pass);await db.ref('deptPasswords/'+user.department).set(h);S.deptPasswords[user.department]=h;}catch(e){}}
   saveCredentials(email,pass);
   S.currentUser={...user,type:'user'};S.isAdmin=false;
+  await writeActiveSession(false);
   saveSession(S.currentUser,false);initApp();
 }
 // ═══════════════════════════════════════════════════════════════
@@ -1550,6 +1567,7 @@ async function doLogout(){
   showConfirm('Sign out of Equip?','👋',async()=>{
     // Prevent browser from silently re-logging in
     try{if(navigator.credentials&&navigator.credentials.preventSilentAccess)await navigator.credentials.preventSilentAccess();}catch(_){}
+    try{if(S.firebaseUid)await db.ref('activeSessions/'+S.firebaseUid).remove();}catch(_){}
     clearSession();S.currentUser=null;S.isAdmin=false;S.admins=[];
     document.getElementById('app').classList.remove('active');
     document.getElementById('bottom-nav').classList.remove('active');
@@ -1975,7 +1993,7 @@ async function saveBooking(){
       for(const d of dates){
         await db.ref('bookings').push({
           resource:S.bkResource,date:d,startTime:startT,endTime:endT,
-          user:S.currentUser.name,userId:S.currentUser.id||S.currentUser._key||'',
+          user:S.currentUser.name,userId:S.firebaseUid||S.currentUser.id||S.currentUser._key||'',
           department:S.currentUser.department||'',bookedAs:S.bkAs,
           purpose,attendees:S.bkAttendees.join(', '),
           notes:document.getElementById('sbk-notes').value.trim(),
