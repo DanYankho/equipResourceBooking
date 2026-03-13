@@ -1446,13 +1446,7 @@ async function doAdminLogin(e){
   }
   if(!matched){errEl.textContent='Invalid username or password.';errEl.classList.add('visible');shakeForm('admin-login-screen');return;}
   if(needsUpgrade){try{const h=await hashPassword(p);await db.ref('admins/'+matched._key).update({password:h});}catch(e){}}
-  // Tell browser/password manager to offer saving credentials
-  try{
-    if(window.PasswordCredential){
-      const cred=new PasswordCredential({id:u,password:p,name:matched.name||u});
-      await navigator.credentials.store(cred);
-    }
-  }catch(_){}
+  saveCredentials(u,p);
   S.currentUser={...matched,type:'admin'};S.isAdmin=true;
   saveSession(S.currentUser,true);initApp();
 }
@@ -1471,16 +1465,60 @@ async function doUserLogin(e){
   const{matched,needsUpgrade}=await verifyPassword(pass,stored);
   if(!matched){errEl.textContent='Incorrect department password.';errEl.classList.add('visible');shakeForm('user-login-screen');return;}
   if(needsUpgrade){try{const h=await hashPassword(pass);await db.ref('deptPasswords/'+user.department).set(h);S.deptPasswords[user.department]=h;}catch(e){}}
-  // Tell browser/password manager to offer saving credentials
-  try{
-    if(window.PasswordCredential){
-      const cred=new PasswordCredential({id:email,password:pass,name:user.name||email});
-      await navigator.credentials.store(cred);
-    }
-  }catch(_){}
+  saveCredentials(email,pass);
   S.currentUser={...user,type:'user'};S.isAdmin=false;
   saveSession(S.currentUser,false);initApp();
 }
+// ═══════════════════════════════════════════════════════════════
+//  CREDENTIAL SAVING (cross-platform)
+//  Android Chrome: PasswordCredential API
+//  iOS Safari + Chrome on iOS: hidden iframe form POST trick
+// ═══════════════════════════════════════════════════════════════
+function saveCredentials(id, password){
+  // Android Chrome / desktop Chrome
+  try{
+    if(window.PasswordCredential){
+      navigator.credentials.store(new PasswordCredential({id,password})).catch(()=>{});
+    }
+  }catch(_){}
+  // iOS Safari / Chrome on iOS — needs a real form POST into a hidden iframe
+  // This is the only signal iOS uses to trigger "Save Password?"
+  try{
+    let iframe=document.getElementById('_pw_save_frame');
+    if(!iframe){
+      iframe=document.createElement('iframe');
+      iframe.id='_pw_save_frame';
+      iframe.name='_pw_save_frame';
+      iframe.style.cssText='display:none;position:absolute;width:0;height:0;border:none;';
+      document.body.appendChild(iframe);
+    }
+    const form=document.createElement('form');
+    form.method='POST';
+    form.action=location.href;
+    form.target='_pw_save_frame';
+    form.style.cssText='display:none;position:absolute;';
+    // id field — use 'email' autocomplete when it looks like an email
+    const idIn=document.createElement('input');
+    idIn.type=id.includes('@')?'email':'text';
+    idIn.name='username';
+    idIn.autocomplete=id.includes('@')?'email username':'username';
+    idIn.value=id;
+    // password field
+    const pwIn=document.createElement('input');
+    pwIn.type='password';
+    pwIn.name='password';
+    pwIn.autocomplete='current-password';
+    pwIn.value=password;
+    form.appendChild(idIn);
+    form.appendChild(pwIn);
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(()=>{
+      try{document.body.removeChild(form);}catch(_){}
+    },3000);
+  }catch(_){}
+}
+
 function shakeForm(screenId){
   const form=document.querySelector('#'+screenId+' .login-body');
   if(!form)return;
