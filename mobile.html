@@ -184,7 +184,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   display:none;
   flex-direction:column;
   flex:1;
-  min-height:0; /* CRITICAL: allows flex child to shrink and scroll on iOS */
+  min-height:0;
   overflow:hidden;
 }
 .page.active{display:flex;animation:fadeIn .25s ease;}
@@ -229,7 +229,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   border:2px solid var(--navy);display:none;
 }
 .nav-tab .nt-dot.visible{display:block;}
-/* Center FAB tab */
 .nav-tab-fab{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
   padding:4px 0;position:relative;
@@ -285,7 +284,7 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
 /* ─── CALENDAR BODY ─── */
 .cal-body{
   flex:1;
-  min-height:0; /* critical for iOS flex scroll */
+  min-height:0;
   overflow-y:auto;
   overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
@@ -655,6 +654,29 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   background:transparent;font-size:12px;color:var(--blue-grey);
 }
 .rec-btn.active{border-color:var(--teal);background:rgba(0,69,81,.08);color:var(--teal);font-weight:600;}
+
+/* ── DAY EXCLUSION PICKER ── */
+.day-exclude-row{display:flex;gap:4px;}
+.day-exc-btn{
+  flex:1;padding:8px 4px;border:2px solid var(--grey);border-radius:8px;
+  background:var(--cream);font-size:11px;font-weight:600;color:var(--blue-grey);
+  text-align:center;transition:all .15s;min-width:0;
+}
+/* "included" state — day IS in the series */
+.day-exc-btn.included{
+  border-color:var(--teal);background:rgba(0,69,81,.1);color:var(--teal);
+}
+/* "excluded" state — day is skipped (weekend default) */
+.day-exc-btn.excluded{
+  border-color:var(--grey);background:var(--cream);color:var(--blue-grey);
+  opacity:.55;
+}
+.day-exclude-hint{
+  font-size:11px;color:var(--blue-grey);margin-top:6px;
+  padding:8px 10px;background:rgba(168,147,90,.07);border-radius:8px;
+  border-left:2px solid var(--gold);line-height:1.5;
+}
+
 .rec-preview{
   font-size:12px;color:var(--navy);background:rgba(168,147,90,.12);
   padding:8px 12px;border-radius:8px;margin-top:8px;border-left:3px solid var(--gold);
@@ -715,7 +737,6 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
   padding:10px 14px;border-radius:0 10px 10px 0;font-size:13px;
   color:var(--navy);margin-bottom:14px;
 }
-/* Info card in move/swap */
 .info-card{background:var(--cream);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
 .ic-label{font-size:9px;color:var(--blue-grey);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
 .ic-val{font-size:13px;font-weight:600;color:var(--navy);}
@@ -1047,6 +1068,14 @@ input,select,textarea{font-family:'Libre Franklin',sans-serif;color:var(--navy);
         <button class="rec-btn" data-recurrence="weekly">Weekly</button>
         <button class="rec-btn" data-recurrence="monthly">Monthly</button>
       </div>
+
+      <!-- ── DAY EXCLUSION PICKER (shown for Daily only) ── -->
+      <div id="rec-day-exclude-wrap" style="display:none;margin-top:12px;">
+        <label class="sf-label" style="margin-bottom:6px;">Days to include</label>
+        <div class="day-exclude-row" id="rec-day-btns"></div>
+        <div class="day-exclude-hint">Weekends are excluded by default. Tap any day to toggle it in or out of the series.</div>
+      </div>
+
       <div id="rec-until-wrap" style="display:none;margin-top:10px;">
         <label class="sf-label">Repeat Until</label>
         <input class="sf-input" type="date" id="sbk-rec-until">
@@ -1250,6 +1279,10 @@ let S={
   bkResource:'boardroom',bkAs:'self',
   bkStartMin:540,bkEndMin:600,
   bkAttendees:[],bkRecurrence:'once',
+  // ── NEW: tracks which days of the week are EXCLUDED from a daily series ──
+  // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  // Default: exclude weekends (0 and 6)
+  bkExcludeDays:[0,6],
   editingBooking:null,
   moveTarget:null,swapTarget:null,
   bkFilter:'all',
@@ -1294,7 +1327,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       catch(e){setLoadMsg('⚠ Auth error');}
       return;
     }
-    S.firebaseUid=fbUser.uid; // store for activeSessions writes
+    S.firebaseUid=fbUser.uid;
     try{
       setLoadMsg('Setting up…');
       await ensureDefaultData();
@@ -1397,7 +1430,7 @@ async function ensureDefaultData(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ACTIVE SESSION — syncs login state to Firebase so rules work
+//  ACTIVE SESSION
 // ═══════════════════════════════════════════════════════════════
 async function writeActiveSession(isAdmin){
   if(!S.firebaseUid) return;
@@ -1486,20 +1519,13 @@ async function doUserLogin(e){
   await writeActiveSession(false);
   saveSession(S.currentUser,false);initApp();
 }
-// ═══════════════════════════════════════════════════════════════
-//  CREDENTIAL SAVING (cross-platform)
-//  Android Chrome: PasswordCredential API
-//  iOS Safari + Chrome on iOS: hidden iframe form POST trick
-// ═══════════════════════════════════════════════════════════════
+
 function saveCredentials(id, password){
-  // Android Chrome / desktop Chrome
   try{
     if(window.PasswordCredential){
       navigator.credentials.store(new PasswordCredential({id,password})).catch(()=>{});
     }
   }catch(_){}
-  // iOS Safari / Chrome on iOS — needs a real form POST into a hidden iframe
-  // This is the only signal iOS uses to trigger "Save Password?"
   try{
     let iframe=document.getElementById('_pw_save_frame');
     if(!iframe){
@@ -1514,13 +1540,11 @@ function saveCredentials(id, password){
     form.action=location.href;
     form.target='_pw_save_frame';
     form.style.cssText='display:none;position:absolute;';
-    // id field — use 'email' autocomplete when it looks like an email
     const idIn=document.createElement('input');
     idIn.type=id.includes('@')?'email':'text';
     idIn.name='username';
     idIn.autocomplete=id.includes('@')?'email username':'username';
     idIn.value=id;
-    // password field
     const pwIn=document.createElement('input');
     pwIn.type='password';
     pwIn.name='password';
@@ -1555,7 +1579,7 @@ function initApp(){
   if(S.isAdmin){
     document.getElementById('acct-av').classList.add('admin-av');
     document.getElementById('nav-admin-tab').style.display='flex';
-    document.querySelector('.nav-tab-fab').style.display='none'; // admins can't create bookings
+    document.querySelector('.nav-tab-fab').style.display='none';
   } else {
     document.querySelector('.nav-tab-fab').style.display='flex';
   }
@@ -1568,7 +1592,6 @@ function initApp(){
 }
 async function doLogout(){
   showConfirm('Sign out of Equip?','👋',async()=>{
-    // Prevent browser from silently re-logging in
     try{if(navigator.credentials&&navigator.credentials.preventSilentAccess)await navigator.credentials.preventSilentAccess();}catch(_){}
     try{if(S.firebaseUid)await db.ref('activeSessions/'+S.firebaseUid).remove();}catch(_){}
     clearSession();S.currentUser=null;S.isAdmin=false;S.admins=[];
@@ -1629,7 +1652,6 @@ function startOfWeek(d){const x=new Date(d);x.setDate(x.getDate()-x.getDay());x.
 function bksByDay(bks,ds){return bks.filter(b=>b.date===ds);}
 
 function renderDayView(wrap,bks){
-  const today=new Date();
   document.getElementById('cal-title-m').textContent=
     S.date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
   const ds=dateStr(S.date);
@@ -1850,6 +1872,7 @@ function openBookSheet(prefillDate,prefillTime,editKey=null){
       S.bkResource=b.resource;S.bkAs=b.bookedAs||'self';
       S.bkAttendees=b.attendees?b.attendees.split(',').map(s=>s.trim()).filter(Boolean):[];
       S.bkRecurrence='once';
+      S.bkExcludeDays=[0,6]; // reset to default on edit
       S.bkStartMin=toMin(b.startTime);S.bkEndMin=toMin(b.endTime);
       document.getElementById('sbk-purpose').value=b.purpose||'';
       document.getElementById('sbk-notes').value=b.notes||'';
@@ -1858,7 +1881,9 @@ function openBookSheet(prefillDate,prefillTime,editKey=null){
     }
   }else{
     document.getElementById('sheet-book-title').textContent='New Booking';
-    S.bkResource=S.resource;S.bkAs='self';S.bkAttendees=[];S.bkRecurrence='once';
+    S.bkResource=S.resource;S.bkAs='self';S.bkAttendees=[];
+    S.bkRecurrence='once';
+    S.bkExcludeDays=[0,6]; // default: exclude weekends
     S.bkStartMin=prefillTime?toMin(prefillTime):540;S.bkEndMin=S.bkStartMin+60;
     document.getElementById('sbk-purpose').value='';
     document.getElementById('sbk-notes').value='';
@@ -1870,6 +1895,7 @@ function openBookSheet(prefillDate,prefillTime,editKey=null){
   document.getElementById('sb-conflict').classList.remove('visible');
   document.getElementById('sbk-rec-until').value='';
   document.getElementById('rec-until-wrap').style.display='none';
+  document.getElementById('rec-day-exclude-wrap').style.display='none';
   openSheet('sheet-book');
 }
 function setBkResource(r){
@@ -1896,22 +1922,79 @@ function updateTimePicker(){
   document.getElementById('tp-start').textContent=fromMin(S.bkStartMin);
   document.getElementById('tp-end').textContent=fromMin(S.bkEndMin);
 }
+
+// ─── RECURRENCE ───
 function setRecurrence(r){
   S.bkRecurrence=r;
   document.querySelectorAll('[data-recurrence]').forEach(b=>b.classList.toggle('active',b.dataset.recurrence===r));
-  const wrap=document.getElementById('rec-until-wrap');
-  wrap.style.display=r==='once'?'none':'block';
+
+  const untilWrap=document.getElementById('rec-until-wrap');
+  const dayWrap=document.getElementById('rec-day-exclude-wrap');
+
+  // Show the "Repeat Until" picker for any repeating mode
+  untilWrap.style.display=r==='once'?'none':'block';
+
+  // Show the day picker ONLY for "Daily" — weekdays is already a fixed preset
+  if(r==='daily'){
+    // Reset to "exclude weekends" default each time Daily is freshly selected
+    S.bkExcludeDays=[0,6];
+    dayWrap.style.display='block';
+    renderExcludeDayBtns();
+  }else{
+    dayWrap.style.display='none';
+  }
+
   if(r!=='once'){
     const u=document.getElementById('sbk-rec-until');
     if(!u.value){const def=new Date();def.setMonth(def.getMonth()+3);u.value=dateStr(def);}
     updateRecPreview();
   }
 }
+
+// ─── DAY EXCLUSION BUTTONS ───
+// Renders 7 day-toggle buttons (Sun–Sat).
+// A day that IS included appears with the .included class (teal).
+// A day that IS excluded appears with .excluded (greyed-out).
+function renderExcludeDayBtns(){
+  const wrap=document.getElementById('rec-day-btns');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const DAY_LABELS=['S','M','T','W','T','F','S']; // Sun…Sat abbreviated to 1 char for compact row
+  const DAY_FULL=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  DAY_LABELS.forEach((label,i)=>{
+    const isExcluded=S.bkExcludeDays.includes(i);
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='day-exc-btn '+(isExcluded?'excluded':'included');
+    btn.textContent=label;
+    btn.title=DAY_FULL[i];
+    btn.setAttribute('aria-pressed', String(!isExcluded));
+    btn.onclick=()=>{
+      if(S.bkExcludeDays.includes(i)){
+        // Currently excluded → include it
+        S.bkExcludeDays=S.bkExcludeDays.filter(d=>d!==i);
+      }else{
+        // Currently included → exclude it
+        // Guard: don't let the user exclude ALL days
+        const wouldExcludeAll=S.bkExcludeDays.length===6;
+        if(wouldExcludeAll){notify('At least one day must be included.','error');return;}
+        S.bkExcludeDays=[...S.bkExcludeDays,i].sort();
+      }
+      renderExcludeDayBtns();
+      updateRecPreview();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function setDeptDropdown(selected){
+  populateDeptDropdown(selected);
+}
+
 function populateDeptDropdown(selected){
   const sel=document.getElementById('user-dept');
   if(!sel)return;
   const depts=[...new Set(S.users.map(u=>u.department))].filter(Boolean).sort();
-  // Always include a blank option + the currently selected value even if not in list
   const all=[...new Set([...depts,selected].filter(Boolean))].sort();
   sel.innerHTML='<option value="">Select department…</option>'+
     all.map(d=>`<option value="${escapeHTML(d)}"${d===selected?' selected':''}>${escapeHTML(d)}</option>`).join('');
@@ -1957,12 +2040,21 @@ function checkConflict(){
   );
   document.getElementById('sb-conflict').classList.toggle('visible',conflict);
 }
-function buildRecDates(base,type,until){
+
+// ─── RECURRENCE DATE BUILDER ───
+// excludeDays: array of day-of-week numbers (0=Sun … 6=Sat) to skip.
+// For 'weekdays' the weekend exclusion is always enforced regardless of excludeDays.
+function buildRecDates(base,type,until,excludeDays=[]){
   if(type==='once'||!until||until<base)return[base];
   const dates=[],u=new Date(until+'T12:00:00');
   let cur=new Date(base+'T12:00:00');
+  // For the 'weekdays' preset always enforce Sat+Sun exclusion
+  const effectiveExclude=type==='weekdays'
+    ? [...new Set([...excludeDays,0,6])]
+    : excludeDays;
   while(cur<=u&&dates.length<365){
-    if(type!=='weekdays'||(cur.getDay()!==0&&cur.getDay()!==6))dates.push(dateStr(cur));
+    const dow=cur.getDay();
+    if(!effectiveExclude.includes(dow)) dates.push(dateStr(cur));
     if(type==='daily'||type==='weekdays')cur=addDays(cur,1);
     else if(type==='weekly')cur=addDays(cur,7);
     else if(type==='monthly'){const x=new Date(cur);x.setMonth(x.getMonth()+1);cur=x;}
@@ -1970,14 +2062,22 @@ function buildRecDates(base,type,until){
   }
   return dates.length?dates:[base];
 }
+
 function updateRecPreview(){
   const date=document.getElementById('sbk-date').value;
   const until=document.getElementById('sbk-rec-until').value;
   const prev=document.getElementById('sbk-rec-preview');
   if(!date||!until||S.bkRecurrence==='once'){if(prev)prev.innerHTML='';return;}
-  const dates=buildRecDates(date,S.bkRecurrence,until);
-  if(prev){prev.textContent=`${dates.length} booking${dates.length!==1?'s':''} will be created`;prev.className='rec-preview';}
+  const dates=buildRecDates(date,S.bkRecurrence,until,S.bkExcludeDays);
+  if(prev){
+    const includedNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+      .filter((_,i)=>!S.bkExcludeDays.includes(i)).join(', ');
+    const dayNote=S.bkRecurrence==='daily'?` · ${includedNames}`:'';
+    prev.textContent=`${dates.length} booking${dates.length!==1?'s':''} will be created${dayNote}`;
+    prev.className='rec-preview';
+  }
 }
+
 async function saveBooking(){
   const btn=document.getElementById('sbk-submit');
   const purpose=document.getElementById('sbk-purpose').value.trim();
@@ -1986,7 +2086,7 @@ async function saveBooking(){
   if(!date){notify('Please select a date.','error');return;}
   const startT=fromMin(S.bkStartMin),endT=fromMin(S.bkEndMin);
   const until=document.getElementById('sbk-rec-until').value;
-  const dates=buildRecDates(date,S.bkRecurrence,until);
+  const dates=buildRecDates(date,S.bkRecurrence,until,S.bkExcludeDays);
   btn.disabled=true;btn.textContent='Saving…';
   try{
     if(S.editingBooking){
